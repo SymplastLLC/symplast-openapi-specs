@@ -3,14 +3,21 @@
   "info": {
     "title": "Symplast Appointments Public API",
     "description": "Authenticated, cursor-paged public read surface for appointment data.",
-    "version": "1.85.51"
+    "version": "1.85.58"
   },
+  "servers": [
+    {
+      "url": "https://api.symplast.com"
+    }
+  ],
   "paths": {
     "/v1/appointments": {
       "get": {
         "tags": [
           "Appointments"
         ],
+        "summary": "List appointments",
+        "description": "Returns a cursor-paged feed of the caller's tenant appointments, newest changes first.\nPass `updatedSince` (UTC) to scope by change time and `pageSize` to size the page; follow\nthe `next` link (an opaque `cursor`) to page. Delivery is at-least-once — dedupe on `id`.",
         "operationId": "GetAppointments",
         "responses": {
           "200": {
@@ -19,6 +26,35 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/PagedResponsePublicAppointment"
+                },
+                "example": {
+                  "data": [
+                    {
+                      "id": 1024,
+                      "updatedAt": "2026-01-15T14:30:00Z",
+                      "startsAt": "2026-01-20T09:00:00-05:00",
+                      "endsAt": "2026-01-20T09:30:00-05:00",
+                      "durationMinutes": 30,
+                      "status": {
+                        "id": 5,
+                        "description": "Confirmed"
+                      },
+                      "appointmentType": {
+                        "id": 1,
+                        "description": "Consultation"
+                      },
+                      "providerId": 42,
+                      "locationId": 7,
+                      "patientId": 88231,
+                      "isDeleted": false,
+                      "isCancelled": false
+                    }
+                  ],
+                  "pageSize": 50,
+                  "count": 1,
+                  "hasMore": false,
+                  "nextCursor": null,
+                  "next": null
                 }
               }
             }
@@ -29,6 +65,12 @@
               "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "https://api.symplast.com/problems/invalid-cursor",
+                  "title": "Invalid cursor",
+                  "status": 400,
+                  "detail": "The supplied cursor could not be decoded."
                 }
               }
             }
@@ -39,6 +81,12 @@
               "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "https://api.symplast.com/problems/unauthenticated",
+                  "title": "Unauthenticated",
+                  "status": 401,
+                  "detail": "A valid bearer token is required to access this resource."
                 }
               }
             }
@@ -51,14 +99,18 @@
         "tags": [
           "Appointments"
         ],
+        "summary": "Get an appointment by id",
+        "description": "Returns a single appointment by its identifier, scoped to the caller's tenant. An id that\ndoes not exist in the tenant returns 404 (a cross-tenant id is indistinguishable from a\nmissing one — no disclosure).",
         "operationId": "GetAppointmentById",
         "parameters": [
           {
             "name": "id",
             "in": "path",
+            "description": "The appointment identifier, unique within the caller's tenant.",
             "required": true,
             "schema": {
-              "$ref": "#/components/schemas/Int32"
+              "type": "integer",
+              "format": "int32"
             }
           }
         ],
@@ -69,6 +121,26 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/PublicAppointment"
+                },
+                "example": {
+                  "id": 1024,
+                  "updatedAt": "2026-01-15T14:30:00Z",
+                  "startsAt": "2026-01-20T09:00:00-05:00",
+                  "endsAt": "2026-01-20T09:30:00-05:00",
+                  "durationMinutes": 30,
+                  "status": {
+                    "id": 5,
+                    "description": "Confirmed"
+                  },
+                  "appointmentType": {
+                    "id": 1,
+                    "description": "Consultation"
+                  },
+                  "providerId": 42,
+                  "locationId": 7,
+                  "patientId": 88231,
+                  "isDeleted": false,
+                  "isCancelled": false
                 }
               }
             }
@@ -79,6 +151,12 @@
               "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "https://api.symplast.com/problems/unauthenticated",
+                  "title": "Unauthenticated",
+                  "status": 401,
+                  "detail": "A valid bearer token is required to access this resource."
                 }
               }
             }
@@ -89,6 +167,12 @@
               "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "https://api.symplast.com/problems/not-found",
+                  "title": "Not found",
+                  "status": 404,
+                  "detail": "The requested appointment does not exist in this tenant."
                 }
               }
             }
@@ -101,14 +185,28 @@
         "tags": [
           "Lookups"
         ],
+        "summary": "List appointment types",
+        "description": "Returns the caller tenant's appointment-type vocabulary (id, description, default duration, deleted flag).",
+        "operationId": "GetAppointmentTypes",
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ListAppointmentTypeLookup"
-                }
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AppointmentTypeLookup"
+                  }
+                },
+                "example": [
+                  {
+                    "id": 1,
+                    "description": "Consultation",
+                    "durationInMinutes": 30,
+                    "isDeleted": false
+                  }
+                ]
               }
             }
           }
@@ -120,14 +218,27 @@
         "tags": [
           "Lookups"
         ],
+        "summary": "List appointment purposes",
+        "description": "Returns the caller tenant's appointment-purpose vocabulary (id, description, deleted flag).",
+        "operationId": "GetAppointmentPurposes",
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ListAppointmentPurposeLookup"
-                }
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AppointmentPurposeLookup"
+                  }
+                },
+                "example": [
+                  {
+                    "id": 2,
+                    "description": "New Patient",
+                    "isDeleted": false
+                  }
+                ]
               }
             }
           }
@@ -139,14 +250,28 @@
         "tags": [
           "Lookups"
         ],
+        "summary": "List appointment statuses",
+        "description": "Returns the caller tenant's appointment-status vocabulary (id, name, description, deleted flag).",
+        "operationId": "GetAppointmentStatuses",
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ListAppointmentStatusLookup"
-                }
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AppointmentStatusLookup"
+                  }
+                },
+                "example": [
+                  {
+                    "id": 5,
+                    "name": "Confirmed",
+                    "description": "Appointment confirmed by the patient",
+                    "isDeleted": false
+                  }
+                ]
               }
             }
           }
@@ -158,14 +283,30 @@
         "tags": [
           "Lookups"
         ],
+        "summary": "List appointment stages",
+        "description": "Returns the caller tenant's appointment-stage vocabulary; each stage lists the status ids it couples to.",
+        "operationId": "GetAppointmentStages",
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ListAppointmentStageLookup"
-                }
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AppointmentStageLookup"
+                  }
+                },
+                "example": [
+                  {
+                    "stageType": "Scheduled",
+                    "description": "Scheduled stage",
+                    "statusIds": [
+                      5,
+                      6
+                    ]
+                  }
+                ]
               }
             }
           }
@@ -177,14 +318,26 @@
         "tags": [
           "Lookups"
         ],
+        "summary": "List appointment payment types",
+        "description": "Returns the caller tenant's appointment payment-type vocabulary (id, description).",
+        "operationId": "GetAppointmentPaymentTypes",
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ListPaymentTypeLookup"
-                }
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PaymentTypeLookup"
+                  }
+                },
+                "example": [
+                  {
+                    "id": 1,
+                    "description": "Cash"
+                  }
+                ]
               }
             }
           }
@@ -196,7 +349,9 @@
         "tags": [
           "Lookups"
         ],
+        "summary": "List CPT codes",
         "description": "Tenant-scoped CPT master codes. Offset-paged via `skip` + `pageSize` (max effective page size 499; follow `next` to advance).",
+        "operationId": "GetCptCodes",
         "responses": {
           "200": {
             "description": "OK",
@@ -204,6 +359,20 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/PagedResponseCptCodeLookup"
+                },
+                "example": {
+                  "data": [
+                    {
+                      "id": 101,
+                      "code": "99213",
+                      "description": "Office/outpatient visit, established patient"
+                    }
+                  ],
+                  "pageSize": 50,
+                  "count": 1,
+                  "hasMore": false,
+                  "nextCursor": null,
+                  "next": null
                 }
               }
             }
@@ -216,7 +385,9 @@
         "tags": [
           "Lookups"
         ],
+        "summary": "List ICD codes",
         "description": "Tenant-scoped ICD master codes. Offset-paged via `skip` + `pageSize` (max effective page size 499; follow `next` to advance).",
+        "operationId": "GetIcdCodes",
         "responses": {
           "200": {
             "description": "OK",
@@ -224,6 +395,20 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/PagedResponseIcdCodeLookup"
+                },
+                "example": {
+                  "data": [
+                    {
+                      "id": 201,
+                      "code": "E11.9",
+                      "description": "Type 2 diabetes mellitus without complications"
+                    }
+                  ],
+                  "pageSize": 50,
+                  "count": 1,
+                  "hasMore": false,
+                  "nextCursor": null,
+                  "next": null
                 }
               }
             }
@@ -236,7 +421,9 @@
         "tags": [
           "Lookups"
         ],
+        "summary": "List modifier codes",
         "description": "Tenant-scoped modifier master codes. Offset-paged via `skip` + `pageSize` (max effective page size 499; follow `next` to advance).",
+        "operationId": "GetModifierCodes",
         "responses": {
           "200": {
             "description": "OK",
@@ -244,6 +431,20 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/PagedResponseModifierCodeLookup"
+                },
+                "example": {
+                  "data": [
+                    {
+                      "id": 301,
+                      "code": "25",
+                      "description": "Significant, separately identifiable E/M service"
+                    }
+                  ],
+                  "pageSize": 50,
+                  "count": 1,
+                  "hasMore": false,
+                  "nextCursor": null,
+                  "next": null
                 }
               }
             }
@@ -263,16 +464,25 @@
         "type": "object",
         "properties": {
           "id": {
-            "$ref": "#/components/schemas/Int32"
+            "type": "integer",
+            "format": "int32",
+            "example": 2
           },
           "description": {
-            "$ref": "#/components/schemas/String"
+            "type": "string",
+            "example": "New Patient"
           },
           "isDeleted": {
-            "$ref": "#/components/schemas/Boolean"
+            "type": "boolean",
+            "example": false
           }
         },
-        "description": "An appointment purpose vocabulary entry (tenant-scoped)."
+        "description": "An appointment purpose vocabulary entry (tenant-scoped).",
+        "example": {
+          "id": 2,
+          "description": "New Patient",
+          "isDeleted": false
+        }
       },
       "AppointmentStageLookup": {
         "required": [
@@ -283,16 +493,34 @@
         "type": "object",
         "properties": {
           "stageType": {
-            "$ref": "#/components/schemas/String"
+            "type": "string",
+            "example": "Scheduled"
           },
           "description": {
-            "$ref": "#/components/schemas/String"
+            "type": "string",
+            "example": "Scheduled stage"
           },
           "statusIds": {
-            "$ref": "#/components/schemas/IReadOnlyListInt32"
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "example": [
+              5,
+              6
+            ]
           }
         },
-        "description": "An appointment stage vocabulary entry (couples to statuses)."
+        "description": "An appointment stage vocabulary entry (couples to statuses).",
+        "example": {
+          "stageType": "Scheduled",
+          "description": "Scheduled stage",
+          "statusIds": [
+            5,
+            6
+          ]
+        }
       },
       "AppointmentStatusLookup": {
         "required": [
@@ -304,19 +532,30 @@
         "type": "object",
         "properties": {
           "id": {
-            "$ref": "#/components/schemas/Int32"
+            "type": "integer",
+            "format": "int32",
+            "example": 5
           },
           "name": {
-            "$ref": "#/components/schemas/String"
+            "type": "string",
+            "example": "Confirmed"
           },
           "description": {
-            "$ref": "#/components/schemas/String"
+            "type": "string",
+            "example": "Appointment confirmed by the patient"
           },
           "isDeleted": {
-            "$ref": "#/components/schemas/Boolean"
+            "type": "boolean",
+            "example": false
           }
         },
-        "description": "An appointment status vocabulary entry from per-tenant `StatusMaster`."
+        "description": "An appointment status vocabulary entry from per-tenant `StatusMaster`.",
+        "example": {
+          "id": 5,
+          "name": "Confirmed",
+          "description": "Appointment confirmed by the patient",
+          "isDeleted": false
+        }
       },
       "AppointmentTypeLookup": {
         "required": [
@@ -328,29 +567,34 @@
         "type": "object",
         "properties": {
           "id": {
-            "$ref": "#/components/schemas/Int32"
+            "type": "integer",
+            "format": "int32",
+            "example": 1
           },
           "description": {
-            "$ref": "#/components/schemas/String"
+            "type": "string",
+            "example": "Consultation"
           },
           "durationInMinutes": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/NullableInt32"
-              }
-            ]
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32",
+            "example": 30
           },
           "isDeleted": {
-            "$ref": "#/components/schemas/Boolean"
+            "type": "boolean",
+            "example": false
           }
         },
-        "description": "An appointment type vocabulary entry (tenant-scoped)."
-      },
-      "Boolean": {
-        "type": "boolean"
+        "description": "An appointment type vocabulary entry (tenant-scoped).",
+        "example": {
+          "id": 1,
+          "description": "Consultation",
+          "durationInMinutes": 30,
+          "isDeleted": false
+        }
       },
       "CptCodeLookup": {
         "required": [
@@ -361,24 +605,25 @@
         "type": "object",
         "properties": {
           "id": {
-            "$ref": "#/components/schemas/Int32"
+            "type": "integer",
+            "format": "int32",
+            "example": 101
           },
           "code": {
-            "$ref": "#/components/schemas/String"
+            "type": "string",
+            "example": "99213"
           },
           "description": {
-            "$ref": "#/components/schemas/String"
+            "type": "string",
+            "example": "Office/outpatient visit, established patient"
           }
         },
-        "description": "A CPT master code vocabulary entry (tenant-scoped by `ClientRefID`)."
-      },
-      "DateTime": {
-        "type": "string",
-        "format": "date-time"
-      },
-      "DateTimeOffset": {
-        "type": "string",
-        "format": "date-time"
+        "description": "A CPT master code vocabulary entry (tenant-scoped by `ClientRefID`).",
+        "example": {
+          "id": 101,
+          "code": "99213",
+          "description": "Office/outpatient visit, established patient"
+        }
       },
       "IcdCodeLookup": {
         "required": [
@@ -389,79 +634,24 @@
         "type": "object",
         "properties": {
           "id": {
-            "$ref": "#/components/schemas/Int32"
+            "type": "integer",
+            "format": "int32",
+            "example": 201
           },
           "code": {
-            "$ref": "#/components/schemas/String"
+            "type": "string",
+            "example": "E11.9"
           },
           "description": {
-            "$ref": "#/components/schemas/String"
+            "type": "string",
+            "example": "Type 2 diabetes mellitus without complications"
           }
         },
-        "description": "An ICD master code vocabulary entry (tenant-scoped by `ClientRefID`)."
-      },
-      "Int32": {
-        "type": "integer",
-        "format": "int32"
-      },
-      "IReadOnlyListCptCodeLookup": {
-        "type": "array",
-        "items": {
-          "$ref": "#/components/schemas/CptCodeLookup"
-        }
-      },
-      "IReadOnlyListIcdCodeLookup": {
-        "type": "array",
-        "items": {
-          "$ref": "#/components/schemas/IcdCodeLookup"
-        }
-      },
-      "IReadOnlyListInt32": {
-        "type": "array",
-        "items": {
-          "$ref": "#/components/schemas/Int32"
-        }
-      },
-      "IReadOnlyListModifierCodeLookup": {
-        "type": "array",
-        "items": {
-          "$ref": "#/components/schemas/ModifierCodeLookup"
-        }
-      },
-      "IReadOnlyListPublicAppointment": {
-        "type": "array",
-        "items": {
-          "$ref": "#/components/schemas/PublicAppointment"
-        }
-      },
-      "ListAppointmentPurposeLookup": {
-        "type": "array",
-        "items": {
-          "$ref": "#/components/schemas/AppointmentPurposeLookup"
-        }
-      },
-      "ListAppointmentStageLookup": {
-        "type": "array",
-        "items": {
-          "$ref": "#/components/schemas/AppointmentStageLookup"
-        }
-      },
-      "ListAppointmentStatusLookup": {
-        "type": "array",
-        "items": {
-          "$ref": "#/components/schemas/AppointmentStatusLookup"
-        }
-      },
-      "ListAppointmentTypeLookup": {
-        "type": "array",
-        "items": {
-          "$ref": "#/components/schemas/AppointmentTypeLookup"
-        }
-      },
-      "ListPaymentTypeLookup": {
-        "type": "array",
-        "items": {
-          "$ref": "#/components/schemas/PaymentTypeLookup"
+        "description": "An ICD master code vocabulary entry (tenant-scoped by `ClientRefID`).",
+        "example": {
+          "id": 201,
+          "code": "E11.9",
+          "description": "Type 2 diabetes mellitus without complications"
         }
       },
       "LookupRef": {
@@ -472,22 +662,25 @@
         "type": "object",
         "properties": {
           "id": {
+            "type": "integer",
             "description": "The lookup identifier (tenant-scoped).",
-            "$ref": "#/components/schemas/Int32"
+            "format": "int32",
+            "example": 5
           },
           "description": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "description": "The lookup description; `null` when the source description is null.",
-                "$ref": "#/components/schemas/String"
-              }
-            ]
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The lookup description; `null` when the source description is null.",
+            "example": "Confirmed"
           }
         },
-        "description": "A tenant-scoped reference to a lookup value, exposed as a stable-per-tenant id plus its human\ndescription. Used for LookupRef? PublicAppointment.Status and\nLookupRef? PublicAppointment.AppointmentType. The id is NOT stable across tenants."
+        "description": "A tenant-scoped reference to a lookup value, exposed as a stable-per-tenant id plus its human\ndescription. Used for LookupRef? PublicAppointment.Status and\nLookupRef? PublicAppointment.AppointmentType. The id is NOT stable across tenants.",
+        "example": {
+          "id": 5,
+          "description": "Confirmed"
+        }
       },
       "ModifierCodeLookup": {
         "required": [
@@ -498,20 +691,25 @@
         "type": "object",
         "properties": {
           "id": {
-            "$ref": "#/components/schemas/Int32"
+            "type": "integer",
+            "format": "int32",
+            "example": 301
           },
           "code": {
-            "$ref": "#/components/schemas/String"
+            "type": "string",
+            "example": "25"
           },
           "description": {
-            "$ref": "#/components/schemas/String"
+            "type": "string",
+            "example": "Significant, separately identifiable E/M service"
           }
         },
-        "description": "A modifier master code vocabulary entry (tenant-scoped)."
-      },
-      "NullableInt32": {
-        "type": "integer",
-        "format": "int32"
+        "description": "A modifier master code vocabulary entry (tenant-scoped).",
+        "example": {
+          "id": 301,
+          "code": "25",
+          "description": "Significant, separately identifiable E/M service"
+        }
       },
       "PagedResponseCptCodeLookup": {
         "required": [
@@ -523,37 +721,59 @@
         "type": "object",
         "properties": {
           "data": {
-            "$ref": "#/components/schemas/IReadOnlyListCptCodeLookup"
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CptCodeLookup"
+            },
+            "example": [
+              {
+                "id": 101,
+                "code": "99213",
+                "description": "Office/outpatient visit, established patient"
+              }
+            ]
           },
           "pageSize": {
-            "$ref": "#/components/schemas/Int32"
+            "type": "integer",
+            "format": "int32",
+            "example": 50
           },
           "count": {
-            "$ref": "#/components/schemas/Int32"
+            "type": "integer",
+            "format": "int32",
+            "example": 1
           },
           "hasMore": {
-            "$ref": "#/components/schemas/Boolean"
+            "type": "boolean",
+            "example": false
           },
           "nextCursor": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/String"
-              }
+            "type": [
+              "null",
+              "string"
             ]
           },
           "next": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/String"
-              }
+            "type": [
+              "null",
+              "string"
             ]
           }
+        },
+        "description": "A single page of CptCodeLookup items with `hasMore` plus `self`/`next` paging links.",
+        "example": {
+          "data": [
+            {
+              "id": 101,
+              "code": "99213",
+              "description": "Office/outpatient visit, established patient"
+            }
+          ],
+          "pageSize": 50,
+          "count": 1,
+          "hasMore": false,
+          "nextCursor": null,
+          "next": null
         }
       },
       "PagedResponseIcdCodeLookup": {
@@ -566,37 +786,59 @@
         "type": "object",
         "properties": {
           "data": {
-            "$ref": "#/components/schemas/IReadOnlyListIcdCodeLookup"
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IcdCodeLookup"
+            },
+            "example": [
+              {
+                "id": 201,
+                "code": "E11.9",
+                "description": "Type 2 diabetes mellitus without complications"
+              }
+            ]
           },
           "pageSize": {
-            "$ref": "#/components/schemas/Int32"
+            "type": "integer",
+            "format": "int32",
+            "example": 50
           },
           "count": {
-            "$ref": "#/components/schemas/Int32"
+            "type": "integer",
+            "format": "int32",
+            "example": 1
           },
           "hasMore": {
-            "$ref": "#/components/schemas/Boolean"
+            "type": "boolean",
+            "example": false
           },
           "nextCursor": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/String"
-              }
+            "type": [
+              "null",
+              "string"
             ]
           },
           "next": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/String"
-              }
+            "type": [
+              "null",
+              "string"
             ]
           }
+        },
+        "description": "A single page of IcdCodeLookup items with `hasMore` plus `self`/`next` paging links.",
+        "example": {
+          "data": [
+            {
+              "id": 201,
+              "code": "E11.9",
+              "description": "Type 2 diabetes mellitus without complications"
+            }
+          ],
+          "pageSize": 50,
+          "count": 1,
+          "hasMore": false,
+          "nextCursor": null,
+          "next": null
         }
       },
       "PagedResponseModifierCodeLookup": {
@@ -609,37 +851,59 @@
         "type": "object",
         "properties": {
           "data": {
-            "$ref": "#/components/schemas/IReadOnlyListModifierCodeLookup"
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ModifierCodeLookup"
+            },
+            "example": [
+              {
+                "id": 301,
+                "code": "25",
+                "description": "Significant, separately identifiable E/M service"
+              }
+            ]
           },
           "pageSize": {
-            "$ref": "#/components/schemas/Int32"
+            "type": "integer",
+            "format": "int32",
+            "example": 50
           },
           "count": {
-            "$ref": "#/components/schemas/Int32"
+            "type": "integer",
+            "format": "int32",
+            "example": 1
           },
           "hasMore": {
-            "$ref": "#/components/schemas/Boolean"
+            "type": "boolean",
+            "example": false
           },
           "nextCursor": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/String"
-              }
+            "type": [
+              "null",
+              "string"
             ]
           },
           "next": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/String"
-              }
+            "type": [
+              "null",
+              "string"
             ]
           }
+        },
+        "description": "A single page of ModifierCodeLookup items with `hasMore` plus `self`/`next` paging links.",
+        "example": {
+          "data": [
+            {
+              "id": 301,
+              "code": "25",
+              "description": "Significant, separately identifiable E/M service"
+            }
+          ],
+          "pageSize": 50,
+          "count": 1,
+          "hasMore": false,
+          "nextCursor": null,
+          "next": null
         }
       },
       "PagedResponsePublicAppointment": {
@@ -652,37 +916,89 @@
         "type": "object",
         "properties": {
           "data": {
-            "$ref": "#/components/schemas/IReadOnlyListPublicAppointment"
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublicAppointment"
+            },
+            "example": [
+              {
+                "id": 1024,
+                "updatedAt": "2026-01-15T14:30:00Z",
+                "startsAt": "2026-01-20T09:00:00-05:00",
+                "endsAt": "2026-01-20T09:30:00-05:00",
+                "durationMinutes": 30,
+                "status": {
+                  "id": 5,
+                  "description": "Confirmed"
+                },
+                "appointmentType": {
+                  "id": 1,
+                  "description": "Consultation"
+                },
+                "providerId": 42,
+                "locationId": 7,
+                "patientId": 88231,
+                "isDeleted": false,
+                "isCancelled": false
+              }
+            ]
           },
           "pageSize": {
-            "$ref": "#/components/schemas/Int32"
+            "type": "integer",
+            "format": "int32",
+            "example": 50
           },
           "count": {
-            "$ref": "#/components/schemas/Int32"
+            "type": "integer",
+            "format": "int32",
+            "example": 1
           },
           "hasMore": {
-            "$ref": "#/components/schemas/Boolean"
+            "type": "boolean",
+            "example": false
           },
           "nextCursor": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/String"
-              }
+            "type": [
+              "null",
+              "string"
             ]
           },
           "next": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/String"
-              }
+            "type": [
+              "null",
+              "string"
             ]
           }
+        },
+        "description": "A single page of PublicAppointment items with `hasMore` plus `self`/`next` paging links.",
+        "example": {
+          "data": [
+            {
+              "id": 1024,
+              "updatedAt": "2026-01-15T14:30:00Z",
+              "startsAt": "2026-01-20T09:00:00-05:00",
+              "endsAt": "2026-01-20T09:30:00-05:00",
+              "durationMinutes": 30,
+              "status": {
+                "id": 5,
+                "description": "Confirmed"
+              },
+              "appointmentType": {
+                "id": 1,
+                "description": "Consultation"
+              },
+              "providerId": 42,
+              "locationId": 7,
+              "patientId": 88231,
+              "isDeleted": false,
+              "isCancelled": false
+            }
+          ],
+          "pageSize": 50,
+          "count": 1,
+          "hasMore": false,
+          "nextCursor": null,
+          "next": null
         }
       },
       "PaymentTypeLookup": {
@@ -693,67 +1009,66 @@
         "type": "object",
         "properties": {
           "id": {
-            "$ref": "#/components/schemas/Int32"
+            "type": "integer",
+            "format": "int32",
+            "example": 1
           },
           "description": {
-            "$ref": "#/components/schemas/String"
+            "type": "string",
+            "example": "Cash"
           }
         },
-        "description": "An appointment payment-type vocabulary entry (tenant-scoped)."
+        "description": "An appointment payment-type vocabulary entry (tenant-scoped).",
+        "example": {
+          "id": 1,
+          "description": "Cash"
+        }
       },
       "ProblemDetails": {
         "type": "object",
         "properties": {
           "type": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/String"
-              }
-            ]
+            "type": [
+              "null",
+              "string"
+            ],
+            "example": "https://api.symplast.com/problems/invalid-cursor"
           },
           "title": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/String"
-              }
-            ]
+            "type": [
+              "null",
+              "string"
+            ],
+            "example": "Invalid cursor"
           },
           "status": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/NullableInt32"
-              }
-            ]
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32",
+            "example": 400
           },
           "detail": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/String"
-              }
-            ]
+            "type": [
+              "null",
+              "string"
+            ],
+            "example": "The supplied cursor could not be decoded."
           },
           "instance": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/String"
-              }
+            "type": [
+              "null",
+              "string"
             ]
           }
+        },
+        "description": "RFC 9457 problem details describing an error response.",
+        "example": {
+          "type": "https://api.symplast.com/problems/invalid-cursor",
+          "title": "Invalid cursor",
+          "status": 400,
+          "detail": "The supplied cursor could not be decoded."
         }
       },
       "PublicAppointment": {
@@ -771,24 +1086,34 @@
         "type": "object",
         "properties": {
           "id": {
+            "type": "integer",
             "description": "Gets the appointment identifier (`AppointmentCalendarId`).",
-            "$ref": "#/components/schemas/Int32"
+            "format": "int32",
+            "example": 1024
           },
           "updatedAt": {
+            "type": "string",
             "description": "Gets the last-changed timestamp as a genuine UTC instant (`Z`). This is the change-feed\nwatermark; a consumer resumes at `updatedSince = lastSeen − overlap` using this value.",
-            "$ref": "#/components/schemas/DateTime"
+            "format": "date-time",
+            "example": "2026-01-15T14:30:00Z"
           },
           "startsAt": {
+            "type": "string",
             "description": "Gets when the appointment starts, as ISO-8601 with the location's UTC offset (preserves the\npractice-local wall-clock, e.g. \"9am at the practice\"). Falls back to UTC when the location\ntimezone is unavailable.",
-            "$ref": "#/components/schemas/DateTimeOffset"
+            "format": "date-time",
+            "example": "2026-01-20T09:00:00-05:00"
           },
           "endsAt": {
+            "type": "string",
             "description": "Gets when the appointment ends, using the same offset convention as DateTimeOffset PublicAppointment.StartsAt.",
-            "$ref": "#/components/schemas/DateTimeOffset"
+            "format": "date-time",
+            "example": "2026-01-20T09:30:00-05:00"
           },
           "durationMinutes": {
+            "type": "integer",
             "description": "Gets the appointment duration in whole minutes (`End − Start`).",
-            "$ref": "#/components/schemas/Int32"
+            "format": "int32",
+            "example": 30
           },
           "status": {
             "oneOf": [
@@ -799,7 +1124,11 @@
                 "description": "Gets the appointment status as a tenant-scoped LookupRef, or `null` when the\nstatus foreign key is null / unmatched (feed-complete LEFT JOIN).",
                 "$ref": "#/components/schemas/LookupRef"
               }
-            ]
+            ],
+            "example": {
+              "id": 5,
+              "description": "Confirmed"
+            }
           },
           "appointmentType": {
             "oneOf": [
@@ -810,54 +1139,87 @@
                 "description": "Gets the appointment type as a tenant-scoped LookupRef, or `null` when the\ntype foreign key is null / unmatched (feed-complete LEFT JOIN).",
                 "$ref": "#/components/schemas/LookupRef"
               }
-            ]
+            ],
+            "example": {
+              "id": 1,
+              "description": "Consultation"
+            }
           },
           "providerId": {
+            "type": "integer",
             "description": "Gets the provider (physician) identifier.",
-            "$ref": "#/components/schemas/Int32"
+            "format": "int32",
+            "example": 42
           },
           "locationId": {
+            "type": "integer",
             "description": "Gets the location (branch) identifier.",
-            "$ref": "#/components/schemas/Int32"
+            "format": "int32",
+            "example": 7
           },
           "patientId": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "description": "Gets the raw patient identifier, or `null` when no patient is assigned. PHI under BAA +\naudit (tokenization dropped for v1).",
-                "$ref": "#/components/schemas/NullableInt32"
-              }
-            ]
+            "type": [
+              "null",
+              "integer"
+            ],
+            "description": "Gets the raw patient identifier, or `null` when no patient is assigned. PHI under BAA +\naudit (tokenization dropped for v1).",
+            "format": "int32",
+            "example": 88231
           },
           "isDeleted": {
+            "type": "boolean",
             "description": "Gets a value indicating whether the appointment is deleted (indicator, not filtered out).",
-            "$ref": "#/components/schemas/Boolean"
+            "example": false
           },
           "isCancelled": {
+            "type": "boolean",
             "description": "Gets a value indicating whether the appointment is cancelled (indicator, not filtered out).",
-            "$ref": "#/components/schemas/Boolean"
+            "example": false
           }
         },
-        "description": "The PHI-minimized public projection of an appointment for third-party reporting integrations."
-      },
-      "String": {
-        "type": "string"
+        "description": "The PHI-minimized public projection of an appointment for third-party reporting integrations.",
+        "example": {
+          "id": 1024,
+          "updatedAt": "2026-01-15T14:30:00Z",
+          "startsAt": "2026-01-20T09:00:00-05:00",
+          "endsAt": "2026-01-20T09:30:00-05:00",
+          "durationMinutes": 30,
+          "status": {
+            "id": 5,
+            "description": "Confirmed"
+          },
+          "appointmentType": {
+            "id": 1,
+            "description": "Consultation"
+          },
+          "providerId": 42,
+          "locationId": 7,
+          "patientId": 88231,
+          "isDeleted": false,
+          "isCancelled": false
+        }
+      }
+    },
+    "securitySchemes": {
+      "Bearer": {
+        "type": "http",
+        "description": "Bearer access token. Send it as the `Authorization: Bearer <token>` header.",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
       }
     }
   },
+  "security": [
+    {
+      "Bearer": []
+    }
+  ],
   "tags": [
     {
       "name": "Appointments"
     },
     {
       "name": "Lookups"
-    }
-  ],
-  "servers": [
-    {
-      "url": "https://api.symplast.com"
     }
   ]
 }
