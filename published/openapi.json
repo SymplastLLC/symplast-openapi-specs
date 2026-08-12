@@ -1,0 +1,863 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "Symplast Appointments Public API",
+    "description": "Authenticated, cursor-paged public read surface for appointment data.",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/v1/appointments": {
+      "get": {
+        "tags": [
+          "Appointments"
+        ],
+        "operationId": "GetAppointments",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedResponsePublicAppointment"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/appointments/{id}": {
+      "get": {
+        "tags": [
+          "Appointments"
+        ],
+        "operationId": "GetAppointmentById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicAppointment"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/appointment-types": {
+      "get": {
+        "tags": [
+          "Lookups"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListAppointmentTypeLookup"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/appointment-purposes": {
+      "get": {
+        "tags": [
+          "Lookups"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListAppointmentPurposeLookup"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/appointment-statuses": {
+      "get": {
+        "tags": [
+          "Lookups"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListAppointmentStatusLookup"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/appointment-stages": {
+      "get": {
+        "tags": [
+          "Lookups"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListAppointmentStageLookup"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/appointment-payment-types": {
+      "get": {
+        "tags": [
+          "Lookups"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListPaymentTypeLookup"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/cpt-codes": {
+      "get": {
+        "tags": [
+          "Lookups"
+        ],
+        "description": "Tenant-scoped CPT master codes. Offset-paged via `skip` + `pageSize` (max effective page size 499; follow `next` to advance).",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedResponseCptCodeLookup"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/icd-codes": {
+      "get": {
+        "tags": [
+          "Lookups"
+        ],
+        "description": "Tenant-scoped ICD master codes. Offset-paged via `skip` + `pageSize` (max effective page size 499; follow `next` to advance).",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedResponseIcdCodeLookup"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/modifier-codes": {
+      "get": {
+        "tags": [
+          "Lookups"
+        ],
+        "description": "Tenant-scoped modifier master codes. Offset-paged via `skip` + `pageSize` (max effective page size 499; follow `next` to advance).",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedResponseModifierCodeLookup"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AppointmentPurposeLookup": {
+        "required": [
+          "id",
+          "description",
+          "isDeleted"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Int32"
+          },
+          "description": {
+            "$ref": "#/components/schemas/String"
+          },
+          "isDeleted": {
+            "$ref": "#/components/schemas/Boolean"
+          }
+        },
+        "description": "An appointment purpose vocabulary entry (tenant-scoped)."
+      },
+      "AppointmentStageLookup": {
+        "required": [
+          "stageType",
+          "description",
+          "statusIds"
+        ],
+        "type": "object",
+        "properties": {
+          "stageType": {
+            "$ref": "#/components/schemas/String"
+          },
+          "description": {
+            "$ref": "#/components/schemas/String"
+          },
+          "statusIds": {
+            "$ref": "#/components/schemas/IReadOnlyListInt32"
+          }
+        },
+        "description": "An appointment stage vocabulary entry (couples to statuses)."
+      },
+      "AppointmentStatusLookup": {
+        "required": [
+          "id",
+          "name",
+          "description",
+          "isDeleted"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Int32"
+          },
+          "name": {
+            "$ref": "#/components/schemas/String"
+          },
+          "description": {
+            "$ref": "#/components/schemas/String"
+          },
+          "isDeleted": {
+            "$ref": "#/components/schemas/Boolean"
+          }
+        },
+        "description": "An appointment status vocabulary entry from per-tenant `StatusMaster`."
+      },
+      "AppointmentTypeLookup": {
+        "required": [
+          "id",
+          "description",
+          "durationInMinutes",
+          "isDeleted"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Int32"
+          },
+          "description": {
+            "$ref": "#/components/schemas/String"
+          },
+          "durationInMinutes": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/NullableInt32"
+              }
+            ]
+          },
+          "isDeleted": {
+            "$ref": "#/components/schemas/Boolean"
+          }
+        },
+        "description": "An appointment type vocabulary entry (tenant-scoped)."
+      },
+      "Boolean": {
+        "type": "boolean"
+      },
+      "CptCodeLookup": {
+        "required": [
+          "id",
+          "code",
+          "description"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Int32"
+          },
+          "code": {
+            "$ref": "#/components/schemas/String"
+          },
+          "description": {
+            "$ref": "#/components/schemas/String"
+          }
+        },
+        "description": "A CPT master code vocabulary entry (tenant-scoped by `ClientRefID`)."
+      },
+      "DateTime": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "DateTimeOffset": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "IcdCodeLookup": {
+        "required": [
+          "id",
+          "code",
+          "description"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Int32"
+          },
+          "code": {
+            "$ref": "#/components/schemas/String"
+          },
+          "description": {
+            "$ref": "#/components/schemas/String"
+          }
+        },
+        "description": "An ICD master code vocabulary entry (tenant-scoped by `ClientRefID`)."
+      },
+      "Int32": {
+        "type": "integer",
+        "format": "int32"
+      },
+      "IReadOnlyListCptCodeLookup": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/CptCodeLookup"
+        }
+      },
+      "IReadOnlyListIcdCodeLookup": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/IcdCodeLookup"
+        }
+      },
+      "IReadOnlyListInt32": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Int32"
+        }
+      },
+      "IReadOnlyListModifierCodeLookup": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/ModifierCodeLookup"
+        }
+      },
+      "IReadOnlyListPublicAppointment": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/PublicAppointment"
+        }
+      },
+      "ListAppointmentPurposeLookup": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/AppointmentPurposeLookup"
+        }
+      },
+      "ListAppointmentStageLookup": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/AppointmentStageLookup"
+        }
+      },
+      "ListAppointmentStatusLookup": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/AppointmentStatusLookup"
+        }
+      },
+      "ListAppointmentTypeLookup": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/AppointmentTypeLookup"
+        }
+      },
+      "ListPaymentTypeLookup": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/PaymentTypeLookup"
+        }
+      },
+      "LookupRef": {
+        "required": [
+          "id",
+          "description"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "The lookup identifier (tenant-scoped).",
+            "$ref": "#/components/schemas/Int32"
+          },
+          "description": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "description": "The lookup description; `null` when the source description is null.",
+                "$ref": "#/components/schemas/String"
+              }
+            ]
+          }
+        },
+        "description": "A tenant-scoped reference to a lookup value, exposed as a stable-per-tenant id plus its human\ndescription. Used for LookupRef? PublicAppointment.Status and\nLookupRef? PublicAppointment.AppointmentType. The id is NOT stable across tenants."
+      },
+      "ModifierCodeLookup": {
+        "required": [
+          "id",
+          "code",
+          "description"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Int32"
+          },
+          "code": {
+            "$ref": "#/components/schemas/String"
+          },
+          "description": {
+            "$ref": "#/components/schemas/String"
+          }
+        },
+        "description": "A modifier master code vocabulary entry (tenant-scoped)."
+      },
+      "NullableInt32": {
+        "type": "integer",
+        "format": "int32"
+      },
+      "PagedResponseCptCodeLookup": {
+        "required": [
+          "data",
+          "pageSize",
+          "count",
+          "hasMore"
+        ],
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/IReadOnlyListCptCodeLookup"
+          },
+          "pageSize": {
+            "$ref": "#/components/schemas/Int32"
+          },
+          "count": {
+            "$ref": "#/components/schemas/Int32"
+          },
+          "hasMore": {
+            "$ref": "#/components/schemas/Boolean"
+          },
+          "nextCursor": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/String"
+              }
+            ]
+          },
+          "next": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/String"
+              }
+            ]
+          }
+        }
+      },
+      "PagedResponseIcdCodeLookup": {
+        "required": [
+          "data",
+          "pageSize",
+          "count",
+          "hasMore"
+        ],
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/IReadOnlyListIcdCodeLookup"
+          },
+          "pageSize": {
+            "$ref": "#/components/schemas/Int32"
+          },
+          "count": {
+            "$ref": "#/components/schemas/Int32"
+          },
+          "hasMore": {
+            "$ref": "#/components/schemas/Boolean"
+          },
+          "nextCursor": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/String"
+              }
+            ]
+          },
+          "next": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/String"
+              }
+            ]
+          }
+        }
+      },
+      "PagedResponseModifierCodeLookup": {
+        "required": [
+          "data",
+          "pageSize",
+          "count",
+          "hasMore"
+        ],
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/IReadOnlyListModifierCodeLookup"
+          },
+          "pageSize": {
+            "$ref": "#/components/schemas/Int32"
+          },
+          "count": {
+            "$ref": "#/components/schemas/Int32"
+          },
+          "hasMore": {
+            "$ref": "#/components/schemas/Boolean"
+          },
+          "nextCursor": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/String"
+              }
+            ]
+          },
+          "next": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/String"
+              }
+            ]
+          }
+        }
+      },
+      "PagedResponsePublicAppointment": {
+        "required": [
+          "data",
+          "pageSize",
+          "count",
+          "hasMore"
+        ],
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/IReadOnlyListPublicAppointment"
+          },
+          "pageSize": {
+            "$ref": "#/components/schemas/Int32"
+          },
+          "count": {
+            "$ref": "#/components/schemas/Int32"
+          },
+          "hasMore": {
+            "$ref": "#/components/schemas/Boolean"
+          },
+          "nextCursor": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/String"
+              }
+            ]
+          },
+          "next": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/String"
+              }
+            ]
+          }
+        }
+      },
+      "PaymentTypeLookup": {
+        "required": [
+          "id",
+          "description"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Int32"
+          },
+          "description": {
+            "$ref": "#/components/schemas/String"
+          }
+        },
+        "description": "An appointment payment-type vocabulary entry (tenant-scoped)."
+      },
+      "ProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/String"
+              }
+            ]
+          },
+          "title": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/String"
+              }
+            ]
+          },
+          "status": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/NullableInt32"
+              }
+            ]
+          },
+          "detail": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/String"
+              }
+            ]
+          },
+          "instance": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/String"
+              }
+            ]
+          }
+        }
+      },
+      "PublicAppointment": {
+        "required": [
+          "id",
+          "updatedAt",
+          "startsAt",
+          "endsAt",
+          "durationMinutes",
+          "providerId",
+          "locationId",
+          "isDeleted",
+          "isCancelled"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "Gets the appointment identifier (`AppointmentCalendarId`).",
+            "$ref": "#/components/schemas/Int32"
+          },
+          "updatedAt": {
+            "description": "Gets the last-changed timestamp as a genuine UTC instant (`Z`). This is the change-feed\nwatermark; a consumer resumes at `updatedSince = lastSeen − overlap` using this value.",
+            "$ref": "#/components/schemas/DateTime"
+          },
+          "startsAt": {
+            "description": "Gets when the appointment starts, as ISO-8601 with the location's UTC offset (preserves the\npractice-local wall-clock, e.g. \"9am at the practice\"). Falls back to UTC when the location\ntimezone is unavailable.",
+            "$ref": "#/components/schemas/DateTimeOffset"
+          },
+          "endsAt": {
+            "description": "Gets when the appointment ends, using the same offset convention as DateTimeOffset PublicAppointment.StartsAt.",
+            "$ref": "#/components/schemas/DateTimeOffset"
+          },
+          "durationMinutes": {
+            "description": "Gets the appointment duration in whole minutes (`End − Start`).",
+            "$ref": "#/components/schemas/Int32"
+          },
+          "status": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "description": "Gets the appointment status as a tenant-scoped LookupRef, or `null` when the\nstatus foreign key is null / unmatched (feed-complete LEFT JOIN).",
+                "$ref": "#/components/schemas/LookupRef"
+              }
+            ]
+          },
+          "appointmentType": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "description": "Gets the appointment type as a tenant-scoped LookupRef, or `null` when the\ntype foreign key is null / unmatched (feed-complete LEFT JOIN).",
+                "$ref": "#/components/schemas/LookupRef"
+              }
+            ]
+          },
+          "providerId": {
+            "description": "Gets the provider (physician) identifier.",
+            "$ref": "#/components/schemas/Int32"
+          },
+          "locationId": {
+            "description": "Gets the location (branch) identifier.",
+            "$ref": "#/components/schemas/Int32"
+          },
+          "patientId": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "description": "Gets the raw patient identifier, or `null` when no patient is assigned. PHI under BAA +\naudit (tokenization dropped for v1).",
+                "$ref": "#/components/schemas/NullableInt32"
+              }
+            ]
+          },
+          "isDeleted": {
+            "description": "Gets a value indicating whether the appointment is deleted (indicator, not filtered out).",
+            "$ref": "#/components/schemas/Boolean"
+          },
+          "isCancelled": {
+            "description": "Gets a value indicating whether the appointment is cancelled (indicator, not filtered out).",
+            "$ref": "#/components/schemas/Boolean"
+          }
+        },
+        "description": "The PHI-minimized public projection of an appointment for third-party reporting integrations."
+      },
+      "String": {
+        "type": "string"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Appointments"
+    },
+    {
+      "name": "Lookups"
+    }
+  ],
+  "servers": [
+    {
+      "url": "https://public-api.dev.symplast.cloud"
+    }
+  ]
+}
