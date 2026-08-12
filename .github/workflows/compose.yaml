@@ -22,7 +22,10 @@ jobs:
     name: Compose unified spec
     runs-on: ubuntu-latest
     steps:
+      # fetch-depth: 0 — nbgv computes the version from full commit history, so the tag step needs it.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Collect service specs
         id: collect
@@ -68,11 +71,15 @@ jobs:
             fi
           fi
 
-          # Force the composed doc's server to the canonical public API URL, overriding whatever the source
-          # specs carry (build defaults like localhost, or per-env hosts). This is the single authoritative
-          # host for every consumer of the composite. Per-env promotion is deferred.
+          # Stamp the composite's identity + server, overriding whatever the source specs carry. The
+          # composite is the ONE unified public API, so its title/description are fixed here rather than
+          # inherited from a single service (otherwise a one-service compose shows "…Appointments…").
+          # `info.version` is left untouched — the git tag (below) is the composite's version reference.
           tmp="$(mktemp)"
-          jq '.servers = [{ "url": "https://api.symplast.com" }]' published/openapi.json > "$tmp"
+          jq '.servers = [{ "url": "https://api.symplast.com" }]
+              | .info.title = "Symplast Public API"
+              | .info.description = "The unified Symplast public API surface, composed from each service specification."' \
+             published/openapi.json > "$tmp"
           mv "$tmp" published/openapi.json
 
           echo "Composed published/openapi.json:"
@@ -91,3 +98,30 @@ jobs:
           git add published/openapi.json
           git commit -m "chore: compose unified openapi.json"
           git push
+
+      # Stamp the current composite with an immutable, nbgv-derived version tag (e.g. v0.1.7) so the dev
+      # portal can pin a specific spec version — `raw.githubusercontent.com/.../v0.1.7/published/openapi.json`
+      # — instead of the moving `main`. Promotion becomes a portal values-file bump of the pinned tag.
+      #
+      # Gated on "specs exist", NOT on "committed this run": if a prior run pushed the composite commit but
+      # then failed before tagging, HEAD already carries that commit and a re-run would see committed=false —
+      # so gating on committed would leave it permanently untagged. Running always + the tag-exists guard
+      # below is idempotent: it tags HEAD when missing and no-ops when the tag is already there.
+      - name: Tag published composite
+        if: steps.collect.outputs.count != '0'
+        run: |
+          set -euo pipefail
+          dotnet tool install --global nbgv >/dev/null 2>&1 || dotnet tool update --global nbgv >/dev/null 2>&1
+          export PATH="$PATH:$HOME/.dotnet/tools"
+          # SimpleVersion => clean `0.1.<height>` (unique per commit), not SemVer2's `0.1.7-g<commit>` — so
+          # the tag matches the documented `v0.1.7` pin format.
+          version="$(nbgv get-version -v SimpleVersion)"
+          tag="v${version}"
+          if git rev-parse -q --verify "refs/tags/${tag}" >/dev/null; then
+            echo "Tag ${tag} already exists; nothing to push."
+          else
+            git tag -a "${tag}" -m "Published composite openapi.json ${tag}"
+            git push origin "${tag}"
+            echo "Tagged published composite as ${tag}"
+            echo "Portal reference: https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/${tag}/published/openapi.json"
+          fi
