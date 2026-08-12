@@ -71,11 +71,15 @@ jobs:
             fi
           fi
 
-          # Force the composed doc's server to the canonical public API URL, overriding whatever the source
-          # specs carry (build defaults like localhost, or per-env hosts). This is the single authoritative
-          # host for every consumer of the composite. Per-env promotion is deferred.
+          # Stamp the composite's identity + server, overriding whatever the source specs carry. The
+          # composite is the ONE unified public API, so its title/description are fixed here rather than
+          # inherited from a single service (otherwise a one-service compose shows "…Appointments…").
+          # `info.version` is left untouched — the git tag (below) is the composite's version reference.
           tmp="$(mktemp)"
-          jq '.servers = [{ "url": "https://api.symplast.com" }]' published/openapi.json > "$tmp"
+          jq '.servers = [{ "url": "https://api.symplast.com" }]
+              | .info.title = "Symplast Public API"
+              | .info.description = "The unified Symplast public API surface, composed from each service specification."' \
+             published/openapi.json > "$tmp"
           mv "$tmp" published/openapi.json
 
           echo "Composed published/openapi.json:"
