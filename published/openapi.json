@@ -854,10 +854,5 @@
     {
       "name": "Lookups"
     }
-  ],
-  "servers": [
-    {
-      "url": "https://public-api.dev.symplast.cloud"
-    }
   ]
 }
