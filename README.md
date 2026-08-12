@@ -48,9 +48,16 @@ jq '.servers = [{ "url": "https://api.symplast.com" }]' published/openapi.json >
 
 ## Versioning
 
-The repo carries an [nbgv](https://github.com/dotnet/Nerdbank.GitVersioning) `version.json` so per-commit
-versions are available for the dev portal to pin later. Tag-per-commit and portal tag-resolution are a
-deferred later layer.
+The repo carries an [nbgv](https://github.com/dotnet/Nerdbank.GitVersioning) `version.json`. Every time
+`compose.yaml` publishes a new `published/openapi.json`, it stamps an immutable git tag `v<nbgv-version>`
+(e.g. `v0.1.7`) on that commit. The dev portal pins a specific tag instead of the moving `main`:
+
+```
+https://raw.githubusercontent.com/SymplastLLC/symplast-openapi-specs/v0.1.7/published/openapi.json
+```
+
+Promotion is then a portal values-file bump of the pinned tag — no change in this repo. Per-environment
+tag resolution (which tag each of dev / uat / prod serves) lives in the portal.
 
 ## Deferred (planned future enhancement)
 

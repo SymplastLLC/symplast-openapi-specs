@@ -22,7 +22,10 @@ jobs:
     name: Compose unified spec
     runs-on: ubuntu-latest
     steps:
+      # fetch-depth: 0 — nbgv computes the version from full commit history, so the tag step needs it.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Collect service specs
         id: collect
@@ -79,6 +82,7 @@ jobs:
           jq '{ openapi, info, servers, pathCount: (.paths | keys | length), schemaCount: (.components.schemas // {} | keys | length) }' published/openapi.json
 
       - name: Commit composite
+        id: commit
         if: steps.collect.outputs.count != '0'
         run: |
           set -euo pipefail
@@ -86,8 +90,30 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           if git diff --quiet -- published/openapi.json; then
             echo "published/openapi.json unchanged; nothing to commit."
+            echo "committed=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           git add published/openapi.json
           git commit -m "chore: compose unified openapi.json"
           git push
+          echo "committed=true" >> "$GITHUB_OUTPUT"
+
+      # Stamp each published composite with an immutable, nbgv-derived version tag (e.g. v0.1.7) so the dev
+      # portal can pin a specific spec version — `raw.githubusercontent.com/.../v0.1.7/published/openapi.json`
+      # — instead of the moving `main`. Promotion becomes a portal values-file bump of the pinned tag.
+      - name: Tag published composite
+        if: steps.commit.outputs.committed == 'true'
+        run: |
+          set -euo pipefail
+          dotnet tool install --global nbgv >/dev/null 2>&1 || dotnet tool update --global nbgv >/dev/null 2>&1
+          export PATH="$PATH:$HOME/.dotnet/tools"
+          version="$(nbgv get-version -v SemVer2)"
+          tag="v${version}"
+          if git rev-parse -q --verify "refs/tags/${tag}" >/dev/null; then
+            echo "Tag ${tag} already exists; nothing to push."
+          else
+            git tag -a "${tag}" -m "Published composite openapi.json ${tag}"
+            git push origin "${tag}"
+            echo "Tagged published composite as ${tag}"
+            echo "Portal reference: https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/${tag}/published/openapi.json"
+          fi
