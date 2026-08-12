@@ -33,8 +33,9 @@ build Api.Public                           specs/<service>/openapi.json  ┐
 
 `redocly join` produces `published/openapi.json`:
 
-- The composite carries **no `servers` block** — the dev portal injects the correct server URL per
-  environment, so no env / internal hostname is baked into the (potentially public) spec.
+- The composite's `servers` is forced to the canonical public API URL —
+  `[{ "url": "https://api.symplast.com" }]` — overriding whatever the source specs carry (build defaults
+  such as `localhost`, or per-env hosts). This is the single authoritative host for every consumer.
 - The composite is committed back to the default branch by the workflow using the repo's own
   `GITHUB_TOKEN`.
 
@@ -42,7 +43,7 @@ Run the composition locally the same way the workflow does:
 
 ```bash
 npx --yes @redocly/cli@latest join specs/*/openapi.json -o published/openapi.json --prefix-tags-with-info-prop title
-jq 'del(.servers)' published/openapi.json > tmp && mv tmp published/openapi.json
+jq '.servers = [{ "url": "https://api.symplast.com" }]' published/openapi.json > tmp && mv tmp published/openapi.json
 ```
 
 ## Versioning
@@ -55,8 +56,8 @@ deferred later layer.
 
 Per-environment versioned promotion — separate `published/<env>/openapi.json` for dev / uat / prod with
 per-env `servers[].url` and version pinning — is **deferred**. Today there is exactly one composite
-(`published/openapi.json`) with no baked server. When promotion lands, per-env `servers` injection and the
-per-env fan-out will be added here.
+(`published/openapi.json`) whose server is fixed to the production URL `https://api.symplast.com`. When
+promotion lands, per-env `servers` injection and the per-env fan-out will be added here.
 
 ## Adding a new service
 

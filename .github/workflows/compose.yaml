@@ -68,15 +68,15 @@ jobs:
             fi
           fi
 
-          # Strip any `servers` block: the dev portal injects the correct server per environment, and the
-          # composite must NOT leak an env/internal hostname (this repo may be public). Per-env promotion
-          # (baking per-env servers here) is deferred.
+          # Force the composed doc's server to the canonical public API URL, overriding whatever the source
+          # specs carry (build defaults like localhost, or per-env hosts). This is the single authoritative
+          # host for every consumer of the composite. Per-env promotion is deferred.
           tmp="$(mktemp)"
-          jq 'del(.servers)' published/openapi.json > "$tmp"
+          jq '.servers = [{ "url": "https://api.symplast.com" }]' published/openapi.json > "$tmp"
           mv "$tmp" published/openapi.json
 
           echo "Composed published/openapi.json:"
-          jq '{ openapi, info, hasServers: (has("servers")), pathCount: (.paths | keys | length), schemaCount: (.components.schemas // {} | keys | length) }' published/openapi.json
+          jq '{ openapi, info, servers, pathCount: (.paths | keys | length), schemaCount: (.components.schemas // {} | keys | length) }' published/openapi.json
 
       - name: Commit composite
         if: steps.collect.outputs.count != '0'
