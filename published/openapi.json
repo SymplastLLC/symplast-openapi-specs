@@ -1,8 +1,8 @@
 {
   "openapi": "3.1.1",
   "info": {
-    "title": "Symplast Appointments Public API",
-    "description": "Authenticated, cursor-paged public read surface for appointment data.",
+    "title": "Symplast Public API",
+    "description": "The unified Symplast public API surface, composed from each service specification.",
     "version": "1.85.58"
   },
   "servers": [
