@@ -3,7 +3,7 @@
   "info": {
     "title": "Symplast Appointments Public API",
     "description": "Authenticated, cursor-paged public read surface for appointment data.",
-    "version": "1.85.71"
+    "version": "1.85.73"
   },
   "servers": [
     {
@@ -67,10 +67,11 @@
                   "$ref": "#/components/schemas/ProblemDetails"
                 },
                 "example": {
-                  "type": "https://api.symplast.com/problems/invalid-cursor",
+                  "type": "https://api.symplast.com/problems/appointments/invalid-cursor",
                   "title": "Invalid cursor",
                   "status": 400,
-                  "detail": "The supplied cursor could not be decoded."
+                  "detail": "The supplied cursor could not be decoded.",
+                  "code": "invalid-cursor"
                 }
               }
             }
@@ -83,10 +84,28 @@
                   "$ref": "#/components/schemas/ProblemDetails"
                 },
                 "example": {
-                  "type": "https://api.symplast.com/problems/unauthenticated",
+                  "type": "https://api.symplast.com/problems/appointments/unauthenticated",
                   "title": "Unauthenticated",
                   "status": 401,
-                  "detail": "A valid bearer token is required to access this resource."
+                  "detail": "A valid bearer token is required to access this resource.",
+                  "code": "unauthenticated"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error (RFC 9457 problem details).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "https://api.symplast.com/problems/appointments/internal-error",
+                  "title": "Internal server error",
+                  "status": 500,
+                  "detail": "An unexpected error occurred.",
+                  "code": "internal-error"
                 }
               }
             }
@@ -153,10 +172,11 @@
                   "$ref": "#/components/schemas/ProblemDetails"
                 },
                 "example": {
-                  "type": "https://api.symplast.com/problems/unauthenticated",
+                  "type": "https://api.symplast.com/problems/appointments/unauthenticated",
                   "title": "Unauthenticated",
                   "status": 401,
-                  "detail": "A valid bearer token is required to access this resource."
+                  "detail": "A valid bearer token is required to access this resource.",
+                  "code": "unauthenticated"
                 }
               }
             }
@@ -169,10 +189,28 @@
                   "$ref": "#/components/schemas/ProblemDetails"
                 },
                 "example": {
-                  "type": "https://api.symplast.com/problems/not-found",
+                  "type": "https://api.symplast.com/problems/appointments/not-found",
                   "title": "Not found",
                   "status": 404,
-                  "detail": "The requested appointment does not exist in this tenant."
+                  "detail": "The requested appointment does not exist in this tenant.",
+                  "code": "not-found"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error (RFC 9457 problem details).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "https://api.symplast.com/problems/appointments/internal-error",
+                  "title": "Internal server error",
+                  "status": 500,
+                  "detail": "An unexpected error occurred.",
+                  "code": "internal-error"
                 }
               }
             }
@@ -209,6 +247,23 @@
                 ]
               }
             }
+          },
+          "default": {
+            "description": "Unexpected error (RFC 9457 problem details).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "https://api.symplast.com/problems/appointments/internal-error",
+                  "title": "Internal server error",
+                  "status": 500,
+                  "detail": "An unexpected error occurred.",
+                  "code": "internal-error"
+                }
+              }
+            }
           }
         }
       }
@@ -239,6 +294,23 @@
                     "isDeleted": false
                   }
                 ]
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error (RFC 9457 problem details).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "https://api.symplast.com/problems/appointments/internal-error",
+                  "title": "Internal server error",
+                  "status": 500,
+                  "detail": "An unexpected error occurred.",
+                  "code": "internal-error"
+                }
               }
             }
           }
@@ -272,6 +344,23 @@
                     "isDeleted": false
                   }
                 ]
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error (RFC 9457 problem details).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "https://api.symplast.com/problems/appointments/internal-error",
+                  "title": "Internal server error",
+                  "status": 500,
+                  "detail": "An unexpected error occurred.",
+                  "code": "internal-error"
+                }
               }
             }
           }
@@ -309,6 +398,23 @@
                 ]
               }
             }
+          },
+          "default": {
+            "description": "Unexpected error (RFC 9457 problem details).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "https://api.symplast.com/problems/appointments/internal-error",
+                  "title": "Internal server error",
+                  "status": 500,
+                  "detail": "An unexpected error occurred.",
+                  "code": "internal-error"
+                }
+              }
+            }
           }
         }
       }
@@ -338,6 +444,23 @@
                     "description": "Cash"
                   }
                 ]
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error (RFC 9457 problem details).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "https://api.symplast.com/problems/appointments/internal-error",
+                  "title": "Internal server error",
+                  "status": 500,
+                  "detail": "An unexpected error occurred.",
+                  "code": "internal-error"
+                }
               }
             }
           }
@@ -642,7 +765,7 @@
               "null",
               "string"
             ],
-            "example": "https://api.symplast.com/problems/invalid-cursor"
+            "example": "https://api.symplast.com/problems/appointments/invalid-cursor"
           },
           "title": {
             "type": [
@@ -675,10 +798,11 @@
         },
         "description": "RFC 9457 problem details describing an error response.",
         "example": {
-          "type": "https://api.symplast.com/problems/invalid-cursor",
+          "type": "https://api.symplast.com/problems/appointments/invalid-cursor",
           "title": "Invalid cursor",
           "status": 400,
-          "detail": "The supplied cursor could not be decoded."
+          "detail": "The supplied cursor could not be decoded.",
+          "code": "invalid-cursor"
         }
       },
       "PublicAppointment": {
