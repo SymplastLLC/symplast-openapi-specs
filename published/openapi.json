@@ -3,7 +3,7 @@
   "info": {
     "title": "Symplast Public API",
     "description": "The unified Symplast public API surface, composed from each service specification.",
-    "version": "1.85.69"
+    "version": "1.85.71"
   },
   "servers": [
     {
