@@ -129,13 +129,16 @@ jobs:
 
           echo "count=1" >> "$GITHUB_OUTPUT"
 
+      # Runs even when count=0 (every surface was deleted): the compose step already cleared the composites
+      # from the working tree, so this commits their REMOVAL. The `git diff --cached --quiet` guard makes it
+      # a genuine no-op when there is nothing to change (empty store / unchanged composites).
       - name: Commit composites
-        if: steps.compose.outputs.count != '0'
         run: |
           set -euo pipefail
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          # -A so composite additions, updates, AND removals (stale audiences) are all captured.
+          # -A so composite additions, updates, AND removals (stale audiences / last surface deleted) are
+          # all captured.
           git add -A published
           if git diff --cached --quiet; then
             echo "No composite changes; nothing to commit."
