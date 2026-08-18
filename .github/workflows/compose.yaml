@@ -1,6 +1,8 @@
 name: Compose OpenAPI
 
-# Fold every per-service spec (specs/*/openapi.json) into ONE unified document (published/openapi.json).
+# Fold each surface's per-service spec into ONE composite PER AUDIENCE (published/<audience>-api.json).
+# A surface directory is named `<service>-<audience>` (e.g. appointments-api-public), so the audience is
+# the segment after the final `-`. All specs sharing an audience compose into that audience's composite.
 # Trigger is scoped to specs/** so the workflow's own commit to published/** does NOT retrigger it.
 on:
   push:
@@ -19,109 +21,154 @@ concurrency:
 
 jobs:
   compose:
-    name: Compose unified spec
+    name: Compose per-audience specs
     runs-on: ubuntu-latest
     steps:
-      # fetch-depth: 0 — nbgv computes the version from full commit history, so the tag step needs it.
+      # fetch-depth: 0 — nbgv computes the version from full commit history, so the version step needs it.
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Collect service specs
-        id: collect
+      # The composite's version is THIS repo's nbgv version — the store is its own artifact with its own
+      # lifecycle, NOT any single downstream service's build. Computed ONCE here (before the compose commit)
+      # and reused for both info.version (stamped into each composite below) and the immutable git tag, so
+      # the two always agree. version.json's pathFilters exclude published/**, so the bot's own compose
+      # commits do not inflate the height — the number counts real spec revisions and is stable on re-runs.
+      - name: Resolve composite version (this repo's nbgv)
+        id: ver
         run: |
           set -euo pipefail
-          mapfile -t specs < <(find specs -mindepth 2 -maxdepth 2 -name openapi.json | sort)
-          if [ ${#specs[@]} -eq 0 ]; then
+          dotnet tool install --global nbgv >/dev/null 2>&1 || dotnet tool update --global nbgv >/dev/null 2>&1
+          export PATH="$PATH:$HOME/.dotnet/tools"
+          # SimpleVersion => clean `0.1.<height>` (unique per commit), not SemVer2's `0.1.7-g<commit>`.
+          version="$(nbgv get-version -v SimpleVersion)"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "Composite version (this repo's nbgv SimpleVersion): $version"
+
+      - name: Compose per-audience composites
+        id: compose
+        env:
+          COMPOSITE_VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+
+          # audience → "Title|ServerUrl". Add a row when a new audience's specs land; an audience with
+          # specs but NO row here is skipped (with a warning), never published with a wrong title/host.
+          declare -A AUD=(
+            [public]="Symplast Public API|https://api.symplast.com"
+          )
+
+          mkdir -p published
+          # Clear stale composites so a removed audience/service leaves no orphan (git add -A commits the
+          # deletion). Only *-api.json composites are managed here.
+          rm -f published/*-api.json
+
+          # Discover the audiences that actually have specs today.
+          declare -A SEEN=()
+          for dir in specs/*/; do
+            name="$(basename "$dir")"
+            [ -f "$dir/openapi.json" ] || continue
+            SEEN["${name##*-}"]=1
+          done
+          if [ ${#SEEN[@]} -eq 0 ]; then
             echo "No specs found under specs/*/openapi.json; nothing to compose."
             echo "count=0" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          printf '%s\n' "${specs[@]}"
-          echo "count=${#specs[@]}" >> "$GITHUB_OUTPUT"
-          # Persist the list for later steps (space-separated is fine — paths have no spaces).
-          echo "specs=${specs[*]}" >> "$GITHUB_OUTPUT"
 
-      - name: Compose unified spec
-        if: steps.collect.outputs.count != '0'
-        run: |
-          set -euo pipefail
-          read -r -a specs <<< "${{ steps.collect.outputs.specs }}"
-          mkdir -p published
+          for aud in "${!SEEN[@]}"; do
+            specs=( specs/*-"${aud}"/openapi.json )
+            [ ${#specs[@]} -eq 0 ] && continue
 
-          if [ "${#specs[@]}" -eq 1 ]; then
-            # redocly join requires >= 2 inputs. With a single service there is nothing to merge — the
-            # service spec IS the composite. Copy it through verbatim.
-            echo "Single service spec (${specs[0]}); copying through without join."
-            cp "${specs[0]}" published/openapi.json
-          else
-            # Default: NO --prefix-components-with-info-prop, so byte-identical shared component schemas
-            # (Int32, Boolean, String, DateTime, List*, ...) de-duplicate to a single entry. Services own
-            # distinct path prefixes, so paths never collide; --prefix-tags-with-info-prop only namespaces
-            # tags. redocly join exits non-zero ONLY on a genuine conflict (same component name, different
-            # definition) — in that case retry WITH per-service component prefixing to disambiguate.
-            if ! npx --yes @redocly/cli@1 join "${specs[@]}" \
-                  --prefix-tags-with-info-prop title \
-                  -o published/openapi.json; then
-              echo "::warning::Component name conflict detected; retrying with per-service component prefixing."
-              npx --yes @redocly/cli@1 join "${specs[@]}" \
-                --prefix-tags-with-info-prop title \
-                --prefix-components-with-info-prop title \
-                -o published/openapi.json
+            if [ -z "${AUD[$aud]+x}" ]; then
+              echo "::warning::Audience '${aud}' has specs (${specs[*]}) but no AUD row (title/host) — skipping. Add a row to publish it."
+              continue
             fi
-          fi
 
-          # Stamp the composite's identity + server, overriding whatever the source specs carry. The
-          # composite is the ONE unified public API, so its title/description are fixed here rather than
-          # inherited from a single service (otherwise a one-service compose shows "…Appointments…").
-          # `info.version` is left untouched — the git tag (below) is the composite's version reference.
-          tmp="$(mktemp)"
-          jq '.servers = [{ "url": "https://api.symplast.com" }]
-              | .info.title = "Symplast Public API"
-              | .info.description = "The unified Symplast public API surface, composed from each service specification."' \
-             published/openapi.json > "$tmp"
-          mv "$tmp" published/openapi.json
+            out="published/${aud}-api.json"
+            if [ ${#specs[@]} -eq 1 ]; then
+              # redocly join requires >= 2 inputs. With a single service the service spec IS the composite.
+              echo "Audience '${aud}': single spec (${specs[0]}); copying through without join."
+              cp "${specs[0]}" "$out"
+            else
+              # Default: NO --prefix-components-with-info-prop, so byte-identical shared component schemas
+              # (Int32, Boolean, String, DateTime, List*, …) de-duplicate to a single entry. Services own
+              # distinct path prefixes, so paths never collide; --prefix-tags-with-info-prop only namespaces
+              # tags. redocly join exits non-zero ONLY on a genuine conflict (same component name, different
+              # definition) — in that case retry WITH per-service component prefixing to disambiguate.
+              echo "Audience '${aud}': joining ${#specs[@]} specs → ${out}"
+              if ! npx --yes @redocly/cli@1 join "${specs[@]}" \
+                    --prefix-tags-with-info-prop title \
+                    -o "$out"; then
+                echo "::warning::Component name conflict in '${aud}'; retrying with per-service component prefixing."
+                npx --yes @redocly/cli@1 join "${specs[@]}" \
+                  --prefix-tags-with-info-prop title \
+                  --prefix-components-with-info-prop title \
+                  -o "$out"
+              fi
+            fi
 
-          echo "Composed published/openapi.json:"
-          jq '{ openapi, info, servers, pathCount: (.paths | keys | length), schemaCount: (.components.schemas // {} | keys | length) }' published/openapi.json
+            # Stamp the composite's identity + server + version, overriding whatever the source specs carry
+            # (build defaults such as localhost/per-env hosts, and each service's own image-tag info.version).
+            # info.version is set to THIS repo's nbgv version — the composite's own version — so it matches
+            # the immutable git tag (below) the same commit gets stamped with.
+            IFS='|' read -r title server <<< "${AUD[$aud]}"
+            tmp="$(mktemp)"
+            jq --arg t "$title" --arg s "$server" --arg v "$COMPOSITE_VERSION" \
+               '.servers = [{ "url": $s }]
+                | .info.title = $t
+                | .info.version = $v
+                | .info.description = ("The unified " + $t + " surface, composed from each service specification.")' \
+               "$out" > "$tmp"
+            mv "$tmp" "$out"
 
-      - name: Commit composite
-        if: steps.collect.outputs.count != '0'
+            echo "Composed ${out}:"
+            jq '{ openapi, info, servers, pathCount: (.paths | keys | length), schemaCount: (.components.schemas // {} | keys | length) }' "$out"
+          done
+
+          echo "count=1" >> "$GITHUB_OUTPUT"
+
+      # Runs even when count=0 (every surface was deleted): the compose step already cleared the composites
+      # from the working tree, so this commits their REMOVAL. The `git diff --cached --quiet` guard makes it
+      # a genuine no-op when there is nothing to change (empty store / unchanged composites).
+      - name: Commit composites
         run: |
           set -euo pipefail
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          if git diff --quiet -- published/openapi.json; then
-            echo "published/openapi.json unchanged; nothing to commit."
+          # -A so composite additions, updates, AND removals (stale audiences / last surface deleted) are
+          # all captured.
+          git add -A published
+          if git diff --cached --quiet; then
+            echo "No composite changes; nothing to commit."
             exit 0
           fi
-          git add published/openapi.json
-          git commit -m "chore: compose unified openapi.json"
+          git commit -m "chore: compose per-audience openapi specs"
           git push
 
-      # Stamp the current composite with an immutable, nbgv-derived version tag (e.g. v0.1.7) so the dev
-      # portal can pin a specific spec version — `raw.githubusercontent.com/.../v0.1.7/published/openapi.json`
+      # Stamp the current composites with an immutable, nbgv-derived version tag (e.g. v0.1.7) so the dev
+      # portal can pin a specific spec version — `raw.githubusercontent.com/.../v0.1.7/published/public-api.json`
       # — instead of the moving `main`. Promotion becomes a portal values-file bump of the pinned tag.
       #
       # Gated on "specs exist", NOT on "committed this run": if a prior run pushed the composite commit but
       # then failed before tagging, HEAD already carries that commit and a re-run would see committed=false —
       # so gating on committed would leave it permanently untagged. Running always + the tag-exists guard
       # below is idempotent: it tags HEAD when missing and no-ops when the tag is already there.
-      - name: Tag published composite
-        if: steps.collect.outputs.count != '0'
+      - name: Tag published composites
+        if: steps.compose.outputs.count != '0'
+        env:
+          COMPOSITE_VERSION: ${{ steps.ver.outputs.version }}
         run: |
           set -euo pipefail
-          dotnet tool install --global nbgv >/dev/null 2>&1 || dotnet tool update --global nbgv >/dev/null 2>&1
-          export PATH="$PATH:$HOME/.dotnet/tools"
-          # SimpleVersion => clean `0.1.<height>` (unique per commit), not SemVer2's `0.1.7-g<commit>` — so
-          # the tag matches the documented `v0.1.7` pin format.
-          version="$(nbgv get-version -v SimpleVersion)"
-          tag="v${version}"
+          # Reuse the version resolved BEFORE the compose commit, so the tag matches the info.version stamped
+          # into the composites (recomputing here would count the bot's own compose commit and drift +1).
+          tag="v${COMPOSITE_VERSION}"
           if git rev-parse -q --verify "refs/tags/${tag}" >/dev/null; then
             echo "Tag ${tag} already exists; nothing to push."
           else
-            git tag -a "${tag}" -m "Published composite openapi.json ${tag}"
+            git tag -a "${tag}" -m "Published composites ${tag}"
             git push origin "${tag}"
-            echo "Tagged published composite as ${tag}"
-            echo "Portal reference: https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/${tag}/published/openapi.json"
+            echo "Tagged published composites as ${tag}"
+            echo "Portal reference: https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/${tag}/published/public-api.json"
           fi
