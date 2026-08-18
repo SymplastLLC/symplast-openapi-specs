@@ -78,9 +78,22 @@ jq '.servers = [{ "url": "https://api.symplast.com" }] | .info.title = "Symplast
 
 ## Versioning
 
-The repo carries an [nbgv](https://github.com/dotnet/Nerdbank.GitVersioning) `version.json`. Every time
-`compose.yaml` publishes new composites, it stamps an immutable git tag `v<nbgv-version>` (e.g. `v0.1.7`)
-on that commit. The dev portal pins a specific tag instead of the moving `main`:
+The composite is **this repo's own artifact**, so its version is **this repo's** [nbgv](https://github.com/dotnet/Nerdbank.GitVersioning)
+version — never any single downstream service's build number. `compose.yaml` resolves the nbgv
+`SimpleVersion` (`0.1.<height>`) once per run and uses it for **both**:
+
+- the composite's `info.version` (stamped into every `published/<audience>-api.json`), overriding each
+  service's own image-tag `info.version`; and
+- an immutable git tag `v<nbgv-version>` (e.g. `v0.1.7`) on the publishing commit.
+
+So the version a consumer reads *inside* the spec always equals the tag they pin it by. `version.json`'s
+`pathFilters` exclude `published/**`, so the bot's own compose commits do **not** inflate the height — the
+number counts real spec revisions and stays stable across re-runs / manual dispatches.
+
+> The **per-service** specs under `specs/**` keep their own image-tag `info.version` (which build produced
+> them) as provenance — only the composed `published/**` version is rewritten to this repo's version.
+
+The dev portal pins a specific tag instead of the moving `main`:
 
 ```
 https://raw.githubusercontent.com/SymplastLLC/symplast-openapi-specs/v0.1.7/published/public-api.json

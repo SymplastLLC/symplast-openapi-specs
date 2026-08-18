@@ -24,13 +24,31 @@ jobs:
     name: Compose per-audience specs
     runs-on: ubuntu-latest
     steps:
-      # fetch-depth: 0 — nbgv computes the version from full commit history, so the tag step needs it.
+      # fetch-depth: 0 — nbgv computes the version from full commit history, so the version step needs it.
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
+      # The composite's version is THIS repo's nbgv version — the store is its own artifact with its own
+      # lifecycle, NOT any single downstream service's build. Computed ONCE here (before the compose commit)
+      # and reused for both info.version (stamped into each composite below) and the immutable git tag, so
+      # the two always agree. version.json's pathFilters exclude published/**, so the bot's own compose
+      # commits do not inflate the height — the number counts real spec revisions and is stable on re-runs.
+      - name: Resolve composite version (this repo's nbgv)
+        id: ver
+        run: |
+          set -euo pipefail
+          dotnet tool install --global nbgv >/dev/null 2>&1 || dotnet tool update --global nbgv >/dev/null 2>&1
+          export PATH="$PATH:$HOME/.dotnet/tools"
+          # SimpleVersion => clean `0.1.<height>` (unique per commit), not SemVer2's `0.1.7-g<commit>`.
+          version="$(nbgv get-version -v SimpleVersion)"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "Composite version (this repo's nbgv SimpleVersion): $version"
+
       - name: Compose per-audience composites
         id: compose
+        env:
+          COMPOSITE_VERSION: ${{ steps.ver.outputs.version }}
         run: |
           set -euo pipefail
           shopt -s nullglob
@@ -91,14 +109,16 @@ jobs:
               fi
             fi
 
-            # Stamp the composite's identity + server from the AUD map, overriding whatever the source
-            # specs carry (build defaults such as localhost, or per-env hosts). `info.version` is left
-            # untouched — the git tag (below) is the composite's version reference.
+            # Stamp the composite's identity + server + version, overriding whatever the source specs carry
+            # (build defaults such as localhost/per-env hosts, and each service's own image-tag info.version).
+            # info.version is set to THIS repo's nbgv version — the composite's own version — so it matches
+            # the immutable git tag (below) the same commit gets stamped with.
             IFS='|' read -r title server <<< "${AUD[$aud]}"
             tmp="$(mktemp)"
-            jq --arg t "$title" --arg s "$server" \
+            jq --arg t "$title" --arg s "$server" --arg v "$COMPOSITE_VERSION" \
                '.servers = [{ "url": $s }]
                 | .info.title = $t
+                | .info.version = $v
                 | .info.description = ("The unified " + $t + " surface, composed from each service specification.")' \
                "$out" > "$tmp"
             mv "$tmp" "$out"
@@ -134,14 +154,13 @@ jobs:
       # below is idempotent: it tags HEAD when missing and no-ops when the tag is already there.
       - name: Tag published composites
         if: steps.compose.outputs.count != '0'
+        env:
+          COMPOSITE_VERSION: ${{ steps.ver.outputs.version }}
         run: |
           set -euo pipefail
-          dotnet tool install --global nbgv >/dev/null 2>&1 || dotnet tool update --global nbgv >/dev/null 2>&1
-          export PATH="$PATH:$HOME/.dotnet/tools"
-          # SimpleVersion => clean `0.1.<height>` (unique per commit), not SemVer2's `0.1.7-g<commit>` — so
-          # the tag matches the documented `v0.1.7` pin format.
-          version="$(nbgv get-version -v SimpleVersion)"
-          tag="v${version}"
+          # Reuse the version resolved BEFORE the compose commit, so the tag matches the info.version stamped
+          # into the composites (recomputing here would count the bot's own compose commit and drift +1).
+          tag="v${COMPOSITE_VERSION}"
           if git rev-parse -q --verify "refs/tags/${tag}" >/dev/null; then
             echo "Tag ${tag} already exists; nothing to push."
           else
