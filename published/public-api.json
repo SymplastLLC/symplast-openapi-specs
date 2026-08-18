@@ -2,7 +2,7 @@
   "openapi": "3.1.1",
   "info": {
     "title": "Symplast Public API",
-    "description": "The unified Symplast public API surface, composed from each service specification.",
+    "description": "The unified Symplast Public API surface, composed from each service specification.",
     "version": "1.85.73"
   },
   "servers": [
