@@ -3,7 +3,7 @@
   "info": {
     "title": "Symplast Appointments Public API",
     "description": "Authenticated, cursor-paged public read surface for appointment data.",
-    "version": "1.85.83"
+    "version": "1.85.87"
   },
   "servers": [
     {
@@ -84,10 +84,10 @@
                   "$ref": "#/components/schemas/ProblemDetails"
                 },
                 "example": {
-                  "type": "https://api.symplast.com/problems/appointments/unauthenticated",
+                  "type": "https://api.symplast.com/problems/unauthenticated",
                   "title": "Unauthenticated",
                   "status": 401,
-                  "detail": "A valid bearer token is required to access this resource.",
+                  "detail": "A valid gateway token is required to access this resource.",
                   "code": "unauthenticated"
                 }
               }
@@ -172,10 +172,10 @@
                   "$ref": "#/components/schemas/ProblemDetails"
                 },
                 "example": {
-                  "type": "https://api.symplast.com/problems/appointments/unauthenticated",
+                  "type": "https://api.symplast.com/problems/unauthenticated",
                   "title": "Unauthenticated",
                   "status": 401,
-                  "detail": "A valid bearer token is required to access this resource.",
+                  "detail": "A valid gateway token is required to access this resource.",
                   "code": "unauthenticated"
                 }
               }
