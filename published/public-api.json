@@ -3,7 +3,7 @@
   "info": {
     "title": "Symplast Public API",
     "description": "The unified Symplast Public API surface, composed from each service specification.",
-    "version": "0.1.31"
+    "version": "0.1.32"
   },
   "servers": [
     {
@@ -32,8 +32,8 @@
                     {
                       "id": 1024,
                       "updatedAt": "2026-01-15T14:30:00Z",
-                      "startsAt": "2026-01-20T09:00:00-05:00",
-                      "endsAt": "2026-01-20T09:30:00-05:00",
+                      "startsAt": "2026-01-20T14:00:00Z",
+                      "endsAt": "2026-01-20T14:30:00Z",
                       "durationMinutes": 30,
                       "status": {
                         "id": 5,
@@ -144,8 +144,8 @@
                 "example": {
                   "id": 1024,
                   "updatedAt": "2026-01-15T14:30:00Z",
-                  "startsAt": "2026-01-20T09:00:00-05:00",
-                  "endsAt": "2026-01-20T09:30:00-05:00",
+                  "startsAt": "2026-01-20T14:00:00Z",
+                  "endsAt": "2026-01-20T14:30:00Z",
                   "durationMinutes": 30,
                   "status": {
                     "id": 5,
@@ -657,8 +657,8 @@
               {
                 "id": 1024,
                 "updatedAt": "2026-01-15T14:30:00Z",
-                "startsAt": "2026-01-20T09:00:00-05:00",
-                "endsAt": "2026-01-20T09:30:00-05:00",
+                "startsAt": "2026-01-20T14:00:00Z",
+                "endsAt": "2026-01-20T14:30:00Z",
                 "durationMinutes": 30,
                 "status": {
                   "id": 5,
@@ -709,8 +709,8 @@
             {
               "id": 1024,
               "updatedAt": "2026-01-15T14:30:00Z",
-              "startsAt": "2026-01-20T09:00:00-05:00",
-              "endsAt": "2026-01-20T09:30:00-05:00",
+              "startsAt": "2026-01-20T14:00:00Z",
+              "endsAt": "2026-01-20T14:30:00Z",
               "durationMinutes": 30,
               "status": {
                 "id": 5,
@@ -827,21 +827,21 @@
           },
           "updatedAt": {
             "type": "string",
-            "description": "Gets the last-changed timestamp as a genuine UTC instant (`Z`). This is the change-feed\nwatermark; a consumer resumes at `updatedSince = lastSeen − overlap` using this value.",
+            "description": "Gets the last-changed timestamp as a UTC Instant (serialized as ISO-8601 `Z`).\nThis is the change-feed watermark; a consumer resumes at `updatedSince = lastSeen − overlap`\nusing this value.",
             "format": "date-time",
             "example": "2026-01-15T14:30:00Z"
           },
           "startsAt": {
             "type": "string",
-            "description": "Gets when the appointment starts, as ISO-8601 with the location's UTC offset (preserves the\npractice-local wall-clock, e.g. \"9am at the practice\"). Falls back to UTC when the location\ntimezone is unavailable.",
+            "description": "Gets when the appointment starts as a UTC Instant (ISO-8601 `Z`). The naive\npractice-local wall-clock is interpreted in the location's timezone (DST honored at the\nappointment's own local time) and collapsed to this UTC point; clients render it in whatever zone\nthey choose. Falls back to treating the wall-clock as UTC when the location timezone is unavailable.",
             "format": "date-time",
-            "example": "2026-01-20T09:00:00-05:00"
+            "example": "2026-01-20T14:00:00Z"
           },
           "endsAt": {
             "type": "string",
-            "description": "Gets when the appointment ends, using the same offset convention as DateTimeOffset PublicAppointment.StartsAt.",
+            "description": "Gets when the appointment ends as a UTC Instant, using the same conversion as Instant PublicAppointment.StartsAt.",
             "format": "date-time",
-            "example": "2026-01-20T09:30:00-05:00"
+            "example": "2026-01-20T14:30:00Z"
           },
           "durationMinutes": {
             "type": "integer",
@@ -915,8 +915,8 @@
         "example": {
           "id": 1024,
           "updatedAt": "2026-01-15T14:30:00Z",
-          "startsAt": "2026-01-20T09:00:00-05:00",
-          "endsAt": "2026-01-20T09:30:00-05:00",
+          "startsAt": "2026-01-20T14:00:00Z",
+          "endsAt": "2026-01-20T14:30:00Z",
           "durationMinutes": 30,
           "status": {
             "id": 5,
