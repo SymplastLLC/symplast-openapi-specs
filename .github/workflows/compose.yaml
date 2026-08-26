@@ -15,8 +15,21 @@ on:
 permissions:
   contents: write
 
+# Pushes serialise, as before: composing twice at once would race on the commit to main.
+#
+# A workflow_dispatch gets its OWN group, and that is the whole point. GitHub keeps at most ONE
+# pending run per concurrency group, so a run stuck in `queued` holds the group and every attempt to
+# recover is cancelled on arrival — which is exactly what happened on 2026-08-26: a cancelled run on
+# the /v1 spec commit sat pending, a re-run stayed queued indefinitely, force-cancel answered
+# "409 cannot cancel a workflow re-run that has not yet queued", and a manual dispatch was cancelled
+# by the group. The composite could not be rebuilt at all, and the developer portal was left pinned to
+# a document whose financials paths had stopped existing.
+#
+# The trade-off is deliberate: a dispatch can now run alongside a queued push, so both may try to
+# commit. That is a push conflict on one of them at worst, and it is strictly better than having no way
+# to recover.
 concurrency:
-  group: compose-openapi
+  group: compose-openapi-${{ github.event_name == 'workflow_dispatch' && github.run_id || 'push' }}
   cancel-in-progress: false
 
 jobs:
