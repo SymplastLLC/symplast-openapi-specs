@@ -2,13 +2,543 @@
   "openapi": "3.1.1",
   "info": {
     "title": "Symplast Legacy Public API",
-    "description": "Authenticated public read surface for a practice's structural reference data — its locations, its offices, and its practice profile. Merge 1 exposes no v1 routes yet; the surface lands in a follow-up merge.",
-    "version": "8.7.31"
+    "description": "Authenticated public read surface for a practice's structural reference data — its locations, its offices, and its practice profile. Read-only; every route is scoped to the authenticated tenant.",
+    "version": "8.7.39"
   },
   "servers": [
     {
       "url": "https://api.symplast.com"
     }
   ],
-  "paths": {}
+  "paths": {
+    "/v1/practice-info": {
+      "get": {
+        "tags": [
+          "Practice info"
+        ],
+        "summary": "Get the practice profile.",
+        "description": "A singleton for the authenticated tenant — there is no id, and no collection form. Returns 404 when no profile resolves.",
+        "operationId": "GetPracticeInfo",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicPracticeInfo"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/locations": {
+      "get": {
+        "tags": [
+          "Locations"
+        ],
+        "summary": "List the practice's locations.",
+        "description": "Returns every active location for the authenticated tenant as a bare JSON array. Soft-deleted locations are excluded. A location whose parent office is absent, soft-deleted, or unstaffed is still returned, with a null officeId.",
+        "operationId": "ListLocations",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PublicLocation"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/locations/{id}": {
+      "get": {
+        "tags": [
+          "Locations"
+        ],
+        "summary": "Get one location by id.",
+        "description": "Returns 404 for an unknown id, a soft-deleted location, or an id belonging to another tenant — never 403, so the response cannot be used to probe for existence.",
+        "operationId": "GetLocationById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Identifier of the resource. Non-integer values are rejected by the route constraint and answered with 404, never 400.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicLocation"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/offices": {
+      "get": {
+        "tags": [
+          "Offices"
+        ],
+        "summary": "List the practice's offices.",
+        "description": "Returns the practice's offices as a bare JSON array. An office with no active staff assignment is not listed — inherited from the internal surface deliberately, so the two agree. address.state, address.country and address.line2 are always null for offices, and offices carry no fax field.",
+        "operationId": "ListOffices",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PublicOffice"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/offices/{id}": {
+      "get": {
+        "tags": [
+          "Offices"
+        ],
+        "summary": "Get one office by id.",
+        "description": "Returns 404 for an unknown id, an unstaffed office, or another tenant's id.",
+        "operationId": "GetOfficeById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Identifier of the resource. Non-integer values are rejected by the route constraint and answered with 404, never 400.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicOffice"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "title": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "detail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "instance": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "description": "RFC 9457 problem details. The discriminating code is carried in the `code` extension member.",
+        "example": {
+          "type": "https://api.symplast.com/problems/legacy/not-found",
+          "title": "Resource not found",
+          "status": 404,
+          "detail": "No location with id 8412 exists for this tenant.",
+          "code": "not-found"
+        }
+      },
+      "PublicAddress": {
+        "required": [
+          "line",
+          "line2",
+          "city",
+          "stateCode",
+          "state",
+          "postalCode",
+          "country"
+        ],
+        "type": "object",
+        "properties": {
+          "line": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Street address."
+          },
+          "line2": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Second address line. Always `null` in v1: no source model carries it."
+          },
+          "city": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "City name."
+          },
+          "stateCode": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Two-letter state code."
+          },
+          "state": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Full state name. `null` for offices, which do not resolve it."
+          },
+          "postalCode": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Postal / ZIP code."
+          },
+          "country": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Country name. `null` for offices, which do not resolve it."
+          }
+        },
+        "description": "A postal address. All seven fields are always present; those a resource cannot source are null rather than omitted, so one renderer works everywhere.",
+        "example": {
+          "line": "410 Market St, Suite 900",
+          "line2": null,
+          "city": "Philadelphia",
+          "stateCode": "PA",
+          "state": "Pennsylvania",
+          "postalCode": "19106",
+          "country": "United States"
+        }
+      },
+      "PublicLocation": {
+        "required": [
+          "id",
+          "officeId",
+          "name",
+          "type",
+          "address",
+          "timeZone",
+          "phone",
+          "fax"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Stable identifier. This is the value an appointment's `locationId` carries.",
+            "format": "int32"
+          },
+          "officeId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "description": "The parent office. `null` in four cases: the FK is unset; the office row does not exist; the office\nis soft-deleted; or the office is <b>unstaffed</b> and therefore absent from `GET /v1/offices`. A\nnon-null value is guaranteed to resolve against `GET /v1/offices/{id}`.",
+            "format": "int32"
+          },
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Location name."
+          },
+          "type": {
+            "description": "Classification. Always present; inner fields may be `null`.",
+            "$ref": "#/components/schemas/PublicLocationType"
+          },
+          "address": {
+            "description": "Postal address.",
+            "$ref": "#/components/schemas/PublicAddress"
+          },
+          "timeZone": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "IANA time zone id, e.g. `America/New_York`. `null` when the stored value cannot be resolved —\nnever a Windows id, and never a guess. A `null` here means any accompanying instant was interpreted\nas UTC."
+          },
+          "phone": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Premises phone number."
+          },
+          "fax": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Premises fax number."
+          }
+        },
+        "description": "A physical location where the practice delivers care. Locations sit beneath offices.",
+        "example": {
+          "id": 8412,
+          "officeId": 311,
+          "name": "Downtown Surgical Suite",
+          "type": {
+            "code": "SURG",
+            "description": "Surgical Center"
+          },
+          "address": {
+            "line": "410 Market St, Suite 900",
+            "line2": null,
+            "city": "Philadelphia",
+            "stateCode": "PA",
+            "state": "Pennsylvania",
+            "postalCode": "19106",
+            "country": "United States"
+          },
+          "timeZone": "America/New_York",
+          "phone": "+1-215-555-0142",
+          "fax": null
+        }
+      },
+      "PublicLocationType": {
+        "required": [
+          "code",
+          "description"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Short code, e.g. `SURG`."
+          },
+          "description": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Human-readable description."
+          }
+        },
+        "description": "A location's classification. `code` is an OPEN string, not a closed enum — new classifications arrive as data with no change to this API, so tolerate unrecognized codes.",
+        "example": {
+          "code": "SURG",
+          "description": "Surgical Center"
+        }
+      },
+      "PublicOffice": {
+        "required": [
+          "id",
+          "name",
+          "address",
+          "phone"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Stable identifier, referenced by `PublicLocation.officeId`.",
+            "format": "int32"
+          },
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Office name."
+          },
+          "address": {
+            "description": "Postal address. `state`, `country` and `line2` are always null.",
+            "$ref": "#/components/schemas/PublicAddress"
+          },
+          "phone": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Office contact number."
+          }
+        },
+        "description": "An office: the grouping a practice's locations belong to. address.state, address.country and address.line2 are always null for offices, and offices carry no fax field.",
+        "example": {
+          "id": 311,
+          "name": "Center City Office",
+          "address": {
+            "line": "410 Market St",
+            "line2": null,
+            "city": "Philadelphia",
+            "stateCode": "PA",
+            "state": null,
+            "postalCode": "19106",
+            "country": null
+          },
+          "phone": "+1-215-555-0100"
+        }
+      },
+      "PublicPracticeInfo": {
+        "required": [
+          "name",
+          "address",
+          "phone",
+          "fax"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Practice / company name."
+          },
+          "address": {
+            "description": "Premises address.",
+            "$ref": "#/components/schemas/PublicAddress"
+          },
+          "phone": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Practice phone number."
+          },
+          "fax": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Practice fax number."
+          }
+        },
+        "description": "The practice's own profile. A singleton for the authenticated tenant — there is no id.",
+        "example": {
+          "name": "Keystone Plastic Surgery",
+          "address": {
+            "line": "1200 Chestnut St",
+            "line2": null,
+            "city": "Philadelphia",
+            "stateCode": "PA",
+            "state": "Pennsylvania",
+            "postalCode": "19107",
+            "country": "United States"
+          },
+          "phone": "+1-215-555-0190",
+          "fax": "+1-215-555-0191"
+        }
+      }
+    },
+    "securitySchemes": {
+      "Bearer": {
+        "type": "http",
+        "description": "Bearer access token. Send it as the `Authorization: Bearer <token>` header.",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "security": [
+    {
+      "Bearer": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Practice info"
+    },
+    {
+      "name": "Locations"
+    },
+    {
+      "name": "Offices"
+    }
+  ]
 }
