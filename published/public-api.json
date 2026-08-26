@@ -3,18 +3,24 @@
   "info": {
     "title": "Symplast Public API",
     "description": "The unified Symplast Public API surface, composed from each service specification.",
-    "version": "0.1.33"
+    "version": "0.1.34"
   },
   "servers": [
     {
       "url": "https://api.symplast.com"
     }
   ],
+  "tags": [
+    {
+      "name": "Symplast_Appointments_Public_API_Appointments",
+      "x-displayName": "Appointments"
+    }
+  ],
   "paths": {
     "/v1/appointments": {
       "get": {
         "tags": [
-          "Appointments"
+          "Symplast_Appointments_Public_API_Appointments"
         ],
         "summary": "List appointments",
         "description": "Returns a cursor-paged feed of the caller's tenant appointments, newest changes first.\nPass `updatedSince` (UTC) to scope by change time and `pageSize` to size the page; follow\nthe `next` link (an opaque `cursor`) to page. Delivery is at-least-once — dedupe on `id`.",
@@ -110,13 +116,18 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
       }
     },
     "/v1/appointments/{id}": {
       "get": {
         "tags": [
-          "Appointments"
+          "Symplast_Appointments_Public_API_Appointments"
         ],
         "summary": "Get an appointment by id",
         "description": "Returns a single appointment by its identifier, scoped to the caller's tenant. An id that\ndoes not exist in the tenant returns 404 (a cross-tenant id is indistinguishable from a\nmissing one — no disclosure).",
@@ -215,13 +226,18 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
       }
     },
     "/v1/appointment-types": {
       "get": {
         "tags": [
-          "Appointments"
+          "Symplast_Appointments_Public_API_Appointments"
         ],
         "summary": "List appointment types",
         "description": "Returns the caller tenant's appointment-type vocabulary (id, description, default duration, deleted flag).",
@@ -265,13 +281,18 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
       }
     },
     "/v1/appointment-purposes": {
       "get": {
         "tags": [
-          "Appointments"
+          "Symplast_Appointments_Public_API_Appointments"
         ],
         "summary": "List appointment purposes",
         "description": "Returns the caller tenant's appointment-purpose vocabulary (id, description, deleted flag).",
@@ -314,13 +335,18 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
       }
     },
     "/v1/appointment-statuses": {
       "get": {
         "tags": [
-          "Appointments"
+          "Symplast_Appointments_Public_API_Appointments"
         ],
         "summary": "List appointment statuses",
         "description": "Returns the caller tenant's appointment-status vocabulary (id, name, description, deleted flag).",
@@ -364,13 +390,18 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
       }
     },
     "/v1/appointment-stages": {
       "get": {
         "tags": [
-          "Appointments"
+          "Symplast_Appointments_Public_API_Appointments"
         ],
         "summary": "List appointment stages",
         "description": "Returns the caller tenant's appointment-stage vocabulary; each stage lists the status ids it couples to.",
@@ -416,13 +447,18 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
       }
     },
     "/v1/appointment-payment-types": {
       "get": {
         "tags": [
-          "Appointments"
+          "Symplast_Appointments_Public_API_Appointments"
         ],
         "summary": "List appointment payment types",
         "description": "Returns the caller tenant's appointment payment-type vocabulary (id, description).",
@@ -464,7 +500,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
       }
     }
   },
@@ -943,14 +984,12 @@
       }
     }
   },
-  "security": [
+  "x-tagGroups": [
     {
-      "Bearer": []
-    }
-  ],
-  "tags": [
-    {
-      "name": "Appointments"
+      "name": "Symplast Appointments Public API",
+      "tags": [
+        "Symplast_Appointments_Public_API_Appointments"
+      ]
     }
   ]
 }
