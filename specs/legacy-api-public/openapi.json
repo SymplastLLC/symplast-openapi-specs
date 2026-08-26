@@ -1,0 +1,14 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "Symplast Legacy Public API",
+    "description": "Authenticated public read surface for a practice's structural reference data — its locations, its offices, and its practice profile. Merge 1 exposes no v1 routes yet; the surface lands in a follow-up merge.",
+    "version": "8.7.31"
+  },
+  "servers": [
+    {
+      "url": "https://api.symplast.com"
+    }
+  ],
+  "paths": {}
+}
