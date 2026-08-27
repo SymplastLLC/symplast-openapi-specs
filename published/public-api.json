@@ -3,7 +3,7 @@
   "info": {
     "title": "Symplast Public API",
     "description": "The unified Symplast Public API surface, composed from each service specification.",
-    "version": "0.1.54"
+    "version": "0.1.55"
   },
   "servers": [
     {
@@ -58,6 +58,10 @@
     {
       "name": "Offices",
       "x-displayName": "Offices"
+    },
+    {
+      "name": "UsersEndpoints",
+      "x-displayName": "UsersEndpoints"
     }
   ],
   "paths": {
@@ -3359,6 +3363,81 @@
           }
         ]
       }
+    },
+    "/v1/users": {
+      "get": {
+        "tags": [
+          "UsersEndpoints"
+        ],
+        "summary": "List users",
+        "description": "Returns a cursor-paged list of the caller's tenant users, ordered by last-modified time.\nPass `updatedSince` (UTC) to scope by change time and `pageSize` to size the page; follow\nthe `next` link (an opaque `cursor`) to page further.",
+        "operationId": "GetUsers",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedResponseOfPublicUser"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/users/{id}": {
+      "get": {
+        "tags": [
+          "UsersEndpoints"
+        ],
+        "summary": "Get a user by id",
+        "operationId": "GetUserById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The legacy user id, unique within the caller's tenant.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicUser"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -6659,6 +6738,181 @@
           "phone": "+1-215-555-0190",
           "fax": "+1-215-555-0191"
         }
+      },
+      "PagedResponseOfPublicUser": {
+        "required": [
+          "data",
+          "pageSize",
+          "count",
+          "hasMore"
+        ],
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublicUser"
+            }
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "hasMore": {
+            "type": "boolean"
+          },
+          "nextCursor": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "next": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "PublicUser": {
+        "required": [
+          "id",
+          "tenantId",
+          "userName",
+          "displayName",
+          "firstName",
+          "lastName",
+          "email",
+          "workPhone",
+          "mobilePhone",
+          "title",
+          "gender",
+          "npi",
+          "userType",
+          "status",
+          "usersDbId"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "The legacy user id.",
+            "format": "int32"
+          },
+          "tenantId": {
+            "type": "integer",
+            "description": "The tenant id.",
+            "format": "int32"
+          },
+          "userName": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The user name, or `null` if not set on the underlying record."
+          },
+          "displayName": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The display name (`\"{FirstName} {LastName}\"`). A ragged string (extra whitespace) when one of the\nname parts is missing — inherited from the underlying data, not corrected here."
+          },
+          "firstName": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The first name, or `null` if not set."
+          },
+          "lastName": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The last name, or `null` if not set."
+          },
+          "email": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The email address, or `null` if not set."
+          },
+          "workPhone": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The work phone number, or `null` if not set."
+          },
+          "mobilePhone": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The mobile phone number, or `null` if not set."
+          },
+          "title": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The title (e.g. \"Dr.\", \"Mr.\", \"Ms.\"), or `null` if not set."
+          },
+          "gender": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The gender, a free-form string (no fixed vocabulary at the legacy DB level), or `null` if not set."
+          },
+          "npi": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The National Provider Identifier, or `null` if not set. Public information (looked up via NPPES),\nnot PHI/PII — included, unlike the other bounded-context/sensitive fields this resource excludes."
+          },
+          "userType": {
+            "description": "The user's legacy type. Never UserType.Patient or UserType.RefByPhysician — excluded upstream.",
+            "$ref": "#/components/schemas/UserType"
+          },
+          "status": {
+            "type": "boolean",
+            "description": "Always `true` in practice (inactive accounts are excluded upstream); kept for forward-compatibility."
+          },
+          "usersDbId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "description": "The linked `UsersDb.Users.Id` (the modern, global user record), or `null` if no such record\nexists for this user yet — a `UsersDb.Users` row is created lazily on first login, so this is not\nguaranteed to be present. Only the link itself is exposed; none of the bounded-context data that hangs\noff it (permissions, security groups, licenses, custom settings) is part of this resource.",
+            "format": "int32"
+          }
+        },
+        "description": "The minimal public identity/profile projection of a user. Deliberately excludes SSN, date of birth,\npermissions, security groups, custom settings, licenses, EHR-workflow flags, image URLs, role, and\nspeciality — this is the entire externally exposed field set. NPI is included (see string? PublicUser.Npi) —\nunlike the other excluded fields, it is itself public information (looked up via NPPES), not PHI/PII."
+      },
+      "UserType": {
+        "enum": [
+          "all",
+          "physician",
+          "nurse",
+          "admin",
+          "staff",
+          "patient",
+          "refByPhysician",
+          "cosmeticCoordinator",
+          "nursePractitioner",
+          "allPractice",
+          "allExceptPatient",
+          "unknown"
+        ]
       }
     },
     "securitySchemes": {
@@ -6696,6 +6950,12 @@
         "Practice info",
         "Locations",
         "Offices"
+      ]
+    },
+    {
+      "name": "Symplast Users Public API",
+      "tags": [
+        "UsersEndpoints"
       ]
     }
   ]
