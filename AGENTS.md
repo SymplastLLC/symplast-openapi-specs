@@ -142,11 +142,17 @@ artifact is produced by CI with the real version.
 The composite is this repo's own artifact, so its version is **this repo's** nbgv version — never a
 downstream service's build number.
 
-- `compose.yaml` resolves it via the shared [`calculate-version`](https://github.com/SymplastLLC/devops-actions/tree/main/.github/actions/calculate-version)
-  action, the same action the other SymplastLLC repos use. The action emits **SemVer2** and supplies its own
-  checkout; `nbgv` is already present on the runner, so nothing needs installing.
-- `version.json` marks `main` as a public release ref, so on `main` SemVer2 is a clean `0.1.<height>`. A run
-  from any other branch deliberately gets a `-g<commit>` suffix so it cannot masquerade as a release.
+- `compose.yaml` installs `nbgv` and reads **`Semver2`**, replicating what the shared org action does.
+- Combined with `version.json`'s `publicReleaseRefSpec`, that is a clean `0.1.<height>` **only on `main`**.
+  Any other ref gets a `-g<commit>` suffix, so an off-`main` `workflow_dispatch` cannot publish or tag a
+  version that looks like a release. This is intentional — do not "fix" it by switching to `SimpleVersion`,
+  which is clean everywhere.
+- **Do not switch this to the shared `calculate-version` action.** `devops-actions` is private and this repo
+  is public — GitHub refuses to resolve a private-repo action from a public repo, and the job fails at
+  "Set up job" before any step runs. This was tried and reverted; the workflow comment records it. Every repo
+  using that action successfully is private.
+- `version.json`'s `publicReleaseRefSpec` is therefore load-bearing, not cosmetic: remove or change it and
+  every published version and tag silently gains a `-g<commit>` suffix.
 - The same value is stamped into every composite's `info.version` **and** used for the immutable git tag
   `v<version>`, so the version inside the spec always equals the tag consumers pin by.
 - `version.json`'s `pathFilters` exclude `published/**`, so the bot's own compose commits do not inflate the

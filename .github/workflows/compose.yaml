@@ -44,14 +44,31 @@ jobs:
       # the two always agree. version.json's pathFilters exclude published/**, so the bot's own compose
       # commits do not inflate the height — the number counts real spec revisions and is stable on re-runs.
       #
-      # Uses the shared org action (same as the ~19 other SymplastLLC repos) rather than a bespoke nbgv step.
-      # It emits SemVer2, which is a clean `0.1.<height>` here because version.json marks main as a public
-      # release ref — off-main runs (workflow_dispatch elsewhere) intentionally get a `-g<commit>` suffix so
-      # they cannot masquerade as a release. The action supplies its own checkout and nbgv is already present
-      # on the runner, so nothing needs installing.
-      - name: Resolve composite version
+      # NOTE: this deliberately does NOT use the shared
+      # SymplastLLC/devops-actions/.github/actions/calculate-version action, even though nearly every other
+      # repo in the org does. GitHub does not allow a PUBLIC repository to consume an action from a PRIVATE
+      # repository, even within the same org — devops-actions is private and this repo is public (it must be,
+      # so the dev portal can fetch published/** over raw.githubusercontent.com). Referencing it fails the job
+      # at "Set up job" with `Unable to resolve action symplastllc/devops-actions, not found`, before any step
+      # runs. Every repo using that action successfully is private. Do not "restore consistency" here without
+      # first making devops-actions public.
+      #
+      # So this replicates what that action does — `nbgv get-version --variable Semver2` — inline, and keeps
+      # the nbgv install (the shared action relies on nbgv being preinstalled on the runner; installing it
+      # here is idempotent and removes that dependency on the runner image).
+      #
+      # Semver2 is deliberate: combined with version.json's publicReleaseRefSpec it is a clean
+      # `0.1.<height>` ONLY on main, and carries a `-g<commit>` suffix on every other ref, so a
+      # workflow_dispatch from a feature branch cannot publish a version that looks like a release.
+      - name: Resolve composite version (this repo's nbgv)
         id: ver
-        uses: SymplastLLC/devops-actions/.github/actions/calculate-version@main
+        run: |
+          set -euo pipefail
+          dotnet tool install --global nbgv >/dev/null 2>&1 || dotnet tool update --global nbgv >/dev/null 2>&1
+          export PATH="$PATH:$HOME/.dotnet/tools"
+          version="$(nbgv get-version --variable Semver2)"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "Composite version (this repo's nbgv Semver2): $version"
 
       # All composition logic lives in bin/compose so it can be run locally exactly as CI runs it:
       #   COMPOSITE_VERSION=0.0.0-local bin/compose

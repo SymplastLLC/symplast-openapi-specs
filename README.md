@@ -135,9 +135,8 @@ canonical/practice/ProblemDetails.json   → docs for the unified `ProblemDetail
 ## Versioning
 
 The composite is **this repo's own artifact**, so its version is **this repo's** [nbgv](https://github.com/dotnet/Nerdbank.GitVersioning)
-version — never any single downstream service's build number. `compose.yaml` resolves it once per run via
-the shared [`calculate-version`](https://github.com/SymplastLLC/devops-actions/tree/main/.github/actions/calculate-version)
-action (the same action the other SymplastLLC repos use) and uses it for **both**:
+version — never any single downstream service's build number. `compose.yaml` resolves the nbgv
+`Semver2` version once per run and uses it for **both**:
 
 - the composite's `info.version` (stamped into every `published/<audience>-api.json`), overriding each
   service's own image-tag `info.version`; and
@@ -147,9 +146,15 @@ So the version a consumer reads *inside* the spec always equals the tag they pin
 `pathFilters` exclude `published/**`, so the bot's own compose commits do **not** inflate the height — the
 number counts real spec revisions and stays stable across re-runs / manual dispatches.
 
-`version.json` marks `main` as a public release ref, so on `main` the version is a clean `0.1.<height>`.
-A run from any other branch (a `workflow_dispatch` on a feature branch) deliberately gets a `-g<commit>`
-suffix so it cannot masquerade as a release.
+`version.json` marks `main` as a public release ref, which is what makes the version **clean on `main` only**
+(`0.1.<height>`). A run from any other ref — a `workflow_dispatch` on a feature branch — gets a `-g<commit>`
+suffix, so it cannot publish or tag something that looks like a release.
+
+> **Why not the shared [`calculate-version`](https://github.com/SymplastLLC/devops-actions/tree/main/.github/actions/calculate-version)
+> action?** Because `devops-actions` is **private** and this repo is **public** (it has to be, so the portal
+> can fetch `published/**` over `raw.githubusercontent.com`). GitHub does not let a public repo consume an
+> action from a private one, even in the same org — the job dies at "Set up job" with
+> `Unable to resolve action`. Every repo using that action successfully is private.
 
 > The **per-service** specs under `specs/**` keep their own image-tag `info.version` (which build produced
 > them) as provenance — only the composed `published/**` version is rewritten to this repo's version.
