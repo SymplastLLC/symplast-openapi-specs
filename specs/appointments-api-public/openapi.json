@@ -3,7 +3,7 @@
   "info": {
     "title": "Symplast Appointments Public API",
     "description": "Authenticated, cursor-paged public read surface for appointment data.",
-    "version": "1.85.104"
+    "version": "1.85.105"
   },
   "servers": [
     {
@@ -89,6 +89,23 @@
                   "status": 401,
                   "detail": "A valid gateway token is required to access this resource.",
                   "code": "unauthenticated"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "https://api.symplast.com/problems/appointments/invalid-cursor",
+                  "title": "Invalid cursor",
+                  "status": 400,
+                  "detail": "The supplied cursor could not be decoded.",
+                  "code": "invalid-cursor"
                 }
               }
             }
@@ -198,6 +215,23 @@
               }
             }
           },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "https://api.symplast.com/problems/appointments/invalid-cursor",
+                  "title": "Invalid cursor",
+                  "status": 400,
+                  "detail": "The supplied cursor could not be decoded.",
+                  "code": "invalid-cursor"
+                }
+              }
+            }
+          },
           "default": {
             "description": "Unexpected error (RFC 9457 problem details).",
             "content": {
@@ -245,6 +279,23 @@
                     "isDeleted": false
                   }
                 ]
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "https://api.symplast.com/problems/appointments/invalid-cursor",
+                  "title": "Invalid cursor",
+                  "status": 400,
+                  "detail": "The supplied cursor could not be decoded.",
+                  "code": "invalid-cursor"
+                }
               }
             }
           },
@@ -297,6 +348,23 @@
               }
             }
           },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "https://api.symplast.com/problems/appointments/invalid-cursor",
+                  "title": "Invalid cursor",
+                  "status": 400,
+                  "detail": "The supplied cursor could not be decoded.",
+                  "code": "invalid-cursor"
+                }
+              }
+            }
+          },
           "default": {
             "description": "Unexpected error (RFC 9457 problem details).",
             "content": {
@@ -344,6 +412,23 @@
                     "isDeleted": false
                   }
                 ]
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "https://api.symplast.com/problems/appointments/invalid-cursor",
+                  "title": "Invalid cursor",
+                  "status": 400,
+                  "detail": "The supplied cursor could not be decoded.",
+                  "code": "invalid-cursor"
+                }
               }
             }
           },
@@ -399,6 +484,23 @@
               }
             }
           },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "https://api.symplast.com/problems/appointments/invalid-cursor",
+                  "title": "Invalid cursor",
+                  "status": 400,
+                  "detail": "The supplied cursor could not be decoded.",
+                  "code": "invalid-cursor"
+                }
+              }
+            }
+          },
           "default": {
             "description": "Unexpected error (RFC 9457 problem details).",
             "content": {
@@ -444,6 +546,23 @@
                     "description": "Cash"
                   }
                 ]
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "https://api.symplast.com/problems/appointments/invalid-cursor",
+                  "title": "Invalid cursor",
+                  "status": 400,
+                  "detail": "The supplied cursor could not be decoded.",
+                  "code": "invalid-cursor"
+                }
               }
             }
           },
