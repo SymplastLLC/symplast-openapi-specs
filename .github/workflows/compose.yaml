@@ -9,16 +9,20 @@ name: Compose OpenAPI
 # shapes under one name hard-fail the publish. Per-audience documentation overlays live in
 # canonical/<audience>/<Name>.json -- never shared across audiences.
 #
-# Trigger is scoped to specs/** and canonical/** so the workflow's own commit to published/** does NOT
-# retrigger it.
+# Every merge to main recomposes; only the workflow's own commit to published/** is skipped, so it does not
+# retrigger itself.
 on:
   push:
     branches:
       - main
-    paths:
-      - 'specs/**'
-      - 'canonical/**'
-      - 'bin/compose'
+    # paths-ignore, NOT an allow-list: EVERY merge to main must recompose, including one that changes only
+    # bin/compose or this workflow. An allow-list silently no-ops for anything it forgot to name — that is
+    # exactly how the PLA-1107 version fix merged without composing or tagging. Ignoring published/** is what
+    # keeps the bot's own compose commit from retriggering the workflow, since that commit touches nothing
+    # else. (A push touching published/** AND anything else still triggers: paths-ignore only skips a push
+    # when EVERY changed file matches.)
+    paths-ignore:
+      - 'published/**'
   workflow_dispatch:
 
 permissions:

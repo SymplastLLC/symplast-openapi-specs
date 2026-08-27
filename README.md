@@ -20,7 +20,7 @@ build Api.Public                          specs/appointments-api-public/openapi.
    `specs/<service>-<audience>/openapi.json` (via the shared
    [`publish-openapi-spec`](https://github.com/SymplastLLC/devops-actions/tree/main/.github/actions/publish-openapi-spec)
    action in its own `publish.yaml` — e.g. `appointments-api`).
-2. `.github/workflows/compose.yaml` runs on every push under `specs/**`, `canonical/**`, or `bin/compose`.
+2. `.github/workflows/compose.yaml` runs on **every** push to `main` except ones that touch only `published/**`.
    It delegates to **`bin/compose`**, which groups the specs **by audience**, unifies any schema shared by
    more than one spec, merges each audience's specs into ONE composite with
    [`redocly join`](https://redocly.com/docs/cli/commands/join), and commits the result to
