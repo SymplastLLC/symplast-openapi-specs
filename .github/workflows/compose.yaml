@@ -3,13 +3,22 @@ name: Compose OpenAPI
 # Fold each surface's per-service spec into ONE composite PER AUDIENCE (published/<audience>-api.json).
 # A surface directory is named `<service>-<audience>` (e.g. appointments-api-public), so the audience is
 # the segment after the final `-`. All specs sharing an audience compose into that audience's composite.
-# Trigger is scoped to specs/** so the workflow's own commit to published/** does NOT retrigger it.
+#
+# Composition itself is bin/compose (run it locally the same way CI does). Model and tag names are NOT
+# prefixed: a schema shared by several specs of one audience is unified into a single model, and divergent
+# shapes under one name hard-fail the publish. Per-audience documentation overlays live in
+# canonical/<audience>/<Name>.json -- never shared across audiences.
+#
+# Trigger is scoped to specs/** and canonical/** so the workflow's own commit to published/** does NOT
+# retrigger it.
 on:
   push:
     branches:
       - main
     paths:
       - 'specs/**'
+      - 'canonical/**'
+      - 'bin/compose'
   workflow_dispatch:
 
 permissions:
@@ -35,7 +44,7 @@ jobs:
       # the two always agree. version.json's pathFilters exclude published/**, so the bot's own compose
       # commits do not inflate the height — the number counts real spec revisions and is stable on re-runs.
       #
-      # Uses the shared org action (same as the other SymplastLLC repos) rather than a bespoke nbgv step.
+      # Uses the shared org action (same as the ~19 other SymplastLLC repos) rather than a bespoke nbgv step.
       # It emits SemVer2, which is a clean `0.1.<height>` here because version.json marks main as a public
       # release ref — off-main runs (workflow_dispatch elsewhere) intentionally get a `-g<commit>` suffix so
       # they cannot masquerade as a release. The action supplies its own checkout and nbgv is already present
@@ -44,89 +53,15 @@ jobs:
         id: ver
         uses: SymplastLLC/devops-actions/.github/actions/calculate-version@main
 
+      # All composition logic lives in bin/compose so it can be run locally exactly as CI runs it:
+      #   COMPOSITE_VERSION=0.0.0-local bin/compose
+      # The script hard-fails (and publishes nothing) when two specs of the same audience define the same
+      # schema name with different shapes -- see its header for the full policy.
       - name: Compose per-audience composites
         id: compose
         env:
           COMPOSITE_VERSION: ${{ steps.ver.outputs.version }}
-        run: |
-          set -euo pipefail
-          shopt -s nullglob
-
-          # audience → "Title|ServerUrl". Add a row when a new audience's specs land; an audience with
-          # specs but NO row here is skipped (with a warning), never published with a wrong title/host.
-          declare -A AUD=(
-            [public]="Symplast Public API|https://api.symplast.com"
-          )
-
-          mkdir -p published
-          # Clear stale composites so a removed audience/service leaves no orphan (git add -A commits the
-          # deletion). Only *-api.json composites are managed here.
-          rm -f published/*-api.json
-
-          # Discover the audiences that actually have specs today.
-          declare -A SEEN=()
-          for dir in specs/*/; do
-            name="$(basename "$dir")"
-            [ -f "$dir/openapi.json" ] || continue
-            SEEN["${name##*-}"]=1
-          done
-          if [ ${#SEEN[@]} -eq 0 ]; then
-            echo "No specs found under specs/*/openapi.json; nothing to compose."
-            echo "count=0" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          for aud in "${!SEEN[@]}"; do
-            specs=( specs/*-"${aud}"/openapi.json )
-            [ ${#specs[@]} -eq 0 ] && continue
-
-            if [ -z "${AUD[$aud]+x}" ]; then
-              echo "::warning::Audience '${aud}' has specs (${specs[*]}) but no AUD row (title/host) — skipping. Add a row to publish it."
-              continue
-            fi
-
-            out="published/${aud}-api.json"
-            if [ ${#specs[@]} -eq 1 ]; then
-              # redocly join requires >= 2 inputs. With a single service the service spec IS the composite.
-              echo "Audience '${aud}': single spec (${specs[0]}); copying through without join."
-              cp "${specs[0]}" "$out"
-            else
-              # Default: NO --prefix-components-with-info-prop, so byte-identical shared component schemas
-              # (Int32, Boolean, String, DateTime, List*, …) de-duplicate to a single entry. Services own
-              # distinct path prefixes, so paths never collide; --prefix-tags-with-info-prop only namespaces
-              # tags. redocly join exits non-zero ONLY on a genuine conflict (same component name, different
-              # definition) — in that case retry WITH per-service component prefixing to disambiguate.
-              echo "Audience '${aud}': joining ${#specs[@]} specs → ${out}"
-              if ! npx --yes @redocly/cli@1 join "${specs[@]}" \
-                    --prefix-tags-with-info-prop title \
-                    -o "$out"; then
-                echo "::warning::Component name conflict in '${aud}'; retrying with per-service component prefixing."
-                npx --yes @redocly/cli@1 join "${specs[@]}" \
-                  --prefix-tags-with-info-prop title \
-                  --prefix-components-with-info-prop title \
-                  -o "$out"
-              fi
-            fi
-
-            # Stamp the composite's identity + server + version, overriding whatever the source specs carry
-            # (build defaults such as localhost/per-env hosts, and each service's own image-tag info.version).
-            # info.version is set to THIS repo's nbgv version — the composite's own version — so it matches
-            # the immutable git tag (below) the same commit gets stamped with.
-            IFS='|' read -r title server <<< "${AUD[$aud]}"
-            tmp="$(mktemp)"
-            jq --arg t "$title" --arg s "$server" --arg v "$COMPOSITE_VERSION" \
-               '.servers = [{ "url": $s }]
-                | .info.title = $t
-                | .info.version = $v
-                | .info.description = ("The unified " + $t + " surface, composed from each service specification.")' \
-               "$out" > "$tmp"
-            mv "$tmp" "$out"
-
-            echo "Composed ${out}:"
-            jq '{ openapi, info, servers, pathCount: (.paths | keys | length), schemaCount: (.components.schemas // {} | keys | length) }' "$out"
-          done
-
-          echo "count=1" >> "$GITHUB_OUTPUT"
+        run: bin/compose
 
       # Runs even when count=0 (every surface was deleted): the compose step already cleared the composites
       # from the working tree, so this commits their REMOVAL. The `git diff --cached --quiet` guard makes it

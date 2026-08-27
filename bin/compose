@@ -1,0 +1,219 @@
+#!/usr/bin/env bash
+# Fold each surface's per-service spec into ONE composite PER AUDIENCE (published/<audience>-api.json).
+#
+# A surface directory is named `<service>-<audience>` (e.g. appointments-api-public), so the audience is
+# the segment after the final `-`. All specs sharing an audience compose into that audience's composite.
+#
+# Component and tag names are NOT prefixed -- the composite reads as one unified API, not a stitched-together
+# set of services. A schema name shared by two or more specs of the same audience must therefore resolve to
+# exactly ONE model:
+#
+#   identical shapes -> unified into a single schema. Annotations come from canonical/<audience>/<Name>.json
+#                       when that overlay exists, otherwise from the first spec (with a warning).
+#   divergent shapes -> HARD FAILURE. Two different shapes under one name in a published contract is a
+#                       contract bug; it blocks the publish instead of being masked by a name prefix.
+#
+# Canonical overlays are per-audience by design -- canonical/<audience>/<Name>.json. There is deliberately
+# NO cross-audience canonical directory and no fallback between audiences: surfaces evolve independently and
+# must not be coupled through shared documentation.
+#
+# An overlay may only restate ANNOTATIONS. Its shape is verified against the specs and a mismatch is a hard
+# failure, so canonical/ can never become a place where the published contract drifts from what the services
+# actually return.
+#
+# Portable to bash 3.2 (macOS system bash) on purpose, so the composer can be run locally exactly as CI runs
+# it -- hence no associative arrays.
+#
+# Env:
+#   COMPOSITE_VERSION  (required)  stamped into info.version of every composite
+#   GITHUB_OUTPUT      (optional)  when set, `count` is written for the workflow's tagging gate
+set -euo pipefail
+shopt -s nullglob
+
+# audience -> "Title|ServerUrl". Add a case when a new audience's specs land; an audience with specs but no
+# case here is skipped (with a warning), never published with a wrong title/host.
+audience_meta() {
+  case "$1" in
+    public) echo "Symplast Public API|https://api.symplast.com" ;;
+    *)      return 1 ;;
+  esac
+}
+
+cd "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+: "${COMPOSITE_VERSION:?COMPOSITE_VERSION must be set}"
+
+STAGE_ROOT="$(mktemp -d)"
+trap 'rm -rf "$STAGE_ROOT"' EXIT
+
+# Annotation-insensitive form of a JSON Schema, used ONLY to compare shapes.
+# Schema-aware on purpose: a blanket `walk(del(.description))` would ALSO delete a property *named*
+# "description" (PaymentTypeLookup has one), silently making unequal shapes compare equal. This descends
+# only into real schema positions, so property keys are never touched.
+JQ_CANON_DEF='
+def canon:
+  if type == "object" then
+      del(.description, .example, .examples, .title, .summary, .externalDocs, .deprecated)
+    | with_entries(
+        if (.key | IN("properties","patternProperties","definitions")) then
+          .value |= with_entries(.value |= canon)
+        elif (.key | IN("items","additionalProperties","not","if","then","else")) then
+          .value |= (if type == "object" then canon else . end)
+        elif (.key | IN("allOf","anyOf","oneOf","prefixItems")) then
+          .value |= map(canon)
+        else . end)
+  else . end;'
+
+canon_schema() { # <file> <schema-name> -> annotation-free shape of that schema on stdout
+  jq -S --arg n "$2" "${JQ_CANON_DEF} .components.schemas[\$n] | canon" "$1"
+}
+
+errors=0
+composed=0
+
+# Discover the audiences that actually have specs today.
+audiences="$(
+  for dir in specs/*/; do
+    name="$(basename "$dir")"
+    [ -f "$dir/openapi.json" ] || continue
+    echo "${name##*-}"
+  done | sort -u
+)"
+if [ -z "$audiences" ]; then
+  echo "No specs found under specs/*/openapi.json; nothing to compose."
+  if [ -n "${GITHUB_OUTPUT:-}" ]; then echo "count=0" >> "$GITHUB_OUTPUT"; fi
+  exit 0
+fi
+
+mkdir -p published
+# Clear stale composites so a removed audience/service leaves no orphan (git add -A commits the deletion).
+# Only *-api.json composites are managed here.
+rm -f published/*-api.json
+
+for aud in $audiences; do
+  spec_files=( specs/*-"${aud}"/openapi.json )
+  [ ${#spec_files[@]} -eq 0 ] && continue
+
+  if ! meta="$(audience_meta "$aud")"; then
+    echo "::warning::Audience '${aud}' has specs (${spec_files[*]}) but no audience_meta case (title/host) -- skipping. Add a case to publish it."
+    continue
+  fi
+
+  echo "=== audience '${aud}': ${#spec_files[@]} spec(s)"
+  stage="${STAGE_ROOT}/${aud}"
+  mkdir -p "$stage"
+
+  # Stage a working copy per service so shared-schema unification never mutates specs/.
+  staged=()
+  for f in "${spec_files[@]}"; do
+    svc="$(basename "$(dirname "$f")")"
+    cp "$f" "${stage}/${svc}.json"
+    staged+=( "${stage}/${svc}.json" )
+  done
+
+  # --- Unify schema names shared by 2+ specs of this audience ---------------------------------------
+  shared="$(for f in "${staged[@]}"; do jq -r '.components.schemas // {} | keys[]' "$f"; done | sort | uniq -d)"
+  audience_errors=0
+
+  if [ -n "$shared" ]; then
+    while IFS= read -r schema; do
+      [ -n "$schema" ] || continue
+
+      # Which staged specs define it, and do their shapes agree?
+      owners=() ; shapes=()
+      for f in "${staged[@]}"; do
+        if [ "$(jq --arg n "$schema" '.components.schemas // {} | has($n)' "$f")" = "true" ]; then
+          owners+=( "$f" )
+          shapes+=( "$(canon_schema "$f" "$schema")" )
+        fi
+      done
+
+      divergent=0
+      for s in "${shapes[@]}"; do
+        [ "$s" = "${shapes[0]}" ] || divergent=1
+      done
+
+      if [ "$divergent" -eq 1 ]; then
+        {
+          echo "::error::Schema '${schema}' has DIVERGENT shapes across the '${aud}' specs:"
+          for f in "${owners[@]}"; do echo "::error::    - $(basename "$f" .json)"; done
+          echo "::error::  A published contract cannot expose two different shapes under one name."
+          echo "::error::  Reconcile the schema upstream so the services agree, or rename one of them."
+        } >&2
+        audience_errors=$((audience_errors + 1))
+        continue
+      fi
+
+      overlay="canonical/${aud}/${schema}.json"
+      if [ -f "$overlay" ]; then
+        # An overlay may restate annotations ONLY -- its shape must match what the services emit.
+        if [ "$(jq -S "${JQ_CANON_DEF} canon" "$overlay")" != "${shapes[0]}" ]; then
+          {
+            echo "::error::Canonical overlay '${overlay}' does not match the shape the '${aud}' specs emit."
+            echo "::error::  Overlays may restate annotations (description/example) only, never the shape."
+            echo "::error::  Update the overlay to match the services, or fix the services."
+          } >&2
+          audience_errors=$((audience_errors + 1))
+          continue
+        fi
+        winner="$(jq -c '.' "$overlay")"
+        echo "  unified '${schema}' across ${#owners[@]} specs (annotations from ${overlay})"
+      else
+        winner="$(jq -c --arg n "$schema" '.components.schemas[$n]' "${owners[0]}")"
+        echo "::warning::Schema '${schema}' is shared by ${#owners[@]} '${aud}' specs with identical shapes but has no canonical/${aud}/${schema}.json; its documentation was taken from $(basename "${owners[0]}" .json). Add the overlay to control it."
+      fi
+
+      # Make every copy byte-identical so redocly join de-duplicates them into a single component.
+      for f in "${owners[@]}"; do
+        tmp="$(mktemp)"
+        jq --arg n "$schema" --argjson w "$winner" '.components.schemas[$n] = $w' "$f" > "$tmp"
+        mv "$tmp" "$f"
+      done
+    done <<< "$shared"
+  fi
+
+  if [ "$audience_errors" -gt 0 ]; then
+    errors=$((errors + audience_errors))
+    continue
+  fi
+
+  # --- Join -----------------------------------------------------------------------------------------
+  out="published/${aud}-api.json"
+  if [ ${#staged[@]} -eq 1 ]; then
+    # redocly join requires >= 2 inputs. With a single service the service spec IS the composite.
+    echo "  single spec; copying through without join."
+    cp "${staged[0]}" "$out"
+  else
+    # No prefix flags at all: shared components were unified above, so byte-identical definitions
+    # de-duplicate. Services own distinct path prefixes and distinct tag names, so neither collides.
+    # A collision that survived unification is a genuine contract conflict -- redocly exits non-zero and
+    # we let it fail the build rather than papering over it with a prefix.
+    echo "  joining ${#staged[@]} specs -> ${out}"
+    npx --yes @redocly/cli@1 join "${staged[@]}" -o "$out" </dev/null
+  fi
+
+  # Stamp the composite's identity + server + version, overriding whatever the source specs carry (build
+  # defaults such as localhost/per-env hosts, and each service's own image-tag info.version). info.version
+  # is THIS repo's nbgv version -- the composite's own version -- so it matches the immutable git tag the
+  # same commit gets stamped with.
+  IFS='|' read -r title server <<< "$meta"
+  tmp="$(mktemp)"
+  jq --arg t "$title" --arg s "$server" --arg v "$COMPOSITE_VERSION" \
+     '.servers = [{ "url": $s }]
+      | .info.title = $t
+      | .info.version = $v
+      | .info.description = ("The unified " + $t + " surface, composed from each service specification.")' \
+     "$out" > "$tmp"
+  mv "$tmp" "$out"
+
+  echo "  composed ${out}:"
+  jq '{ openapi, info, servers, pathCount: (.paths | keys | length), schemaCount: (.components.schemas // {} | keys | length) }' "$out"
+  composed=$((composed + 1))
+done
+
+if [ "$errors" -gt 0 ]; then
+  echo "::error::Compose failed with ${errors} unresolved schema conflict(s); no composites were published." >&2
+  exit 1
+fi
+
+if [ -n "${GITHUB_OUTPUT:-}" ]; then echo "count=${composed}" >> "$GITHUB_OUTPUT"; fi
+echo "Composed ${composed} composite(s)."

@@ -1,0 +1,43 @@
+{
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "title": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "status": {
+      "type": [
+        "null",
+        "integer"
+      ],
+      "format": "int32"
+    },
+    "detail": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "instance": {
+      "type": [
+        "null",
+        "string"
+      ]
+    }
+  },
+  "description": "RFC 9457 problem details describing an error response. Returned for 4xx and 5xx conditions across this API.",
+  "example": {
+    "type": "https://api.symplast.com/problems/invalid-cursor",
+    "title": "Invalid cursor",
+    "status": 400,
+    "detail": "The supplied cursor could not be decoded."
+  }
+}
