@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # fetch-depth: 0 — nbgv computes the version from full commit history, so the version step needs it.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -34,16 +34,15 @@ jobs:
       # and reused for both info.version (stamped into each composite below) and the immutable git tag, so
       # the two always agree. version.json's pathFilters exclude published/**, so the bot's own compose
       # commits do not inflate the height — the number counts real spec revisions and is stable on re-runs.
-      - name: Resolve composite version (this repo's nbgv)
+      #
+      # Uses the shared org action (same as the other SymplastLLC repos) rather than a bespoke nbgv step.
+      # It emits SemVer2, which is a clean `0.1.<height>` here because version.json marks main as a public
+      # release ref — off-main runs (workflow_dispatch elsewhere) intentionally get a `-g<commit>` suffix so
+      # they cannot masquerade as a release. The action supplies its own checkout and nbgv is already present
+      # on the runner, so nothing needs installing.
+      - name: Resolve composite version
         id: ver
-        run: |
-          set -euo pipefail
-          dotnet tool install --global nbgv >/dev/null 2>&1 || dotnet tool update --global nbgv >/dev/null 2>&1
-          export PATH="$PATH:$HOME/.dotnet/tools"
-          # SimpleVersion => clean `0.1.<height>` (unique per commit), not SemVer2's `0.1.7-g<commit>`.
-          version="$(nbgv get-version -v SimpleVersion)"
-          echo "version=$version" >> "$GITHUB_OUTPUT"
-          echo "Composite version (this repo's nbgv SimpleVersion): $version"
+        uses: SymplastLLC/devops-actions/.github/actions/calculate-version@main
 
       - name: Compose per-audience composites
         id: compose
