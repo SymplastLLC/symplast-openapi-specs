@@ -3,7 +3,7 @@
   "info": {
     "title": "Symplast Appointments Public API",
     "description": "Authenticated, cursor-paged public read surface for appointment data.",
-    "version": "1.85.105"
+    "version": "1.85.107"
   },
   "servers": [
     {
