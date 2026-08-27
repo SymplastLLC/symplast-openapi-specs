@@ -3,7 +3,7 @@
   "info": {
     "title": "Symplast Public API",
     "description": "The unified Symplast Public API surface, composed from each service specification.",
-    "version": "0.1.61"
+    "version": "0.1.62"
   },
   "servers": [
     {
@@ -18,30 +18,37 @@
     },
     {
       "name": "Payments",
+      "x-domain": "Financials",
       "x-displayName": "Payments"
     },
     {
       "name": "Invoices",
+      "x-domain": "Financials",
       "x-displayName": "Invoices"
     },
     {
       "name": "Gift Cards",
+      "x-domain": "Financials",
       "x-displayName": "Gift Cards"
     },
     {
       "name": "Catalog",
+      "x-domain": "Financials",
       "x-displayName": "Catalog"
     },
     {
       "name": "Estimates",
+      "x-domain": "Financials",
       "x-displayName": "Estimates"
     },
     {
       "name": "Credit Notes",
+      "x-domain": "Financials",
       "x-displayName": "Credit Notes"
     },
     {
       "name": "Memberships",
+      "x-domain": "Financials",
       "x-displayName": "Memberships"
     },
     {
