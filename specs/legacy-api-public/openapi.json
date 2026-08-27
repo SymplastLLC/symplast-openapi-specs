@@ -3,7 +3,7 @@
   "info": {
     "title": "Symplast Legacy Public API",
     "description": "Authenticated public read surface for a practice's structural reference data — its locations, its offices, and its practice profile. Read-only; every route is scoped to the authenticated tenant.",
-    "version": "8.7.55"
+    "version": "8.7.58"
   },
   "servers": [
     {
@@ -547,13 +547,16 @@
   ],
   "tags": [
     {
-      "name": "Practice info"
+      "name": "Practice info",
+      "x-domain": "Practice"
     },
     {
-      "name": "Locations"
+      "name": "Locations",
+      "x-domain": "Practice"
     },
     {
-      "name": "Offices"
+      "name": "Offices",
+      "x-domain": "Practice"
     }
   ]
 }
