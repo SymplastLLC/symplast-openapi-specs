@@ -3,7 +3,7 @@
   "info": {
     "title": "Symplast Public API",
     "description": "The unified Symplast Public API surface, composed from each service specification.",
-    "version": "0.1.59"
+    "version": "0.1.60"
   },
   "servers": [
     {
@@ -13,6 +13,7 @@
   "tags": [
     {
       "name": "Appointments",
+      "x-domain": "Scheduling",
       "x-displayName": "Appointments"
     },
     {
