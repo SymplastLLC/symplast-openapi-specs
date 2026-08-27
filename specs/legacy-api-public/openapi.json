@@ -3,7 +3,7 @@
   "info": {
     "title": "Symplast Legacy Public API",
     "description": "Authenticated public read surface for a practice's structural reference data — its locations, its offices, and its practice profile. Read-only; every route is scoped to the authenticated tenant.",
-    "version": "8.7.54"
+    "version": "8.7.55"
   },
   "servers": [
     {
@@ -11,7 +11,7 @@
     }
   ],
   "paths": {
-    "/v1/practice-info": {
+    "/v1/practice/info": {
       "get": {
         "tags": [
           "Practice info"
@@ -46,7 +46,7 @@
         }
       }
     },
-    "/v1/locations": {
+    "/v1/practice/locations": {
       "get": {
         "tags": [
           "Locations"
@@ -74,7 +74,7 @@
         }
       }
     },
-    "/v1/locations/{id}": {
+    "/v1/practice/locations/{id}": {
       "get": {
         "tags": [
           "Locations"
@@ -121,7 +121,7 @@
         }
       }
     },
-    "/v1/offices": {
+    "/v1/practice/offices": {
       "get": {
         "tags": [
           "Offices"
@@ -149,7 +149,7 @@
         }
       }
     },
-    "/v1/offices/{id}": {
+    "/v1/practice/offices/{id}": {
       "get": {
         "tags": [
           "Offices"
@@ -339,7 +339,7 @@
               "null",
               "integer"
             ],
-            "description": "The parent office. `null` in four cases: the FK is unset; the office row does not exist; the office\nis soft-deleted; or the office is <b>unstaffed</b> and therefore absent from `GET /v1/offices`. A\nnon-null value is guaranteed to resolve against `GET /v1/offices/{id}`.",
+            "description": "The parent office. `null` in four cases: the FK is unset; the office row does not exist; the office\nis soft-deleted; or the office is <b>unstaffed</b> and therefore absent from `GET /v1/practice/offices`. A\nnon-null value is guaranteed to resolve against `GET /v1/practice/offices/{id}`.",
             "format": "int32"
           },
           "name": {
