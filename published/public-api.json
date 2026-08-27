@@ -3,7 +3,7 @@
   "info": {
     "title": "Symplast Public API",
     "description": "The unified Symplast Public API surface, composed from each service specification.",
-    "version": "0.1.57"
+    "version": "0.1.58"
   },
   "servers": [
     {
@@ -61,7 +61,7 @@
     }
   ],
   "paths": {
-    "/v1/appointments": {
+    "/v1/scheduling/appointments": {
       "get": {
         "tags": [
           "Appointments"
@@ -185,7 +185,7 @@
         ]
       }
     },
-    "/v1/appointments/{id}": {
+    "/v1/scheduling/appointments/{id}": {
       "get": {
         "tags": [
           "Appointments"
@@ -312,7 +312,7 @@
         ]
       }
     },
-    "/v1/appointment-types": {
+    "/v1/scheduling/appointment-types": {
       "get": {
         "tags": [
           "Appointments"
@@ -384,7 +384,7 @@
         ]
       }
     },
-    "/v1/appointment-purposes": {
+    "/v1/scheduling/appointment-purposes": {
       "get": {
         "tags": [
           "Appointments"
@@ -455,7 +455,7 @@
         ]
       }
     },
-    "/v1/appointment-statuses": {
+    "/v1/scheduling/appointment-statuses": {
       "get": {
         "tags": [
           "Appointments"
@@ -527,7 +527,7 @@
         ]
       }
     },
-    "/v1/appointment-stages": {
+    "/v1/scheduling/appointment-stages": {
       "get": {
         "tags": [
           "Appointments"
@@ -601,7 +601,7 @@
         ]
       }
     },
-    "/v1/appointment-payment-types": {
+    "/v1/scheduling/appointment-payment-types": {
       "get": {
         "tags": [
           "Appointments"
