@@ -3,24 +3,42 @@
 Central store for the **generated** OpenAPI specs of every Symplast public API surface, composed into a
 single unified spec **per audience** for the developer portal (scalar-ui).
 
+> Working in this repo with an AI agent? [`AGENTS.md`](./AGENTS.md) is the agent-facing operating guide
+> (per [RFC-002](https://app.notion.com/p/3449a00fb25b8150899be3d70ff6e62d)). This README is the human one.
+
 ## How it works
 
 ```text
 each *-api surface                              this repo                              dev portal
 ──────────────────                              ─────────                              ──────────
 build Api.Public                          specs/appointments-api-public/openapi.json  ┐
-  (OpenApiGenerateDocumentsOnBuild)  ──►  specs/financials-api-public/openapi.json    ├─ redocly join ─► published/public-api.json ─► scalar-ui
-  push on dev/main                        specs/webhooks-api-public/openapi.json       ┘        (compose.yaml)
+  (OpenApiGenerateDocumentsOnBuild)  ──►  specs/financials-api-public/openapi.json    ├─ bin/compose ─► published/public-api.json ─► scalar-ui
+  push on dev/main                        specs/legacy-api-public/openapi.json         ┘   (redocly join)
 ```
 
 1. Each public API surface builds its own OpenAPI document at build time and **pushes** it here to
    `specs/<service>-<audience>/openapi.json` (via the shared
    [`publish-openapi-spec`](https://github.com/SymplastLLC/devops-actions/tree/main/.github/actions/publish-openapi-spec)
    action in its own `publish.yaml` — e.g. `appointments-api`).
-2. `.github/workflows/compose.yaml` runs on every push under `specs/**`, groups the specs **by audience**,
-   merges each audience's specs into ONE composite with
+2. `.github/workflows/compose.yaml` runs on every push under `specs/**`, `canonical/**`, or `bin/compose`.
+   It delegates to **`bin/compose`**, which groups the specs **by audience**, unifies any schema shared by
+   more than one spec, merges each audience's specs into ONE composite with
    [`redocly join`](https://redocly.com/docs/cli/commands/join), and commits the result to
    `published/<audience>-api.json` (e.g. `published/public-api.json`).
+
+## Repository layout
+
+```text
+bin/compose                              the composer — all composition logic, runnable locally
+canonical/<audience>/<Name>.json         hand-authored docs for models shared by several specs
+specs/<service>-<audience>/openapi.json  GENERATED inputs, pushed by each owning service
+published/<audience>-api.json            GENERATED output, composed and committed by CI
+.github/workflows/compose.yaml           resolves the version, runs bin/compose, commits, tags
+version.json                             nbgv config (publicReleaseRefSpec, pathFilters)
+```
+
+`canonical/` is the only content here that is meant to be hand-edited. Everything under `specs/` and
+`published/` is generated.
 
 ## Store layout
 
@@ -29,15 +47,23 @@ A surface directory is named `<service>-<audience>`; the **audience is the segme
 ```text
 specs/appointments-api-public/openapi.json      → audience: public   ┐
 specs/financials-api-public/openapi.json        → audience: public   ├─► published/public-api.json
-specs/webhooks-api-public/openapi.json          → audience: public   ┘
+specs/legacy-api-public/openapi.json            → audience: public   ┘
 specs/appointments-api-practice/openapi.json    → audience: practice ──► published/practice-api.json  (future)
 specs/appointments-api-patient/openapi.json     → audience: patient  ──► published/patient-api.json   (future)
 ```
 
-Today there is exactly one audience (`public`) and one service in it (`appointments-api-public`), so the
-composite is `published/public-api.json`. Additional services in the `public` audience fold into the same
-composite automatically; a **new audience** lights up the moment its first spec lands **and** a row is
-added to the `AUD` map in `compose.yaml` (see below).
+The `public` rows are real; the `practice` / `patient` rows illustrate how a new audience would fan out.
+
+`public` is currently the only audience, so `published/public-api.json` is the only composite. Every
+service in an audience folds into that audience's composite automatically — adding one needs **no change in
+this repo**. A **new audience** lights up the moment its first spec lands **and** a case is added to
+`audience_meta()` in `bin/compose` (see below).
+
+To see which surfaces are in the store right now, list the directories rather than trusting a doc:
+
+```bash
+ls -d specs/*/
+```
 
 ## Rules
 
@@ -46,41 +72,72 @@ added to the `AUD` map in `compose.yaml` (see below).
 - One file per surface: `specs/<service>-<audience>/openapi.json` (latest spec only — no per-version
   history here).
 - Services own **distinct path prefixes**, so there are no path collisions within an audience composite.
-- Shared 3.1 primitive / array component schemas (`Int32`, `Boolean`, `String`, `DateTime`, `List*`, …)
-  that are byte-identical across services are **de-duplicated** into a single component. Only genuinely
-  conflicting component names (same name, different definition) are prefixed per service.
+- **Model and tag names are never prefixed.** The composite reads as one unified API, not a stitched-together
+  set of services — `PublicCreditNote`, not `Symplast_Financials_Public_API_PublicCreditNote`.
+- A schema name defined by **more than one spec in the same audience** must resolve to exactly ONE model:
+  - **Same shape** → unified into a single component. Its documentation comes from
+    `canonical/<audience>/<Name>.json` when that overlay exists, otherwise from the first spec (with a
+    warning telling you to add the overlay).
+  - **Different shapes** → the compose **fails and publishes nothing**. Two different shapes under one name
+    in a published contract is a contract bug; it must be reconciled upstream or renamed, not masked by a
+    per-service prefix.
 
 ## Composition
 
-`compose.yaml` produces one `published/<audience>-api.json` per audience. Each composite's identity is
-stamped from the `AUD` map in the workflow — `audience → "Title|ServerUrl"`:
+`bin/compose` produces one `published/<audience>-api.json` per audience. Each composite's identity is
+stamped from `audience_meta()` in that script — `audience → "Title|ServerUrl"`:
 
 ```bash
-declare -A AUD=(
-  [public]="Symplast Public API|https://api.symplast.com"
-)
+audience_meta() {
+  case "$1" in
+    public) echo "Symplast Public API|https://api.symplast.com" ;;
+    *)      return 1 ;;
+  esac
+}
 ```
 
 - The composite's `servers` is forced to the audience's canonical URL — `https://api.symplast.com` for
   `public` — overriding whatever the source specs carry (build defaults such as `localhost`, or per-env
   hosts). This is the single authoritative host for every consumer.
-- An audience that has specs but **no `AUD` row** is skipped with a warning (never published with a wrong
-  title/host) — adding the audience is a deliberate one-line change.
+- An audience that has specs but **no `audience_meta` case** is skipped with a warning (never published
+  with a wrong title/host) — adding the audience is a deliberate one-line change.
 - Composites are committed back to the default branch by the workflow using the repo's own `GITHUB_TOKEN`.
 
-Run the composition for the `public` audience locally the same way the workflow does:
+Run the composition locally exactly the way the workflow does — same script, same output:
 
 ```bash
-npx --yes @redocly/cli@latest join specs/*-public/openapi.json -o published/public-api.json --prefix-tags-with-info-prop title
-jq '.servers = [{ "url": "https://api.symplast.com" }] | .info.title = "Symplast Public API"' \
-   published/public-api.json > tmp && mv tmp published/public-api.json
+COMPOSITE_VERSION=0.0.0-local bin/compose
 ```
+
+`COMPOSITE_VERSION` is the only input; CI supplies this repo's nbgv version, and any placeholder works
+locally. The script needs `jq` and `npx`, exits non-zero on an unresolved schema conflict, and writes
+nothing to `published/` when it fails.
+
+## Canonical model overlays
+
+When several specs of one audience define the same schema, the composite needs ONE set of docs for the
+unified model. That lives in `canonical/<audience>/<SchemaName>.json`:
+
+```text
+canonical/public/ProblemDetails.json     → docs for the unified `ProblemDetails` in published/public-api.json
+canonical/practice/ProblemDetails.json   → docs for the unified `ProblemDetails` in published/practice-api.json
+```
+
+- **Overlays are per-audience and never shared across audiences.** There is no global overlay directory and
+  no fallback between surfaces — `public` will not borrow `practice`'s docs or vice versa, because the
+  surfaces evolve independently.
+- An overlay may only restate **annotations** (`description`, `example`, …). Its shape is verified against
+  what the services actually emit and a mismatch **fails the compose**, so `canonical/` can never become a
+  place where the published contract drifts from the running APIs.
+- Overlays are the one hand-authored artifact here — unlike `specs/**` and `published/**`, they are meant to
+  be edited and reviewed in PRs.
 
 ## Versioning
 
 The composite is **this repo's own artifact**, so its version is **this repo's** [nbgv](https://github.com/dotnet/Nerdbank.GitVersioning)
-version — never any single downstream service's build number. `compose.yaml` resolves the nbgv
-`SimpleVersion` (`0.1.<height>`) once per run and uses it for **both**:
+version — never any single downstream service's build number. `compose.yaml` resolves it once per run via
+the shared [`calculate-version`](https://github.com/SymplastLLC/devops-actions/tree/main/.github/actions/calculate-version)
+action (the same action the other SymplastLLC repos use) and uses it for **both**:
 
 - the composite's `info.version` (stamped into every `published/<audience>-api.json`), overriding each
   service's own image-tag `info.version`; and
@@ -89,6 +146,10 @@ version — never any single downstream service's build number. `compose.yaml` r
 So the version a consumer reads *inside* the spec always equals the tag they pin it by. `version.json`'s
 `pathFilters` exclude `published/**`, so the bot's own compose commits do **not** inflate the height — the
 number counts real spec revisions and stays stable across re-runs / manual dispatches.
+
+`version.json` marks `main` as a public release ref, so on `main` the version is a clean `0.1.<height>`.
+A run from any other branch (a `workflow_dispatch` on a feature branch) deliberately gets a `-g<commit>`
+suffix so it cannot masquerade as a release.
 
 > The **per-service** specs under `specs/**` keep their own image-tag `info.version` (which build produced
 > them) as provenance — only the composed `published/**` version is rewritten to this repo's version.
@@ -119,6 +180,8 @@ composite automatically. **No change needed in this repo.**
 ## Adding a new audience
 
 1. A surface pushes to `specs/<service>-<newaudience>/openapi.json`.
-2. Add one row to the `AUD` map in `.github/workflows/compose.yaml`:
-   `[<newaudience>]="<Title>|<ServerUrl>"`.
+2. Add one case to `audience_meta()` in `bin/compose`:
+   `<newaudience>) echo "<Title>|<ServerUrl>" ;;`.
 3. The next compose produces `published/<newaudience>-api.json`; point the portal at it.
+4. If two of that audience's specs share a schema name, add `canonical/<newaudience>/<Name>.json` to own the
+   unified model's documentation. Overlays are never shared between audiences.
