@@ -3,7 +3,7 @@
   "info": {
     "title": "Symplast Public API",
     "description": "The unified Symplast Public API surface, composed from each service specification.",
-    "version": "0.1.65"
+    "version": "0.1.67"
   },
   "servers": [
     {
@@ -13,62 +13,50 @@
   "tags": [
     {
       "name": "Appointments",
-      "x-domain": "Scheduling",
       "x-displayName": "Appointments"
     },
     {
       "name": "Payments",
-      "x-domain": "Financials",
       "x-displayName": "Payments"
     },
     {
       "name": "Invoices",
-      "x-domain": "Financials",
       "x-displayName": "Invoices"
     },
     {
       "name": "Gift Cards",
-      "x-domain": "Financials",
       "x-displayName": "Gift Cards"
     },
     {
       "name": "Catalog",
-      "x-domain": "Financials",
       "x-displayName": "Catalog"
     },
     {
       "name": "Estimates",
-      "x-domain": "Financials",
       "x-displayName": "Estimates"
     },
     {
       "name": "Credit Notes",
-      "x-domain": "Financials",
       "x-displayName": "Credit Notes"
     },
     {
       "name": "Memberships",
-      "x-domain": "Financials",
       "x-displayName": "Memberships"
     },
     {
       "name": "Practice info",
-      "x-domain": "Practice",
       "x-displayName": "Practice info"
     },
     {
       "name": "Locations",
-      "x-domain": "Practice",
       "x-displayName": "Locations"
     },
     {
       "name": "Offices",
-      "x-domain": "Practice",
       "x-displayName": "Offices"
     },
     {
       "name": "UsersEndpoints",
-      "x-domain": "Practice",
       "x-displayName": "UsersEndpoints"
     }
   ],
@@ -6944,13 +6932,13 @@
   },
   "x-tagGroups": [
     {
-      "name": "Symplast Appointments Public API",
+      "name": "Scheduling",
       "tags": [
         "Appointments"
       ]
     },
     {
-      "name": "Symplast Financials Public API",
+      "name": "Financials",
       "tags": [
         "Payments",
         "Invoices",
@@ -6962,16 +6950,11 @@
       ]
     },
     {
-      "name": "Symplast Legacy Public API",
+      "name": "Practice",
       "tags": [
         "Practice info",
         "Locations",
-        "Offices"
-      ]
-    },
-    {
-      "name": "Symplast Users Public API",
-      "tags": [
+        "Offices",
         "UsersEndpoints"
       ]
     }
