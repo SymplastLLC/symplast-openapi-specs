@@ -160,7 +160,7 @@ downstream service's build number.
 
 ## CI/CD
 
-`.github/workflows/compose.yaml`, on push to `main` under `specs/**`, `canonical/**`, or `bin/compose`
+`.github/workflows/compose.yaml`, on **every** push to `main` except pushes that touch only `published/**`
 (plus `workflow_dispatch`):
 
 1. Checkout (full history — nbgv needs it).
@@ -169,7 +169,10 @@ downstream service's build number.
 4. Commit `published/` back to `main` as `github-actions[bot]`.
 5. Tag the commit `v<version>` (idempotent; skipped when the tag exists).
 
-The trigger excludes `published/**` so the bot's own commit does not retrigger the workflow.
+The trigger is a `paths-ignore` on `published/**`, deliberately not an allow-list: every merge must
+recompose, including one that changes only `bin/compose` or the workflow itself. Ignoring `published/**` is
+what stops the bot's own compose commit from retriggering the run. An allow-list silently no-ops for any path
+it forgets to name — that is how the PLA-1107 version fix merged without composing or tagging.
 
 ## Agent Rules
 
