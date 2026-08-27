@@ -6,7 +6,7 @@
     "version": "1.60.42"
   },
   "paths": {
-    "/v1/users": {
+    "/v1/practice/users": {
       "get": {
         "tags": [
           "UsersEndpoints"
@@ -38,7 +38,7 @@
         }
       }
     },
-    "/v1/users/{id}": {
+    "/v1/practice/users/{id}": {
       "get": {
         "tags": [
           "UsersEndpoints"
