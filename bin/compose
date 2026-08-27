@@ -17,6 +17,14 @@
 # NO cross-audience canonical directory and no fallback between audiences: surfaces evolve independently and
 # must not be coupled through shared documentation.
 #
+# Portal navigation sections (x-tagGroups) are rebuilt from sections/<audience>.json rather than left as
+# redocly's default, which names one group per source spec after that spec's info.title and so leaks service
+# identity ("Symplast Appointments Public API") into the published contract. Section MEMBERSHIP is per TAG,
+# not per spec, which is what lets several services share one section and one service span several. A tag's
+# section comes from its own `x-domain` extension when the owning service emits one, else from that file's
+# tagDomains fallback; a tag resolved by neither is a hard failure, because it would be missing from the
+# portal's navigation entirely.
+#
 # An overlay may only restate ANNOTATIONS. Its shape is verified against the specs and a mismatch is a hard
 # failure, so canonical/ can never become a place where the published contract drifts from what the services
 # actually return.
@@ -192,6 +200,67 @@ for aud in $audiences; do
     echo "  joining ${#staged[@]} specs -> ${out}"
     npx --yes @redocly/cli@1 join "${staged[@]}" -o "$out" </dev/null
   fi
+
+  # --- Portal navigation sections -------------------------------------------------------------------
+  # Replace redocly's per-spec x-tagGroups with the audience's declared sections. Membership is resolved per
+  # tag: the tag's own `x-domain` wins, else sections/<aud>.json's tagDomains fallback. The tag list is the
+  # union of DECLARED tags and tags actually referenced by operations, so an operation carrying an undeclared
+  # tag cannot slip through ungrouped. Declaration order is preserved within a section.
+  sections_file="sections/${aud}.json"
+  if [ ! -f "$sections_file" ]; then
+    {
+      echo "::error::Audience '${aud}' has no ${sections_file}, so its portal navigation sections are undefined."
+      echo "::error::  Add it with the audience's ordered section names and, for surfaces not yet emitting"
+      echo "::error::  x-domain on their tags, a tagDomains fallback map."
+    } >&2
+    errors=$((errors + 1))
+    continue
+  fi
+
+  resolved="$(jq -n --slurpfile spec "$out" --slurpfile cfg "$sections_file" '
+    ($spec[0]) as $s | ($cfg[0]) as $c
+    | ($c.sections // []) as $order
+    | ($c.tagDomains // {}) as $fallback
+    | [$s.tags[]?.name] as $declared
+    | ([$s.paths[]? | to_entries[] | .value.tags[]?] | unique) as $used
+    | ($declared + [$used[] | select(. as $u | $declared | index($u) | not)]) as $all
+    | [ $all[] as $t
+        | { tag: $t,
+            domain: ( ([$s.tags[]? | select(.name == $t) | .["x-domain"]] | map(select(. != null)) | first)
+                      // $fallback[$t] ) } ] as $r
+    | { unassigned: [ $r[] | select(.domain == null) | .tag ],
+        unknown:    [ $r[] | .domain as $d | select($d != null and (($order | index($d)) == null)) | "\(.tag) -> \($d)" ] | unique,
+        groups:     [ $order[] as $d | { name: $d, tags: [ $r[] | select(.domain == $d) | .tag ] } | select((.tags | length) > 0) ] }
+  ')"
+
+  unassigned="$(jq -r '.unassigned | join(", ")' <<< "$resolved")"
+  unknown="$(jq -r '.unknown | join(", ")' <<< "$resolved")"
+
+  if [ -n "$unassigned" ]; then
+    {
+      echo "::error::These '${aud}' tags belong to no section, so they would be missing from the portal navigation:"
+      echo "::error::    ${unassigned}"
+      echo "::error::  Either have the owning service emit x-domain on the tag, or add it to tagDomains in ${sections_file}."
+    } >&2
+    errors=$((errors + 1))
+    continue
+  fi
+  if [ -n "$unknown" ]; then
+    {
+      echo "::error::These '${aud}' tags name a section that does not exist in ${sections_file}:"
+      echo "::error::    ${unknown}"
+      echo "::error::  Fix the typo, or add the section to that file's ordered \"sections\" list."
+    } >&2
+    errors=$((errors + 1))
+    continue
+  fi
+
+  tmp="$(mktemp)"
+  jq --argjson groups "$(jq -c '.groups' <<< "$resolved")" '
+      .["x-tagGroups"] = $groups
+    | if .tags then .tags |= map(del(.["x-domain"])) else . end' "$out" > "$tmp"
+  mv "$tmp" "$out"
+  echo "  sections: $(jq -r '[.groups[] | "\(.name)(\(.tags | length))"] | join("  ")' <<< "$resolved")"
 
   # Stamp the composite's identity + server + version, overriding whatever the source specs carry (build
   # defaults such as localhost/per-env hosts, and each service's own image-tag info.version). info.version

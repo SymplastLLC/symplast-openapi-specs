@@ -1,0 +1,24 @@
+{
+  "$comment": "Portal navigation sections for the 'public' audience. Order here is the order Scalar renders them. A tag's section comes from its own x-domain extension when the owning service emits one; tagDomains below is the fallback for surfaces that have not adopted x-domain yet, and shrinks to {} as they do. A tag resolved by neither is a hard failure.",
+  "sections": [
+    "Scheduling",
+    "Financials",
+    "Practice"
+  ],
+  "tagDomains": {
+    "Appointments": "Scheduling",
+
+    "Payments": "Financials",
+    "Invoices": "Financials",
+    "Gift Cards": "Financials",
+    "Catalog": "Financials",
+    "Estimates": "Financials",
+    "Credit Notes": "Financials",
+    "Memberships": "Financials",
+
+    "Practice info": "Practice",
+    "Locations": "Practice",
+    "Offices": "Practice",
+    "UsersEndpoints": "Practice"
+  }
+}

@@ -31,14 +31,15 @@ build Api.Public                          specs/appointments-api-public/openapi.
 ```text
 bin/compose                              the composer — all composition logic, runnable locally
 canonical/<audience>/<Name>.json         hand-authored docs for models shared by several specs
+sections/<audience>.json                 hand-authored portal navigation sections for the audience
 specs/<service>-<audience>/openapi.json  GENERATED inputs, pushed by each owning service
 published/<audience>-api.json            GENERATED output, composed and committed by CI
 .github/workflows/compose.yaml           resolves the version, runs bin/compose, commits, tags
 version.json                             nbgv config (publicReleaseRefSpec, pathFilters)
 ```
 
-`canonical/` is the only content here that is meant to be hand-edited. Everything under `specs/` and
-`published/` is generated.
+`canonical/` and `sections/` are the only content here meant to be hand-edited. Everything under `specs/`
+and `published/` is generated.
 
 ## Store layout
 
@@ -132,6 +133,35 @@ canonical/practice/ProblemDetails.json   → docs for the unified `ProblemDetail
 - Overlays are the one hand-authored artifact here — unlike `specs/**` and `published/**`, they are meant to
   be edited and reviewed in PRs.
 
+## Portal navigation sections
+
+The portal groups operations into sections using `x-tagGroups`. Left to itself, `redocly join` builds that as
+one group per source spec named from the spec's `info.title` — so the portal would show
+*"Symplast Appointments Public API"* as a heading. `bin/compose` discards that and rebuilds the groups from
+`sections/<audience>.json`:
+
+```json
+{
+  "sections": ["Scheduling", "Financials", "Practice"],
+  "tagDomains": { "Appointments": "Scheduling", "UsersEndpoints": "Practice" }
+}
+```
+
+- `sections` is the section list **in portal render order**.
+- Membership is decided **per tag, not per spec** — which is what lets `legacy-api` and `users-api` both
+  publish into `Practice`, and lets a single service publish into more than one section.
+- A tag's section comes from its own `x-domain` extension when the owning service emits one; `tagDomains` is
+  the fallback for surfaces that have not adopted `x-domain` yet.
+- A tag matched by neither **fails the compose**, because it would be missing from the portal navigation. A
+  section name that isn't in `sections` also fails, which catches typos.
+
+Service teams should move toward emitting `x-domain` on their tags, so the section choice lives with the team
+that owns the routes:
+
+```json
+"tags": [ { "name": "Locations", "x-domain": "Practice" } ]
+```
+
 ## Versioning
 
 The composite is **this repo's own artifact**, so its version is **this repo's** [nbgv](https://github.com/dotnet/Nerdbank.GitVersioning)
@@ -180,7 +210,9 @@ lands, per-env `servers` injection and the per-env fan-out will be added here.
 Point the service's `publish.yaml` at the shared `publish-openapi-spec` action with
 `service-name: <service>-<audience>` (e.g. `financials-api-public`). Its push to
 `specs/<service>-<audience>/openapi.json` triggers `compose.yaml`, which folds it into that audience's
-composite automatically. **No change needed in this repo.**
+composite automatically. **No change needed in this repo** — provided its tags carry `x-domain`, or are
+already listed in `tagDomains` in `sections/<audience>.json`. A tag belonging to no section fails the
+compose rather than quietly vanishing from the portal navigation.
 
 ## Adding a new audience
 
@@ -188,5 +220,7 @@ composite automatically. **No change needed in this repo.**
 2. Add one case to `audience_meta()` in `bin/compose`:
    `<newaudience>) echo "<Title>|<ServerUrl>" ;;`.
 3. The next compose produces `published/<newaudience>-api.json`; point the portal at it.
-4. If two of that audience's specs share a schema name, add `canonical/<newaudience>/<Name>.json` to own the
-   unified model's documentation. Overlays are never shared between audiences.
+4. Add `sections/<newaudience>.json` with the audience's ordered section names (and, until its services emit
+   `x-domain`, a `tagDomains` fallback). Without it the compose fails.
+5. If two of that audience's specs share a schema name, add `canonical/<newaudience>/<Name>.json` to own the
+   unified model's documentation. Overlays and sections are never shared between audiences.
