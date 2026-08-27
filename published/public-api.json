@@ -3,7 +3,7 @@
   "info": {
     "title": "Symplast Public API",
     "description": "The unified Symplast Public API surface, composed from each service specification.",
-    "version": "0.1.41"
+    "version": "0.1.42"
   },
   "servers": [
     {
@@ -2826,7 +2826,7 @@
           "Symplast_Legacy_Public_API_Practice info"
         ],
         "summary": "Get the practice profile.",
-        "description": "A singleton for the authenticated tenant — there is no id, and no collection form. Returns 404 when no profile resolves.",
+        "description": "**Required scope:** `practice.info.read`\n\nA singleton for the authenticated tenant — there is no id, and no collection form. Returns 404 when no profile resolves.",
         "operationId": "GetPracticeInfo",
         "responses": {
           "200": {
@@ -2838,6 +2838,9 @@
                 }
               }
             }
+          },
+          "403": {
+            "description": "The token is valid but does not carry the required scope. The response is an RFC 9457 problem with code `insufficient_scope`."
           },
           "404": {
             "description": "Not Found",
@@ -2863,7 +2866,7 @@
           "Symplast_Legacy_Public_API_Locations"
         ],
         "summary": "List the practice's locations.",
-        "description": "Returns every active location for the authenticated tenant as a bare JSON array. Soft-deleted locations are excluded. A location whose parent office is absent, soft-deleted, or unstaffed is still returned, with a null officeId.",
+        "description": "**Required scope:** `practice.locations.read`\n\nReturns every active location for the authenticated tenant as a bare JSON array. Soft-deleted locations are excluded. A location whose parent office is absent, soft-deleted, or unstaffed is still returned, with a null officeId.",
         "operationId": "ListLocations",
         "responses": {
           "200": {
@@ -2878,6 +2881,9 @@
                 }
               }
             }
+          },
+          "403": {
+            "description": "The token is valid but does not carry the required scope. The response is an RFC 9457 problem with code `insufficient_scope`."
           }
         },
         "security": [
@@ -2893,7 +2899,7 @@
           "Symplast_Legacy_Public_API_Locations"
         ],
         "summary": "Get one location by id.",
-        "description": "Returns 404 for an unknown id, a soft-deleted location, or an id belonging to another tenant — never 403, so the response cannot be used to probe for existence.",
+        "description": "**Required scope:** `practice.locations.read`\n\nReturns 404 for an unknown id, a soft-deleted location, or an id belonging to another tenant — never 403, so the response cannot be used to probe for existence.",
         "operationId": "GetLocationById",
         "parameters": [
           {
@@ -2917,6 +2923,9 @@
                 }
               }
             }
+          },
+          "403": {
+            "description": "The token is valid but does not carry the required scope. The response is an RFC 9457 problem with code `insufficient_scope`."
           },
           "404": {
             "description": "Not Found",
@@ -2942,7 +2951,7 @@
           "Symplast_Legacy_Public_API_Offices"
         ],
         "summary": "List the practice's offices.",
-        "description": "Returns the practice's offices as a bare JSON array. An office with no active staff assignment is not listed — inherited from the internal surface deliberately, so the two agree. address.state, address.country and address.line2 are always null for offices, and offices carry no fax field.",
+        "description": "**Required scope:** `practice.offices.read`\n\nReturns the practice's offices as a bare JSON array. An office with no active staff assignment is not listed — inherited from the internal surface deliberately, so the two agree. address.state, address.country and address.line2 are always null for offices, and offices carry no fax field.",
         "operationId": "ListOffices",
         "responses": {
           "200": {
@@ -2957,6 +2966,9 @@
                 }
               }
             }
+          },
+          "403": {
+            "description": "The token is valid but does not carry the required scope. The response is an RFC 9457 problem with code `insufficient_scope`."
           }
         },
         "security": [
@@ -2972,7 +2984,7 @@
           "Symplast_Legacy_Public_API_Offices"
         ],
         "summary": "Get one office by id.",
-        "description": "Returns 404 for an unknown id, an unstaffed office, or another tenant's id.",
+        "description": "**Required scope:** `practice.offices.read`\n\nReturns 404 for an unknown id, an unstaffed office, or another tenant's id.",
         "operationId": "GetOfficeById",
         "parameters": [
           {
@@ -2996,6 +3008,9 @@
                 }
               }
             }
+          },
+          "403": {
+            "description": "The token is valid but does not carry the required scope. The response is an RFC 9457 problem with code `insufficient_scope`."
           },
           "404": {
             "description": "Not Found",
