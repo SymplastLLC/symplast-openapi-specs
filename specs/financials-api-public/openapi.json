@@ -3,7 +3,7 @@
   "info": {
     "title": "Symplast Financials Public API",
     "description": "Authenticated, cursor-paged public read surface for financial data: payments, invoices, estimates, credit notes, gift cards, memberships and the catalog.",
-    "version": "1.144.88"
+    "version": "1.144.90"
   },
   "servers": [
     {
@@ -4934,25 +4934,32 @@
   ],
   "tags": [
     {
-      "name": "Payments"
+      "name": "Payments",
+      "x-domain": "Financials"
     },
     {
-      "name": "Invoices"
+      "name": "Invoices",
+      "x-domain": "Financials"
     },
     {
-      "name": "Gift Cards"
+      "name": "Gift Cards",
+      "x-domain": "Financials"
     },
     {
-      "name": "Catalog"
+      "name": "Catalog",
+      "x-domain": "Financials"
     },
     {
-      "name": "Estimates"
+      "name": "Estimates",
+      "x-domain": "Financials"
     },
     {
-      "name": "Credit Notes"
+      "name": "Credit Notes",
+      "x-domain": "Financials"
     },
     {
-      "name": "Memberships"
+      "name": "Memberships",
+      "x-domain": "Financials"
     }
   ]
 }
