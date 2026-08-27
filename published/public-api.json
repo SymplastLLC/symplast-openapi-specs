@@ -3,7 +3,7 @@
   "info": {
     "title": "Symplast Public API",
     "description": "The unified Symplast Public API surface, composed from each service specification.",
-    "version": "0.1.58"
+    "version": "0.1.59"
   },
   "servers": [
     {
@@ -3360,7 +3360,7 @@
         ]
       }
     },
-    "/v1/users": {
+    "/v1/practice/users": {
       "get": {
         "tags": [
           "UsersEndpoints"
@@ -3392,7 +3392,7 @@
         }
       }
     },
-    "/v1/users/{id}": {
+    "/v1/practice/users/{id}": {
       "get": {
         "tags": [
           "UsersEndpoints"
