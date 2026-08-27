@@ -3,8 +3,13 @@
   "info": {
     "title": "Symplast Users Public API",
     "description": "Authenticated, minimal read-only public surface for practice user identity/profile data.",
-    "version": "1.60.44"
+    "version": "1.60.47"
   },
+  "servers": [
+    {
+      "url": "https://api.symplast.com"
+    }
+  ],
   "paths": {
     "/v1/practice/users": {
       "get": {
@@ -295,11 +300,25 @@
           "unknown"
         ]
       }
+    },
+    "securitySchemes": {
+      "Bearer": {
+        "type": "http",
+        "description": "Bearer access token. Send it as the `Authorization: Bearer <token>` header.",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
     }
   },
+  "security": [
+    {
+      "Bearer": []
+    }
+  ],
   "tags": [
     {
-      "name": "UsersEndpoints"
+      "name": "UsersEndpoints",
+      "x-domain": "Practice"
     }
   ]
 }
