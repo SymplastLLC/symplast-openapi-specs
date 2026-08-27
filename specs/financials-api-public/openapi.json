@@ -3,7 +3,7 @@
   "info": {
     "title": "Symplast Financials Public API",
     "description": "Authenticated, cursor-paged public read surface for financial data: payments, invoices, estimates, credit notes, gift cards, memberships and the catalog.",
-    "version": "1.144.90"
+    "version": "1.144.93"
   },
   "servers": [
     {
