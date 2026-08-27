@@ -3,7 +3,7 @@
   "info": {
     "title": "Symplast Public API",
     "description": "The unified Symplast Public API surface, composed from each service specification.",
-    "version": "0.1.60"
+    "version": "0.1.61"
   },
   "servers": [
     {
@@ -46,14 +46,17 @@
     },
     {
       "name": "Practice info",
+      "x-domain": "Practice",
       "x-displayName": "Practice info"
     },
     {
       "name": "Locations",
+      "x-domain": "Practice",
       "x-displayName": "Locations"
     },
     {
       "name": "Offices",
+      "x-domain": "Practice",
       "x-displayName": "Offices"
     },
     {
