@@ -84,6 +84,11 @@ The comparison is deliberately **schema-aware**, not a blanket `walk(del(.descri
 would also delete a *property named* `description` — `PaymentTypeLookup` has one — silently making unequal
 shapes compare equal. If you touch `JQ_CANON_DEF` in `bin/compose`, preserve that property.
 
+Publication is **atomic**: composites are built in a temp dir and moved into `published/` only after every
+audience has composed cleanly. A failure leaves `published/` byte-for-byte untouched, so a conflict in one
+audience can never half-rewrite another's composite. On success, `published/*-api.json` is cleared before the
+move, which is what makes a removed audience or service leave no orphan behind.
+
 ### Why hard failure
 
 Two different shapes under one name in a *published* contract is a contract bug. Masking it with a

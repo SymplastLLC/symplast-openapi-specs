@@ -45,6 +45,12 @@ cd "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 STAGE_ROOT="$(mktemp -d)"
 trap 'rm -rf "$STAGE_ROOT"' EXIT
 
+# Composites are built HERE, not in published/, and moved into place only once every audience has succeeded.
+# That keeps publication atomic: a schema conflict in any audience leaves published/ exactly as it was,
+# instead of half-rewritten by the audiences that happened to compose before the failure.
+OUT_STAGE="${STAGE_ROOT}/out"
+mkdir -p "$OUT_STAGE"
+
 # Annotation-insensitive form of a JSON Schema, used ONLY to compare shapes.
 # Schema-aware on purpose: a blanket `walk(del(.description))` would ALSO delete a property *named*
 # "description" (PaymentTypeLookup has one), silently making unequal shapes compare equal. This descends
@@ -78,16 +84,11 @@ audiences="$(
     echo "${name##*-}"
   done | sort -u
 )"
+# An empty store is not an error: it means every surface was removed, and the publish step below then
+# clears the orphaned composites so their REMOVAL is what gets committed.
 if [ -z "$audiences" ]; then
   echo "No specs found under specs/*/openapi.json; nothing to compose."
-  if [ -n "${GITHUB_OUTPUT:-}" ]; then echo "count=0" >> "$GITHUB_OUTPUT"; fi
-  exit 0
 fi
-
-mkdir -p published
-# Clear stale composites so a removed audience/service leaves no orphan (git add -A commits the deletion).
-# Only *-api.json composites are managed here.
-rm -f published/*-api.json
 
 for aud in $audiences; do
   spec_files=( specs/*-"${aud}"/openapi.json )
@@ -177,7 +178,8 @@ for aud in $audiences; do
   fi
 
   # --- Join -----------------------------------------------------------------------------------------
-  out="published/${aud}-api.json"
+  out="${OUT_STAGE}/${aud}-api.json"
+  final="published/${aud}-api.json"
   if [ ${#staged[@]} -eq 1 ]; then
     # redocly join requires >= 2 inputs. With a single service the service spec IS the composite.
     echo "  single spec; copying through without join."
@@ -205,15 +207,25 @@ for aud in $audiences; do
      "$out" > "$tmp"
   mv "$tmp" "$out"
 
-  echo "  composed ${out}:"
+  echo "  composed ${final}:"
   jq '{ openapi, info, servers, pathCount: (.paths | keys | length), schemaCount: (.components.schemas // {} | keys | length) }' "$out"
   composed=$((composed + 1))
 done
 
 if [ "$errors" -gt 0 ]; then
-  echo "::error::Compose failed with ${errors} unresolved schema conflict(s); no composites were published." >&2
+  echo "::error::Compose failed with ${errors} unresolved schema conflict(s); published/ left untouched." >&2
   exit 1
 fi
+
+# Every audience composed cleanly, so swap the staged composites into place. Clearing published/*-api.json
+# first is what makes a removed audience/service leave no orphan behind (git add -A commits the deletion);
+# with nullglob the move is a no-op when the store is empty, so an emptied store clears published/ and its
+# removals are what get committed.
+mkdir -p published
+rm -f published/*-api.json
+for staged_out in "$OUT_STAGE"/*-api.json; do
+  mv "$staged_out" "published/$(basename "$staged_out")"
+done
 
 if [ -n "${GITHUB_OUTPUT:-}" ]; then echo "count=${composed}" >> "$GITHUB_OUTPUT"; fi
 echo "Composed ${composed} composite(s)."
