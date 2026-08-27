@@ -44,14 +44,27 @@ jobs:
       # the two always agree. version.json's pathFilters exclude published/**, so the bot's own compose
       # commits do not inflate the height — the number counts real spec revisions and is stable on re-runs.
       #
-      # Uses the shared org action (same as the ~19 other SymplastLLC repos) rather than a bespoke nbgv step.
-      # It emits SemVer2, which is a clean `0.1.<height>` here because version.json marks main as a public
-      # release ref — off-main runs (workflow_dispatch elsewhere) intentionally get a `-g<commit>` suffix so
-      # they cannot masquerade as a release. The action supplies its own checkout and nbgv is already present
-      # on the runner, so nothing needs installing.
-      - name: Resolve composite version
+      # NOTE: this deliberately does NOT use the shared
+      # SymplastLLC/devops-actions/.github/actions/calculate-version action, even though nearly every other
+      # repo in the org does. GitHub does not allow a PUBLIC repository to consume an action from a PRIVATE
+      # repository, even within the same org — devops-actions is private and this repo is public (it must be,
+      # so the dev portal can fetch published/** over raw.githubusercontent.com). Referencing it fails the job
+      # at "Set up job" with `Unable to resolve action symplastllc/devops-actions, not found`, before any step
+      # runs. Every repo using that action successfully is private. Do not "restore consistency" here without
+      # first making devops-actions public.
+      #
+      # SimpleVersion => clean `0.1.<height>` (unique per commit), not SemVer2's `0.1.7-g<commit>`. Unlike
+      # SemVer2 it is clean regardless of branch, so it does not depend on version.json's
+      # publicReleaseRefSpec.
+      - name: Resolve composite version (this repo's nbgv)
         id: ver
-        uses: SymplastLLC/devops-actions/.github/actions/calculate-version@main
+        run: |
+          set -euo pipefail
+          dotnet tool install --global nbgv >/dev/null 2>&1 || dotnet tool update --global nbgv >/dev/null 2>&1
+          export PATH="$PATH:$HOME/.dotnet/tools"
+          version="$(nbgv get-version -v SimpleVersion)"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "Composite version (this repo's nbgv SimpleVersion): $version"
 
       # All composition logic lives in bin/compose so it can be run locally exactly as CI runs it:
       #   COMPOSITE_VERSION=0.0.0-local bin/compose
