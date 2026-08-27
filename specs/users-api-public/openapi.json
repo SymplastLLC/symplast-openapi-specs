@@ -3,10 +3,10 @@
   "info": {
     "title": "Symplast Users Public API",
     "description": "Authenticated, minimal read-only public surface for practice user identity/profile data.",
-    "version": "1.60.42"
+    "version": "1.60.44"
   },
   "paths": {
-    "/v1/users": {
+    "/v1/practice/users": {
       "get": {
         "tags": [
           "UsersEndpoints"
@@ -38,7 +38,7 @@
         }
       }
     },
-    "/v1/users/{id}": {
+    "/v1/practice/users/{id}": {
       "get": {
         "tags": [
           "UsersEndpoints"
