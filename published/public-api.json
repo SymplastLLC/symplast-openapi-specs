@@ -3,7 +3,7 @@
   "info": {
     "title": "Symplast Public API",
     "description": "The unified Symplast Public API surface, composed from each service specification.",
-    "version": "0.1.44"
+    "version": "0.1.45"
   },
   "servers": [
     {
@@ -717,6 +717,16 @@
               }
             }
           },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Symplast_Financials_Public_API_ProblemDetails"
+                }
+              }
+            }
+          },
           "default": {
             "description": "Unexpected error (RFC 9457 problem details).",
             "content": {
@@ -773,6 +783,16 @@
           },
           "400": {
             "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Symplast_Financials_Public_API_ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -845,6 +865,16 @@
               }
             }
           },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Symplast_Financials_Public_API_ProblemDetails"
+                }
+              }
+            }
+          },
           "default": {
             "description": "Unexpected error (RFC 9457 problem details).",
             "content": {
@@ -901,6 +931,16 @@
           },
           "400": {
             "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Symplast_Financials_Public_API_ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -973,6 +1013,16 @@
               }
             }
           },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Symplast_Financials_Public_API_ProblemDetails"
+                }
+              }
+            }
+          },
           "default": {
             "description": "Unexpected error (RFC 9457 problem details).",
             "content": {
@@ -1029,6 +1079,16 @@
           },
           "400": {
             "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Symplast_Financials_Public_API_ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -1101,6 +1161,16 @@
               }
             }
           },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Symplast_Financials_Public_API_ProblemDetails"
+                }
+              }
+            }
+          },
           "default": {
             "description": "Unexpected error (RFC 9457 problem details).",
             "content": {
@@ -1157,6 +1227,16 @@
           },
           "400": {
             "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Symplast_Financials_Public_API_ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -1267,6 +1347,16 @@
               }
             }
           },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Symplast_Financials_Public_API_ProblemDetails"
+                }
+              }
+            }
+          },
           "default": {
             "description": "Unexpected error (RFC 9457 problem details).",
             "content": {
@@ -1311,6 +1401,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Symplast_Financials_Public_API_PublicEstimate"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Symplast_Financials_Public_API_ProblemDetails"
                 }
               }
             }
@@ -1427,6 +1527,16 @@
               }
             }
           },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Symplast_Financials_Public_API_ProblemDetails"
+                }
+              }
+            }
+          },
           "default": {
             "description": "Unexpected error (RFC 9457 problem details).",
             "content": {
@@ -1471,6 +1581,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Symplast_Financials_Public_API_PublicInvoice"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Symplast_Financials_Public_API_ProblemDetails"
                 }
               }
             }
@@ -1587,6 +1707,16 @@
               }
             }
           },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Symplast_Financials_Public_API_ProblemDetails"
+                }
+              }
+            }
+          },
           "default": {
             "description": "Unexpected error (RFC 9457 problem details).",
             "content": {
@@ -1631,6 +1761,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Symplast_Financials_Public_API_PublicCreditNote"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Symplast_Financials_Public_API_ProblemDetails"
                 }
               }
             }
@@ -1747,6 +1887,16 @@
               }
             }
           },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Symplast_Financials_Public_API_ProblemDetails"
+                }
+              }
+            }
+          },
           "default": {
             "description": "Unexpected error (RFC 9457 problem details).",
             "content": {
@@ -1791,6 +1941,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Symplast_Financials_Public_API_PublicPayment"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Symplast_Financials_Public_API_ProblemDetails"
                 }
               }
             }
@@ -1886,6 +2046,16 @@
               }
             }
           },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Symplast_Financials_Public_API_ProblemDetails"
+                }
+              }
+            }
+          },
           "default": {
             "description": "Unexpected error (RFC 9457 problem details).",
             "content": {
@@ -1930,6 +2100,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Symplast_Financials_Public_API_PublicMembershipProgram"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Symplast_Financials_Public_API_ProblemDetails"
                 }
               }
             }
@@ -2046,6 +2226,16 @@
               }
             }
           },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Symplast_Financials_Public_API_ProblemDetails"
+                }
+              }
+            }
+          },
           "default": {
             "description": "Unexpected error (RFC 9457 problem details).",
             "content": {
@@ -2090,6 +2280,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Symplast_Financials_Public_API_PublicMembership"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Symplast_Financials_Public_API_ProblemDetails"
                 }
               }
             }
@@ -2199,6 +2399,16 @@
               }
             }
           },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Symplast_Financials_Public_API_ProblemDetails"
+                }
+              }
+            }
+          },
           "default": {
             "description": "Unexpected error (RFC 9457 problem details).",
             "content": {
@@ -2243,6 +2453,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Symplast_Financials_Public_API_PublicGiftCard"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Symplast_Financials_Public_API_ProblemDetails"
                 }
               }
             }
@@ -2349,6 +2569,16 @@
               }
             }
           },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Symplast_Financials_Public_API_ProblemDetails"
+                }
+              }
+            }
+          },
           "default": {
             "description": "Unexpected error (RFC 9457 problem details).",
             "content": {
@@ -2393,6 +2623,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Symplast_Financials_Public_API_PublicItem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Symplast_Financials_Public_API_ProblemDetails"
                 }
               }
             }
@@ -2485,6 +2725,16 @@
               }
             }
           },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Symplast_Financials_Public_API_ProblemDetails"
+                }
+              }
+            }
+          },
           "default": {
             "description": "Unexpected error (RFC 9457 problem details).",
             "content": {
@@ -2529,6 +2779,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Symplast_Financials_Public_API_PublicItemGroup"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Symplast_Financials_Public_API_ProblemDetails"
                 }
               }
             }
@@ -2580,6 +2840,16 @@
               }
             }
           },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Symplast_Financials_Public_API_ProblemDetails"
+                }
+              }
+            }
+          },
           "default": {
             "description": "Unexpected error (RFC 9457 problem details).",
             "content": {
@@ -2613,6 +2883,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Symplast_Financials_Public_API_PagedResponsePublicStatus"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Symplast_Financials_Public_API_ProblemDetails"
                 }
               }
             }
@@ -2654,6 +2934,16 @@
               }
             }
           },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Symplast_Financials_Public_API_ProblemDetails"
+                }
+              }
+            }
+          },
           "default": {
             "description": "Unexpected error (RFC 9457 problem details).",
             "content": {
@@ -2687,6 +2977,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Symplast_Financials_Public_API_PagedResponsePublicStatus"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Symplast_Financials_Public_API_ProblemDetails"
                 }
               }
             }
@@ -2728,6 +3028,16 @@
               }
             }
           },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Symplast_Financials_Public_API_ProblemDetails"
+                }
+              }
+            }
+          },
           "default": {
             "description": "Unexpected error (RFC 9457 problem details).",
             "content": {
@@ -2765,6 +3075,16 @@
               }
             }
           },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Symplast_Financials_Public_API_ProblemDetails"
+                }
+              }
+            }
+          },
           "default": {
             "description": "Unexpected error (RFC 9457 problem details).",
             "content": {
@@ -2798,6 +3118,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Symplast_Financials_Public_API_PagedResponsePublicStatus"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Symplast_Financials_Public_API_ProblemDetails"
                 }
               }
             }
