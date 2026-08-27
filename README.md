@@ -136,7 +136,7 @@ canonical/practice/ProblemDetails.json   → docs for the unified `ProblemDetail
 
 The composite is **this repo's own artifact**, so its version is **this repo's** [nbgv](https://github.com/dotnet/Nerdbank.GitVersioning)
 version — never any single downstream service's build number. `compose.yaml` resolves the nbgv
-`SimpleVersion` (`0.1.<height>`) once per run and uses it for **both**:
+`Semver2` version once per run and uses it for **both**:
 
 - the composite's `info.version` (stamped into every `published/<audience>-api.json`), overriding each
   service's own image-tag `info.version`; and
@@ -146,9 +146,9 @@ So the version a consumer reads *inside* the spec always equals the tag they pin
 `pathFilters` exclude `published/**`, so the bot's own compose commits do **not** inflate the height — the
 number counts real spec revisions and stays stable across re-runs / manual dispatches.
 
-`version.json` marks `main` as a public release ref, matching the rest of the org. `SimpleVersion` is clean
-on every branch, so this does not affect the composite's version today — it only matters if the version step
-ever switches to `SemVer2`.
+`version.json` marks `main` as a public release ref, which is what makes the version **clean on `main` only**
+(`0.1.<height>`). A run from any other ref — a `workflow_dispatch` on a feature branch — gets a `-g<commit>`
+suffix, so it cannot publish or tag something that looks like a release.
 
 > **Why not the shared [`calculate-version`](https://github.com/SymplastLLC/devops-actions/tree/main/.github/actions/calculate-version)
 > action?** Because `devops-actions` is **private** and this repo is **public** (it has to be, so the portal
