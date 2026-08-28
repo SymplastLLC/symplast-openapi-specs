@@ -3,7 +3,7 @@
   "info": {
     "title": "Symplast Public API",
     "description": "The unified Symplast Public API surface, composed from each service specification.",
-    "version": "0.1.73"
+    "version": "0.1.74"
   },
   "servers": [
     {
@@ -3374,7 +3374,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PagedResponseOfPublicUser"
+                  "$ref": "#/components/schemas/PagedResponsePublicUser"
                 }
               }
             }
@@ -6746,7 +6746,7 @@
           "fax": "+1-215-555-0191"
         }
       },
-      "PagedResponseOfPublicUser": {
+      "PagedResponsePublicUser": {
         "required": [
           "data",
           "pageSize",
