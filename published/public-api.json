@@ -3,7 +3,7 @@
   "info": {
     "title": "Symplast Public API",
     "description": "The unified Symplast Public API surface, composed from each service specification.",
-    "version": "0.1.68"
+    "version": "0.1.71"
   },
   "servers": [
     {
@@ -56,8 +56,8 @@
       "x-displayName": "Offices"
     },
     {
-      "name": "UsersEndpoints",
-      "x-displayName": "UsersEndpoints"
+      "name": "Users",
+      "x-displayName": "Users"
     }
   ],
   "paths": {
@@ -3363,7 +3363,7 @@
     "/v1/practice/users": {
       "get": {
         "tags": [
-          "UsersEndpoints"
+          "Users"
         ],
         "summary": "List users",
         "description": "Returns a cursor-paged list of the caller's tenant users, ordered by last-modified time.\nPass `updatedSince` (UTC) to scope by change time and `pageSize` to size the page; follow\nthe `next` link (an opaque `cursor`) to page further.",
@@ -3400,7 +3400,7 @@
     "/v1/practice/users/{id}": {
       "get": {
         "tags": [
-          "UsersEndpoints"
+          "Users"
         ],
         "summary": "Get a user by id",
         "operationId": "GetUserById",
@@ -6955,7 +6955,7 @@
         "Practice info",
         "Locations",
         "Offices",
-        "UsersEndpoints"
+        "Users"
       ]
     }
   ]
