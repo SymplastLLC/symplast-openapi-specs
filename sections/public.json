@@ -1,24 +1,8 @@
 {
-  "$comment": "Portal navigation sections for the 'public' audience. Order here is the order Scalar renders them. A tag's section comes from its own x-domain extension when the owning service emits one; tagDomains below is the fallback for surfaces that have not adopted x-domain yet, and shrinks to {} as they do. A tag resolved by neither is a hard failure.",
+  "$comment": "Portal navigation sections for the 'public' audience. Order here is the order Scalar renders them. A tag's section comes from the x-domain extension its owning service emits; every surface now does, so there is no tagDomains fallback here. A tag the composer cannot place from x-domain is a hard failure -- add x-domain in the owning service rather than reintroducing a fallback, or the section a tag belongs to stops being owned by the team that owns the routes.",
   "sections": [
     "Scheduling",
     "Financials",
     "Practice"
-  ],
-  "tagDomains": {
-    "Appointments": "Scheduling",
-
-    "Payments": "Financials",
-    "Invoices": "Financials",
-    "Gift Cards": "Financials",
-    "Catalog": "Financials",
-    "Estimates": "Financials",
-    "Credit Notes": "Financials",
-    "Memberships": "Financials",
-
-    "Practice info": "Practice",
-    "Locations": "Practice",
-    "Offices": "Practice",
-    "UsersEndpoints": "Practice"
-  }
+  ]
 }

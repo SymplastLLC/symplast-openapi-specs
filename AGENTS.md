@@ -129,15 +129,14 @@ and rebuilds it from `sections/<audience>.json`.
 
 ```json
 {
-  "sections": ["Scheduling", "Financials", "Practice"],
-  "tagDomains": { "Appointments": "Scheduling", "UsersEndpoints": "Practice" }
+  "sections": ["Scheduling", "Financials", "Practice"]
 }
 ```
 
 | Field | Meaning |
 | --- | --- |
 | `sections` | The audience's section names, **in the order the portal renders them** |
-| `tagDomains` | Fallback tag→section map for surfaces that do not yet emit `x-domain` |
+| `tagDomains` | Optional fallback tag→section map. Deliberately **absent** — every surface emits `x-domain` |
 
 **Membership is per TAG, never per spec.** That is what allows several services to share one section
 (`legacy-api` and `users-api` both land in `Practice`) and one service to span several sections. A spec-level
@@ -146,12 +145,15 @@ mapping cannot express either.
 A tag's section is resolved in this order:
 
 1. The tag's own **`x-domain`** extension, emitted by the owning service — authoritative
-2. Otherwise `tagDomains` in `sections/<audience>.json`
+2. Otherwise `tagDomains` in `sections/<audience>.json`, if that key is present
 3. Otherwise **hard failure** — an ungrouped tag would be missing from the portal's navigation entirely
 
-`x-domain` is the direction of travel: it puts the section choice with the team that owns the routes, and it
-survives `redocly join` intact. `tagDomains` exists so sections work before every service has adopted it, and
-should shrink toward `{}` as they do.
+Every current surface emits `x-domain`, so **no audience declares `tagDomains` today** and step 2 never
+fires. That is the intended end state: the section a tag belongs to is owned by the team that owns the
+routes, and travels with the tag through `redocly join`.
+
+`tagDomains` remains supported as a migration aid for a surface that lands before it can emit `x-domain`.
+Reaching for it otherwise moves the decision away from the owning team — prefer adding `x-domain` upstream.
 
 Guards, all hard failures:
 

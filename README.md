@@ -142,21 +142,19 @@ one group per source spec named from the spec's `info.title` — so the portal w
 
 ```json
 {
-  "sections": ["Scheduling", "Financials", "Practice"],
-  "tagDomains": { "Appointments": "Scheduling", "UsersEndpoints": "Practice" }
+  "sections": ["Scheduling", "Financials", "Practice"]
 }
 ```
 
 - `sections` is the section list **in portal render order**.
 - Membership is decided **per tag, not per spec** — which is what lets `legacy-api` and `users-api` both
   publish into `Practice`, and lets a single service publish into more than one section.
-- A tag's section comes from its own `x-domain` extension when the owning service emits one; `tagDomains` is
-  the fallback for surfaces that have not adopted `x-domain` yet.
+- A tag's section comes from its own `x-domain` extension, which the owning service emits. Every surface
+  does today, so the optional `tagDomains` fallback map is deliberately absent from this file.
 - A tag matched by neither **fails the compose**, because it would be missing from the portal navigation. A
   section name that isn't in `sections` also fails, which catches typos.
 
-Service teams should move toward emitting `x-domain` on their tags, so the section choice lives with the team
-that owns the routes:
+A service declares the section on each tag, so the choice lives with the team that owns the routes:
 
 ```json
 "tags": [ { "name": "Locations", "x-domain": "Practice" } ]
@@ -210,9 +208,8 @@ lands, per-env `servers` injection and the per-env fan-out will be added here.
 Point the service's `publish.yaml` at the shared `publish-openapi-spec` action with
 `service-name: <service>-<audience>` (e.g. `financials-api-public`). Its push to
 `specs/<service>-<audience>/openapi.json` triggers `compose.yaml`, which folds it into that audience's
-composite automatically. **No change needed in this repo** — provided its tags carry `x-domain`, or are
-already listed in `tagDomains` in `sections/<audience>.json`. A tag belonging to no section fails the
-compose rather than quietly vanishing from the portal navigation.
+composite automatically. **No change needed in this repo** — provided its tags carry `x-domain`. A tag
+belonging to no section fails the compose rather than quietly vanishing from the portal navigation.
 
 ## Adding a new audience
 
@@ -220,7 +217,6 @@ compose rather than quietly vanishing from the portal navigation.
 2. Add one case to `audience_meta()` in `bin/compose`:
    `<newaudience>) echo "<Title>|<ServerUrl>" ;;`.
 3. The next compose produces `published/<newaudience>-api.json`; point the portal at it.
-4. Add `sections/<newaudience>.json` with the audience's ordered section names (and, until its services emit
-   `x-domain`, a `tagDomains` fallback). Without it the compose fails.
+4. Add `sections/<newaudience>.json` with the audience's ordered section names. Without it the compose fails.
 5. If two of that audience's specs share a schema name, add `canonical/<newaudience>/<Name>.json` to own the
    unified model's documentation. Overlays and sections are never shared between audiences.
