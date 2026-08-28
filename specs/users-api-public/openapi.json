@@ -3,7 +3,7 @@
   "info": {
     "title": "Symplast Users Public API",
     "description": "Authenticated, minimal read-only public surface for practice user identity/profile data.",
-    "version": "1.60.53"
+    "version": "1.60.57"
   },
   "servers": [
     {
@@ -25,7 +25,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PagedResponseOfPublicUser"
+                  "$ref": "#/components/schemas/PagedResponsePublicUser"
                 }
               }
             }
@@ -90,7 +90,7 @@
   },
   "components": {
     "schemas": {
-      "PagedResponseOfPublicUser": {
+      "PagedResponsePublicUser": {
         "required": [
           "data",
           "pageSize",
