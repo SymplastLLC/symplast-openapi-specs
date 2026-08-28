@@ -3,7 +3,7 @@
   "info": {
     "title": "Symplast Users Public API",
     "description": "Authenticated, minimal read-only public surface for practice user identity/profile data.",
-    "version": "1.60.49"
+    "version": "1.60.51"
   },
   "servers": [
     {
@@ -14,7 +14,7 @@
     "/v1/practice/users": {
       "get": {
         "tags": [
-          "UsersEndpoints"
+          "Users"
         ],
         "summary": "List users",
         "description": "Returns a cursor-paged list of the caller's tenant users, ordered by last-modified time.\nPass `updatedSince` (UTC) to scope by change time and `pageSize` to size the page; follow\nthe `next` link (an opaque `cursor`) to page further.",
@@ -46,7 +46,7 @@
     "/v1/practice/users/{id}": {
       "get": {
         "tags": [
-          "UsersEndpoints"
+          "Users"
         ],
         "summary": "Get a user by id",
         "operationId": "GetUserById",
@@ -317,7 +317,7 @@
   ],
   "tags": [
     {
-      "name": "UsersEndpoints",
+      "name": "Users",
       "x-domain": "Practice"
     }
   ]
