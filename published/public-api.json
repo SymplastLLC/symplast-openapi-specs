@@ -3,7 +3,7 @@
   "info": {
     "title": "Symplast Public API",
     "description": "The unified Symplast Public API surface, composed from each service specification.",
-    "version": "0.1.165"
+    "version": "0.1.169"
   },
   "servers": [
     {
@@ -54,6 +54,10 @@
     {
       "name": "Offices",
       "x-displayName": "Offices"
+    },
+    {
+      "name": "Patients",
+      "x-displayName": "Patients"
     },
     {
       "name": "Users",
@@ -3360,6 +3364,348 @@
         ]
       }
     },
+    "/v1/patients": {
+      "get": {
+        "tags": [
+          "Patients"
+        ],
+        "summary": "List patients",
+        "description": "**Required scope:** `patients.basic.read`\n\nReturns a cursor-paged feed of the caller's tenant's patients that the signed-in user may access, ordered by\nthe patient record's last change. Pass `updatedSince` (UTC, inclusive) and `pageSize`; follow `next` (an\nopaque `cursor`) to page further. Deleted and inactive patients are included with flags.\n\n`updatedAt` reflects changes to the patient record only: edits to contact information, emergency contact,\nemployment or referral do not move a patient in this feed. Delivery is at-least-once across passes; dedupe\non `id` keeping the highest `updatedAt`, and resume at `updatedSince = lastSeen - overlap`.",
+        "operationId": "GetPatients",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedResponsePublicPatient"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/v1/patients/{id}": {
+      "get": {
+        "tags": [
+          "Patients"
+        ],
+        "summary": "Get a patient",
+        "description": "**Required scope:** `patients.basic.read`\n\nReturns a single patient in the caller's tenant that the signed-in user may access.",
+        "operationId": "GetPatientById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The patient id, unique within the caller's tenant.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicPatient"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/v1/patients/{id}/contact-information": {
+      "get": {
+        "tags": [
+          "Patients"
+        ],
+        "summary": "Get a patient's contact information",
+        "description": "**Required scope:** `patients.demographics.read`\n\nReturns the patient's primary address, phones, email, preferred contact method and do-not-contact flags.",
+        "operationId": "GetPatientContactInformation",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The patient id, unique within the caller's tenant.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicPatientContactInformation"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/v1/patients/{id}/emergency-contact": {
+      "get": {
+        "tags": [
+          "Patients"
+        ],
+        "summary": "Get a patient's emergency contact",
+        "description": "**Required scope:** `patients.demographics.read`\n\nReturns the patient's emergency contact.",
+        "operationId": "GetPatientEmergencyContact",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The patient id, unique within the caller's tenant.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicPatientEmergencyContact"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/v1/patients/{id}/employment": {
+      "get": {
+        "tags": [
+          "Patients"
+        ],
+        "summary": "Get a patient's employment",
+        "description": "**Required scope:** `patients.demographics.read`\n\nReturns the patient's employer, occupation and employer address.",
+        "operationId": "GetPatientEmployment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The patient id, unique within the caller's tenant.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicPatientEmployment"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/v1/patients/{id}/referral": {
+      "get": {
+        "tags": [
+          "Patients"
+        ],
+        "summary": "Get how a patient was referred",
+        "description": "**Required scope:** `patients.referral.read`\n\nReturns the patient's referral source, referring and primary-care physicians, provider, coordinator and\nfirst-contact date.",
+        "operationId": "GetPatientReferral",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The patient id, unique within the caller's tenant.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicPatientReferral"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
     "/v1/practice/users": {
       "get": {
         "tags": [
@@ -6483,45 +6829,45 @@
               "null",
               "string"
             ],
-            "description": "Second address line. Always `null` in v1: no source model carries it."
+            "description": "Second address line, or `null`."
           },
           "city": {
             "type": [
               "null",
               "string"
             ],
-            "description": "City name."
+            "description": "City name, or `null`."
           },
           "stateCode": {
             "type": [
               "null",
               "string"
             ],
-            "description": "Two-letter state code."
+            "description": "Two-letter state code, or `null`."
           },
           "state": {
             "type": [
               "null",
               "string"
             ],
-            "description": "Full state name. `null` for offices, which do not resolve it."
+            "description": "Full state name, or `null` where the resource does not resolve it (for example practice offices)."
           },
           "postalCode": {
             "type": [
               "null",
               "string"
             ],
-            "description": "Postal / ZIP code."
+            "description": "Postal / ZIP code, or `null`."
           },
           "country": {
             "type": [
               "null",
               "string"
             ],
-            "description": "Country name. `null` for offices, which do not resolve it."
+            "description": "Country name, or `null` where the resource does not resolve it (for example practice offices)."
           }
         },
-        "description": "A postal address. All seven fields are always present; those a resource cannot source are null rather than omitted, so one renderer works everywhere.",
+        "description": "A postal address, shared by every public API that returns one (practice locations and offices, patient contact information, patient employment). All seven fields are always present; a field a resource cannot source is `null` rather than omitted, so one renderer works everywhere.",
         "example": {
           "line": "410 Market St, Suite 900",
           "line2": null,
@@ -6746,6 +7092,512 @@
           "fax": "+1-215-555-0191"
         }
       },
+      "ContactMethod": {
+        "enum": [
+          "home",
+          "work",
+          "cell",
+          "fax",
+          "pager",
+          "email",
+          "other"
+        ]
+      },
+      "PagedResponsePublicPatient": {
+        "required": [
+          "data",
+          "pageSize",
+          "count",
+          "hasMore"
+        ],
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublicPatient"
+            }
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "hasMore": {
+            "type": "boolean"
+          },
+          "nextCursor": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "next": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "PatientMode": {
+        "enum": [
+          "active",
+          "prospect"
+        ]
+      },
+      "PatientStatus": {
+        "enum": [
+          "active",
+          "inactive"
+        ],
+        "description": "Whether a patient is active."
+      },
+      "PublicPatient": {
+        "required": [
+          "id",
+          "updatedAt",
+          "createdAt",
+          "firstName",
+          "middleName",
+          "lastName",
+          "preferredName",
+          "dateOfBirth",
+          "sex",
+          "status",
+          "mode",
+          "isDeleted",
+          "physicianId",
+          "providerId",
+          "locationId"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "The patient id, unique within the tenant.",
+            "format": "int32"
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "The last change to the patient record, as a UTC instant. The feed watermark.",
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "When the patient record was created (UTC), or null if not recorded.",
+            "format": "date-time"
+          },
+          "firstName": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The first name, or null if not set."
+          },
+          "middleName": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The middle name, or null if not set."
+          },
+          "lastName": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The last name, or null if not set."
+          },
+          "preferredName": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The preferred name (nickname), or null if not set."
+          },
+          "dateOfBirth": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The date of birth (calendar date), or null if not set or not a valid date.",
+            "format": "date"
+          },
+          "sex": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The recorded sex, a free-form value from the practice's records, or null if not set."
+          },
+          "status": {
+            "description": "Whether the patient is active or inactive.",
+            "$ref": "#/components/schemas/PatientStatus"
+          },
+          "mode": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "description": "Whether the record is an active patient or a prospect (lead), or null if not recorded.",
+                "$ref": "#/components/schemas/PatientMode"
+              }
+            ]
+          },
+          "isDeleted": {
+            "type": "boolean",
+            "description": "Whether the patient has been deleted in the practice's system."
+          },
+          "physicianId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "description": "The user id of the patient's assigned physician, or null if none.",
+            "format": "int32"
+          },
+          "providerId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "description": "The patient's provider id, or null if none.",
+            "format": "int32"
+          },
+          "locationId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "description": "The patient's practice location id, or null if none.",
+            "format": "int32"
+          }
+        },
+        "description": "The minimal public projection of a patient record. This is the entire externally exposed field set: it excludes SSN,\nlegal name, marital status, spouse, gender identity, race, ethnicity, language, notes, sticky notes, images, portal\nuser/login data, integration ids, referral source, conversion and intake status."
+      },
+      "PublicPatientContactInformation": {
+        "required": [
+          "patientId",
+          "address",
+          "cellPhone",
+          "homePhone",
+          "workPhone",
+          "email",
+          "preferredContactMethod",
+          "doNotCallCellPhone",
+          "doNotCallHomePhone",
+          "doNotCallWorkPhone",
+          "doNotEmail",
+          "updatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "patientId": {
+            "type": "integer",
+            "description": "The patient id.",
+            "format": "int32"
+          },
+          "address": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "description": "The primary address, or null if none is recorded.",
+                "$ref": "#/components/schemas/PublicAddress"
+              }
+            ]
+          },
+          "cellPhone": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The cell phone number, or null."
+          },
+          "homePhone": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The home phone number, or null."
+          },
+          "workPhone": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The work phone number, or null."
+          },
+          "email": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The email address, or null."
+          },
+          "preferredContactMethod": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "description": "The patient's preferred contact method, or null if not set.",
+                "$ref": "#/components/schemas/ContactMethod"
+              }
+            ]
+          },
+          "doNotCallCellPhone": {
+            "type": "boolean",
+            "description": "Whether the patient asked not to be called on their cell phone."
+          },
+          "doNotCallHomePhone": {
+            "type": "boolean",
+            "description": "Whether the patient asked not to be called at home."
+          },
+          "doNotCallWorkPhone": {
+            "type": "boolean",
+            "description": "Whether the patient asked not to be called at work."
+          },
+          "doNotEmail": {
+            "type": "boolean",
+            "description": "Whether the patient asked not to be emailed."
+          },
+          "updatedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Approximate UTC time of the last contact or address change, or null.",
+            "format": "date-time"
+          }
+        },
+        "description": "A patient's contact information and primary address."
+      },
+      "PublicPatientEmergencyContact": {
+        "required": [
+          "patientId",
+          "firstName",
+          "lastName",
+          "relationship",
+          "homePhone",
+          "workPhone"
+        ],
+        "type": "object",
+        "properties": {
+          "patientId": {
+            "type": "integer",
+            "description": "The patient id.",
+            "format": "int32"
+          },
+          "firstName": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The contact's first name, or null."
+          },
+          "lastName": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The contact's last name, or null."
+          },
+          "relationship": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The contact's relationship to the patient, or null."
+          },
+          "homePhone": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The contact's home phone number, or null."
+          },
+          "workPhone": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The contact's work phone number, or null."
+          }
+        },
+        "description": "A patient's emergency contact."
+      },
+      "PublicPatientEmployment": {
+        "required": [
+          "patientId",
+          "employmentTypeId",
+          "occupation",
+          "employerName",
+          "employerAddress"
+        ],
+        "type": "object",
+        "properties": {
+          "patientId": {
+            "type": "integer",
+            "description": "The patient id.",
+            "format": "int32"
+          },
+          "employmentTypeId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "description": "The practice's employment type id, or null.",
+            "format": "int32"
+          },
+          "occupation": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The occupation, or null."
+          },
+          "employerName": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The employer or school name, or null."
+          },
+          "employerAddress": {
+            "description": "The employer or school address.",
+            "$ref": "#/components/schemas/PublicAddress"
+          }
+        },
+        "description": "A patient's employment. The employer contact person's name is not exposed."
+      },
+      "PublicPatientReferral": {
+        "required": [
+          "patientId",
+          "referralSourceName",
+          "referralSourceValue",
+          "referringPhysician",
+          "primaryCarePhysician",
+          "provider",
+          "coordinator",
+          "firstContactDate",
+          "updatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "patientId": {
+            "type": "integer",
+            "description": "The patient id.",
+            "format": "int32"
+          },
+          "referralSourceName": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The referral source, or null."
+          },
+          "referralSourceValue": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The referral source detail value, or null."
+          },
+          "referringPhysician": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "description": "The referring physician, or null.",
+                "$ref": "#/components/schemas/PublicPersonReference"
+              }
+            ]
+          },
+          "primaryCarePhysician": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "description": "The primary-care physician, or null.",
+                "$ref": "#/components/schemas/PublicPersonReference"
+              }
+            ]
+          },
+          "provider": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "description": "The provider, or null.",
+                "$ref": "#/components/schemas/PublicPersonReference"
+              }
+            ]
+          },
+          "coordinator": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "description": "The coordinator, or null.",
+                "$ref": "#/components/schemas/PublicPersonReference"
+              }
+            ]
+          },
+          "firstContactDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The date of first contact, or null.",
+            "format": "date"
+          },
+          "updatedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Approximate UTC time of the last referral change, or null.",
+            "format": "date-time"
+          }
+        },
+        "description": "How a patient was referred. Free-text notes are not exposed."
+      },
+      "PublicPersonReference": {
+        "required": [
+          "id",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "The person's id in the practice's records.",
+            "format": "int32"
+          },
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The person's display name, or null."
+          }
+        },
+        "description": "A reference to a person known to the practice."
+      },
       "PagedResponsePublicUser": {
         "required": [
           "data",
@@ -6957,6 +7809,12 @@
         "Locations",
         "Offices",
         "Users"
+      ]
+    },
+    {
+      "name": "Patients",
+      "tags": [
+        "Patients"
       ]
     }
   ]
