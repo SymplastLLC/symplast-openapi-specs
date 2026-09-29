@@ -3,7 +3,7 @@
   "info": {
     "title": "Symplast Patients Public API",
     "description": "Authenticated, minimal read-only public surface for patient records and their contact, emergency-contact, employment and referral information.",
-    "version": "1.70.10"
+    "version": "1.70.12"
   },
   "servers": [
     {
@@ -428,145 +428,67 @@
       },
       "PublicAddress": {
         "required": [
-          "line1",
+          "line",
           "line2",
-          "cityId",
           "city",
-          "stateId",
           "stateCode",
-          "countryId",
-          "country",
-          "postalCode"
+          "state",
+          "postalCode",
+          "country"
         ],
         "type": "object",
         "properties": {
-          "line1": {
+          "line": {
             "type": [
               "null",
               "string"
             ],
-            "description": "The first address line, or null."
+            "description": "Street address."
           },
           "line2": {
             "type": [
               "null",
               "string"
             ],
-            "description": "The second address line, or null."
-          },
-          "cityId": {
-            "type": [
-              "null",
-              "integer"
-            ],
-            "description": "The city id, or null.",
-            "format": "int32"
+            "description": "Second address line."
           },
           "city": {
             "type": [
               "null",
               "string"
             ],
-            "description": "The city name, or null."
-          },
-          "stateId": {
-            "type": [
-              "null",
-              "integer"
-            ],
-            "description": "The state id, or null.",
-            "format": "int32"
+            "description": "City name."
           },
           "stateCode": {
             "type": [
               "null",
               "string"
             ],
-            "description": "The state code, or null."
+            "description": "Two-letter state code."
           },
-          "countryId": {
+          "state": {
             "type": [
               "null",
-              "integer"
+              "string"
             ],
-            "description": "The country id, or null.",
-            "format": "int32"
+            "description": "Full state name."
+          },
+          "postalCode": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Postal / ZIP code."
           },
           "country": {
             "type": [
               "null",
               "string"
             ],
-            "description": "The country name, or null."
-          },
-          "postalCode": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "description": "The postal code, or null."
+            "description": "Country name."
           }
         },
-        "description": "A postal address with resolved names."
-      },
-      "PublicEmployerAddress": {
-        "required": [
-          "line1",
-          "line2",
-          "cityId",
-          "stateId",
-          "countryId",
-          "postalCode"
-        ],
-        "type": "object",
-        "properties": {
-          "line1": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "description": "The first address line, or null."
-          },
-          "line2": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "description": "The second address line, or null."
-          },
-          "cityId": {
-            "type": [
-              "null",
-              "integer"
-            ],
-            "description": "The city id, or null.",
-            "format": "int32"
-          },
-          "stateId": {
-            "type": [
-              "null",
-              "integer"
-            ],
-            "description": "The state id, or null.",
-            "format": "int32"
-          },
-          "countryId": {
-            "type": [
-              "null",
-              "integer"
-            ],
-            "description": "The country id, or null.",
-            "format": "int32"
-          },
-          "postalCode": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "description": "The postal code, or null."
-          }
-        },
-        "description": "An employer address (ids only; names are not recorded for employer addresses)."
+        "description": "A postal address. Used for both the patient's home address and their employer's address."
       },
       "PublicPatient": {
         "required": [
@@ -887,7 +809,7 @@
           },
           "employerAddress": {
             "description": "The employer or school address.",
-            "$ref": "#/components/schemas/PublicEmployerAddress"
+            "$ref": "#/components/schemas/PublicAddress"
           }
         },
         "description": "A patient's employment. The employer contact person's name is not exposed."
