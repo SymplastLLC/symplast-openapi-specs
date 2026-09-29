@@ -1,0 +1,73 @@
+{
+  "required": [
+    "line",
+    "line2",
+    "city",
+    "stateCode",
+    "state",
+    "postalCode",
+    "country"
+  ],
+  "type": "object",
+  "properties": {
+    "line": {
+      "type": [
+        "null",
+        "string"
+      ],
+      "description": "Street address."
+    },
+    "line2": {
+      "type": [
+        "null",
+        "string"
+      ],
+      "description": "Second address line, or `null`."
+    },
+    "city": {
+      "type": [
+        "null",
+        "string"
+      ],
+      "description": "City name, or `null`."
+    },
+    "stateCode": {
+      "type": [
+        "null",
+        "string"
+      ],
+      "description": "Two-letter state code, or `null`."
+    },
+    "state": {
+      "type": [
+        "null",
+        "string"
+      ],
+      "description": "Full state name, or `null` where the resource does not resolve it (for example practice offices)."
+    },
+    "postalCode": {
+      "type": [
+        "null",
+        "string"
+      ],
+      "description": "Postal / ZIP code, or `null`."
+    },
+    "country": {
+      "type": [
+        "null",
+        "string"
+      ],
+      "description": "Country name, or `null` where the resource does not resolve it (for example practice offices)."
+    }
+  },
+  "description": "A postal address, shared by every public API that returns one (practice locations and offices, patient contact information, patient employment). All seven fields are always present; a field a resource cannot source is `null` rather than omitted, so one renderer works everywhere.",
+  "example": {
+    "line": "410 Market St, Suite 900",
+    "line2": null,
+    "city": "Philadelphia",
+    "stateCode": "PA",
+    "state": "Pennsylvania",
+    "postalCode": "19106",
+    "country": "United States"
+  }
+}
