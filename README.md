@@ -48,7 +48,8 @@ A surface directory is named `<service>-<audience>`; the **audience is the segme
 ```text
 specs/appointments-api-public/openapi.json      → audience: public   ┐
 specs/financials-api-public/openapi.json        → audience: public   ├─► published/public-api.json
-specs/legacy-api-public/openapi.json            → audience: public   ┘
+specs/legacy-api-public/openapi.json            → audience: public   │
+specs/multimedia-api-public/openapi.json        → audience: public   ┘
 specs/appointments-api-practice/openapi.json    → audience: practice ──► published/practice-api.json  (future)
 specs/appointments-api-patient/openapi.json     → audience: patient  ──► published/patient-api.json   (future)
 ```
@@ -142,13 +143,16 @@ one group per source spec named from the spec's `info.title` — so the portal w
 
 ```json
 {
-  "sections": ["Scheduling", "Financials", "Practice"]
+  "sections": ["Scheduling", "Financials", "Practice", "Patients", "Multimedia"]
 }
 ```
 
 - `sections` is the section list **in portal render order**.
 - Membership is decided **per tag, not per spec** — which is what lets `legacy-api` and `users-api` both
   publish into `Practice`, and lets a single service publish into more than one section.
+- `Multimedia` is fed by `multimedia-api-public` (`specs/multimedia-api-public/openapi.json`), which is
+  generated and pushed by the devops-actions `publish-openapi-spec` action from `multimedia-api` — bot-owned,
+  never hand-edited here.
 - A tag's section comes from its own `x-domain` extension, which the owning service emits. Every surface
   does today, so the optional `tagDomains` fallback map is deliberately absent from this file.
 - A tag matched by neither **fails the compose**, because it would be missing from the portal navigation. A
