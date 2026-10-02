@@ -55,6 +55,7 @@ A surface directory is `<service>-<audience>`; **the audience is the segment aft
 specs/appointments-api-public/openapi.json   → audience: public
 specs/financials-api-public/openapi.json     → audience: public   ├─► published/public-api.json
 specs/legacy-api-public/openapi.json         → audience: public
+specs/multimedia-api-public/openapi.json     → audience: public
 specs/appointments-api-practice/openapi.json → audience: practice ──► published/practice-api.json
 ```
 
@@ -129,7 +130,7 @@ and rebuilds it from `sections/<audience>.json`.
 
 ```json
 {
-  "sections": ["Scheduling", "Financials", "Practice"]
+  "sections": ["Scheduling", "Financials", "Practice", "Patients", "Multimedia"]
 }
 ```
 
@@ -141,6 +142,10 @@ and rebuilds it from `sections/<audience>.json`.
 **Membership is per TAG, never per spec.** That is what allows several services to share one section
 (`legacy-api` and `users-api` both land in `Practice`) and one service to span several sections. A spec-level
 mapping cannot express either.
+
+The `Multimedia` section is fed by `multimedia-api-public` — `specs/multimedia-api-public/openapi.json`,
+bot-owned like every `specs/**` file, pushed by the devops-actions `publish-openapi-spec` action from the
+`multimedia-api` repo. Its tags carry `x-domain: Multimedia`; fix them in `multimedia-api`, never here.
 
 A tag's section is resolved in this order:
 
