@@ -3,7 +3,7 @@
   "info": {
     "title": "Symplast Multimedia Public API",
     "description": "Authenticated public surface for patient photos, videos and documents: upload to a patient's chart, a change feed of file metadata, short-lived content links, practice albums, and file tags.",
-    "version": "2.78.3"
+    "version": "2.78.5"
   },
   "servers": [
     {
