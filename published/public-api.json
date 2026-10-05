@@ -3,7 +3,7 @@
   "info": {
     "title": "Symplast Public API",
     "description": "The unified Symplast Public API surface, composed from each service specification.",
-    "version": "0.1.189"
+    "version": "0.1.190"
   },
   "servers": [
     {
@@ -54,6 +54,18 @@
     {
       "name": "Offices",
       "x-displayName": "Offices"
+    },
+    {
+      "name": "Files",
+      "x-displayName": "Files"
+    },
+    {
+      "name": "Tags",
+      "x-displayName": "Tags"
+    },
+    {
+      "name": "Albums",
+      "x-displayName": "Albums"
     },
     {
       "name": "Patients",
@@ -3348,6 +3360,610 @@
           },
           "404": {
             "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/v1/multimedia/files": {
+      "post": {
+        "tags": [
+          "Files"
+        ],
+        "summary": "Upload a file to a patient's chart",
+        "description": "**Required scope:** `multimedia.files.write`\n\nUploads one photo, video or document (`multipart/form-data`, at most 100 MiB) for a patient the signed-in user\ncan access, optionally linked to one of that patient's appointments. Images get large, medium and small\nthumbnails; videos get them shortly after upload. New tag names join the practice's tag catalog; system tags\ncannot be set. The file is attributed to the signed-in user and the calling App.\n\nThere is no idempotency key: a retried upload creates a second file. `sha256` is an integrity check only.",
+        "operationId": "UploadFile",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/PublicFileUploadRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicFile"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      },
+      "get": {
+        "tags": [
+          "Files"
+        ],
+        "summary": "List files (change feed)",
+        "description": "**Required scope:** `multimedia.files.read`\n\nReturns a cursor-paged feed of the tenant's files that the signed-in user may access, ordered by `updatedAt`\n(the last change to the file's metadata, one-second resolution), then `id`. Every write moves a file, including\ntag, status and description changes. Files in every status are included (`active`, `hidden`, `deleted`), so a\nconsumer observes deletions. Filter with `updatedSince` (UTC, inclusive), `patientId`, `appointmentId` and `type`;\nfollow `next` (an opaque `cursor`) to page further.\n\nDelivery is at-least-once across passes: dedupe on `id` keeping the highest `updatedAt`, and resume at\n`updatedSince = lastSeenUpdatedAt`.",
+        "operationId": "GetFiles",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedResponsePublicFile"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/v1/multimedia/files/{id}": {
+      "get": {
+        "tags": [
+          "Files"
+        ],
+        "summary": "Get a file's metadata",
+        "description": "**Required scope:** `multimedia.files.read`\n\nReturns one file of the tenant that the signed-in user may access.",
+        "operationId": "GetFileById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The file id.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicFile"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/v1/multimedia/files/{id}/content": {
+      "get": {
+        "tags": [
+          "Files"
+        ],
+        "summary": "Get a short-lived download link",
+        "description": "**Required scope:** `multimedia.files.read`\n\nReturns a presigned URL for the file's `original` content (default) or, when `hasThumbnail` is true, its\n`large`, `medium` or `small` thumbnail, with the time it expires. Download it without an `Authorization`\nheader. Request a new link rather than caching one.",
+        "operationId": "GetFileContent",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The file id.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "rendition",
+            "in": "query",
+            "description": "`original` (default), `large`, `medium` or `small`. Thumbnails exist only when `hasThumbnail` is true.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicFileLink"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/v1/multimedia/files/{id}/tags": {
+      "post": {
+        "tags": [
+          "Tags"
+        ],
+        "summary": "Add tags to a file",
+        "description": "**Required scope:** `multimedia.files.tags.write`\n\nAdds regular tags to a file the signed-in user may access. A name matching a catalog tag (ignoring case) takes\nthe catalog's casing; a new name joins the practice's tag catalog; a tag the file already has is left alone.\nSystem tags (names starting with `~`) are rejected. Returns the updated file.",
+        "operationId": "AddFileTags",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The file id.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublicFileTagsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicFile"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/v1/multimedia/files/{id}/tags/{name}": {
+      "delete": {
+        "tags": [
+          "Tags"
+        ],
+        "summary": "Remove a tag from a file",
+        "description": "**Required scope:** `multimedia.files.tags.write`\n\nRemoves one regular tag (matched ignoring case) from a file the signed-in user may access. System tags cannot\nbe removed. The practice's tag catalog is unchanged.",
+        "operationId": "RemoveFileTag",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The file id.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "name",
+            "in": "path",
+            "description": "The regular tag to remove (matched ignoring case).",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/v1/multimedia/albums": {
+      "get": {
+        "tags": [
+          "Albums"
+        ],
+        "summary": "List albums",
+        "description": "**Required scope:** `multimedia.albums.read`\n\nReturns a cursor-paged list of the practice's active albums. The order is stable but not alphabetical;\nsort client-side for display. Album audiences are never returned.",
+        "operationId": "GetAlbums",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedResponsePublicAlbum"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/v1/multimedia/albums/{id}": {
+      "get": {
+        "tags": [
+          "Albums"
+        ],
+        "summary": "Get an album",
+        "description": "**Required scope:** `multimedia.albums.read`\n\nReturns one active album.",
+        "operationId": "GetAlbumById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The album id.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicAlbum"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/v1/multimedia/albums/{id}/files": {
+      "get": {
+        "tags": [
+          "Files"
+        ],
+        "summary": "List an album's files",
+        "description": "**Required scope:** `multimedia.files.read`\n\nReturns the files carrying ANY of the album's tag names, with the same paging, shape and per-user patient\nrestriction as the file feed.",
+        "operationId": "GetAlbumFiles",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The album id.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedResponsePublicFile"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/v1/multimedia/tags": {
+      "get": {
+        "tags": [
+          "Tags"
+        ],
+        "summary": "List the practice's tag catalog",
+        "description": "**Required scope:** `multimedia.files.read`\n\nReturns a cursor-paged list of the practice's tag names, optionally filtered by a case-insensitive name\nprefix (`search`). The order is stable but not alphabetical; sort client-side for display.",
+        "operationId": "GetTags",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedResponsePublicTag"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -7092,6 +7708,406 @@
           "fax": "+1-215-555-0191"
         }
       },
+      "IFormFile": {
+        "type": [
+          "null",
+          "string"
+        ],
+        "format": "binary"
+      },
+      "PagedResponsePublicAlbum": {
+        "required": [
+          "data",
+          "pageSize",
+          "count",
+          "hasMore"
+        ],
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublicAlbum"
+            }
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "hasMore": {
+            "type": "boolean"
+          },
+          "nextCursor": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "next": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "PagedResponsePublicFile": {
+        "required": [
+          "data",
+          "pageSize",
+          "count",
+          "hasMore"
+        ],
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublicFile"
+            }
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "hasMore": {
+            "type": "boolean"
+          },
+          "nextCursor": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "next": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "PagedResponsePublicTag": {
+        "required": [
+          "data",
+          "pageSize",
+          "count",
+          "hasMore"
+        ],
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublicTag"
+            }
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "hasMore": {
+            "type": "boolean"
+          },
+          "nextCursor": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "next": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "PublicAlbum": {
+        "required": [
+          "id",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The album id."
+          },
+          "name": {
+            "type": "string",
+            "description": "The album name. Free text, which may contain ePHI."
+          },
+          "tagFilter": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The album's tag filter as stored (tag names joined with `OR` / `AND`). The public album-files route\nmatches files carrying ANY of the filter's tag names."
+          }
+        },
+        "description": "A practice photo album. An album is a saved tag filter; its files are the files carrying any of its tags\n(`GET /albums/{id}/files`). Audience members are never returned."
+      },
+      "PublicFile": {
+        "required": [
+          "id",
+          "fileName",
+          "type",
+          "size",
+          "status",
+          "tags",
+          "updatedAt",
+          "hasThumbnail"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The file id (a GUID string), unique within the tenant."
+          },
+          "fileName": {
+            "type": "string",
+            "description": "The file name, including its extension."
+          },
+          "type": {
+            "type": "string",
+            "description": "The file type: `image`, `video`, `pdf`, `audio` or `unknown`."
+          },
+          "size": {
+            "type": "integer",
+            "description": "The size in bytes.",
+            "format": "int64"
+          },
+          "status": {
+            "type": "string",
+            "description": "The status: `active`, `hidden` (hidden from the catalog) or `deleted`."
+          },
+          "patientId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "description": "The patient the file belongs to, or `null` for a file not linked to a patient.",
+            "format": "int32"
+          },
+          "appointmentId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "description": "The appointment the file belongs to, or `null`.",
+            "format": "int32"
+          },
+          "appointmentStartAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The appointment's start (UTC), or `null` without an appointment.",
+            "format": "date-time"
+          },
+          "description": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The description, or `null`."
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The file's regular tags. System tags are never returned."
+          },
+          "sharedWithPatient": {
+            "type": [
+              "null",
+              "boolean"
+            ],
+            "description": "Whether the file is shared with the patient, or `null` when never set."
+          },
+          "uploadedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "When the file was uploaded (UTC), or `null` for legacy files.",
+            "format": "date-time"
+          },
+          "uploadedByUserId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "description": "The Symplast user who uploaded the file, or `null` for legacy files.",
+            "format": "int32"
+          },
+          "originalCreatedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "When the content was originally created (for example the photo's EXIF date, UTC), or `null`.",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "When the file's metadata last changed (UTC, one-second resolution). This is the change-feed watermark: every write,\nincluding tag, status and description changes, moves it.",
+            "format": "date-time"
+          },
+          "duration": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "description": "The duration in seconds for audio and video, or `null` when unknown.",
+            "format": "double"
+          },
+          "hasThumbnail": {
+            "type": "boolean",
+            "description": "Whether `large`, `medium` and `small` renditions exist."
+          }
+        },
+        "description": "A photo, video or document in a patient's chart. All timestamps are UTC (ISO-8601)."
+      },
+      "PublicFileLink": {
+        "required": [
+          "url",
+          "expiresAt",
+          "rendition"
+        ],
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "The presigned URL. Never log or cache it."
+          },
+          "expiresAt": {
+            "type": "string",
+            "description": "When the URL stops working (UTC).",
+            "format": "date-time"
+          },
+          "rendition": {
+            "type": "string",
+            "description": "The rendition: `original`, `large`, `medium` or `small`."
+          }
+        },
+        "description": "A short-lived download link for one rendition of a file. Download it without an `Authorization` header: the URL is\npresigned, and storage rejects a request carrying both."
+      },
+      "PublicFileTagsRequest": {
+        "required": [
+          "tags"
+        ],
+        "type": "object",
+        "properties": {
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "One to 50 tag names."
+          }
+        },
+        "description": "Regular tags to add to a file. Names are trimmed; a name matching a catalog tag (ignoring case) takes the catalog's\ncasing, and a new name joins the practice's tag catalog. System tags (names starting with `~`) are rejected."
+      },
+      "PublicFileUploadRequest": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "description": "The file part. Its file name must have an extension. At most 100 MiB.",
+                "$ref": "#/components/schemas/IFormFile"
+              }
+            ]
+          },
+          "patientId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "description": "The patient the file belongs to (required). The signed-in user must be able to access the patient.",
+            "format": "int32"
+          },
+          "appointmentId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "description": "An appointment of that patient to link the file to.",
+            "format": "int32"
+          },
+          "description": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "A description."
+          },
+          "tags": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "description": "Regular tags. New names join the practice's tag catalog; names starting with `~` are rejected."
+          },
+          "sharedWithPatient": {
+            "type": [
+              "null",
+              "boolean"
+            ],
+            "description": "Whether to share the file with the patient. Defaults to `false`."
+          },
+          "originalCreatedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "When the content was originally created (UTC), for example a photo's capture time.",
+            "format": "date-time"
+          },
+          "sha256": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The content's SHA-256 (hex). When given, a mismatch rejects the upload with `422 hash-mismatch`."
+          }
+        },
+        "description": "A `multipart/form-data` upload of one file to a patient's chart."
+      },
+      "PublicTag": {
+        "required": [
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The tag name."
+          }
+        },
+        "description": "A tag name from the practice's tag catalog. Catalog names are free text, which may contain ePHI."
+      },
       "ContactMethod": {
         "enum": [
           "home",
@@ -7815,6 +8831,14 @@
       "name": "Patients",
       "tags": [
         "Patients"
+      ]
+    },
+    {
+      "name": "Multimedia",
+      "tags": [
+        "Files",
+        "Tags",
+        "Albums"
       ]
     }
   ]
