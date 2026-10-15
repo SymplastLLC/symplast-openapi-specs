@@ -3,7 +3,7 @@
   "info": {
     "title": "Symplast Public API",
     "description": "The unified Symplast Public API surface, composed from each service specification.",
-    "version": "0.1.209"
+    "version": "0.1.210"
   },
   "servers": [
     {
@@ -42,6 +42,10 @@
     {
       "name": "Memberships",
       "x-displayName": "Memberships"
+    },
+    {
+      "name": "Inventory",
+      "x-displayName": "Inventory"
     },
     {
       "name": "Practice info",
@@ -2837,6 +2841,526 @@
         ]
       }
     },
+    "/v1/financials/item-stock-levels": {
+      "get": {
+        "tags": [
+          "Inventory"
+        ],
+        "summary": "List item stock levels",
+        "description": "A page of the tenant's stock levels, one row per catalog item per location, with soft-deleted rows kept on the feed carrying `isDeleted: true`. Filters: `updatedSince`, `locationId`, `itemId` and `isForSale`; any other parameter, including `lowStockOnly`, is ignored rather than rejected, and low stock is `stock < minStock` on the row itself. `stock` is the stored running total, which need not equal the sum of `/inventory-adjustments` deltas.",
+        "operationId": "GetItemStockLevels",
+        "parameters": [
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "updatedSince",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "locationId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "itemId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "isForSale",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedResponsePublicItemStockLevel"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error (RFC 9457 problem details).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/v1/financials/item-stock-levels/{stockLevelId}": {
+      "get": {
+        "tags": [
+          "Inventory"
+        ],
+        "summary": "Get an item stock level",
+        "description": "One stock level by id. An id belonging to another tenant answers 404 rather than 403.",
+        "operationId": "GetItemStockLevel",
+        "parameters": [
+          {
+            "name": "stockLevelId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicItemStockLevel"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error (RFC 9457 problem details).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/v1/financials/inventory-adjustments": {
+      "get": {
+        "tags": [
+          "Inventory"
+        ],
+        "summary": "List inventory adjustments",
+        "description": "A page of the tenant's inventory adjustments: the ledger of stock movements, one signed `delta` per row. Filters: `updatedSince`, `locationId`, `itemId`, `isInternal`, and the inclusive `effectiveDateFrom` / `effectiveDateTo` range over `effectiveDate`; any other parameter is ignored rather than rejected. Adjustments are never edited, so the only change an existing row can show is `isDeleted` becoming `true` when its invoice or credit note is voided, and a consumer summing `delta` must exclude deleted rows.",
+        "operationId": "GetInventoryAdjustments",
+        "parameters": [
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "updatedSince",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "locationId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "itemId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "effectiveDateFrom",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "effectiveDateTo",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "isInternal",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedResponsePublicInventoryAdjustment"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error (RFC 9457 problem details).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/v1/financials/inventory-adjustments/{adjustmentId}": {
+      "get": {
+        "tags": [
+          "Inventory"
+        ],
+        "summary": "Get an inventory adjustment",
+        "description": "One inventory adjustment by id. An id belonging to another tenant answers 404 rather than 403.",
+        "operationId": "GetInventoryAdjustment",
+        "parameters": [
+          {
+            "name": "adjustmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicInventoryAdjustment"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error (RFC 9457 problem details).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/v1/financials/item-prices": {
+      "get": {
+        "tags": [
+          "Catalog"
+        ],
+        "summary": "List item prices",
+        "description": "A snapshot of every live catalog item's prices, ordered by `itemId` with no `updatedSince` — re-read it to stay current, and see the invoice and credit-note line items for what a sale actually charged. `pricingModel` says how to read each row: `Flat` uses the location's `locationPrices` entry or else `flatPrice`, and the tiered models use `priceTiers`. With `locationId`, each row carries only the prices that apply at that location.",
+        "operationId": "GetItemPrices",
+        "parameters": [
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "locationId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedResponsePublicItemPrice"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error (RFC 9457 problem details).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/v1/financials/item-prices/{itemId}": {
+      "get": {
+        "tags": [
+          "Catalog"
+        ],
+        "summary": "Get an item's prices",
+        "description": "One item's prices, optionally narrowed to the prices that apply at `locationId`. A deleted item, or an id belonging to another tenant, answers 404.",
+        "operationId": "GetItemPrice",
+        "parameters": [
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "locationId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicItemPrice"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error (RFC 9457 problem details).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
     "/v1/financials/invoice-statuses": {
       "get": {
         "tags": [
@@ -5156,6 +5680,47 @@
         },
         "description": "A single page of PublicHierarchicalCategory items, with `hasMore` and a `next` cursor link."
       },
+      "PagedResponsePublicInventoryAdjustment": {
+        "required": [
+          "data",
+          "pageSize",
+          "count",
+          "hasMore"
+        ],
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublicInventoryAdjustment"
+            }
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "hasMore": {
+            "type": "boolean"
+          },
+          "nextCursor": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "next": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "description": "A single page of PublicInventoryAdjustment items, with `hasMore` and a `next` cursor link."
+      },
       "PagedResponsePublicInvoice": {
         "required": [
           "data",
@@ -5278,6 +5843,88 @@
           }
         },
         "description": "A single page of PublicItemGroup items, with `hasMore` and a `next` cursor link."
+      },
+      "PagedResponsePublicItemPrice": {
+        "required": [
+          "data",
+          "pageSize",
+          "count",
+          "hasMore"
+        ],
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublicItemPrice"
+            }
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "hasMore": {
+            "type": "boolean"
+          },
+          "nextCursor": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "next": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "description": "A single page of PublicItemPrice items, with `hasMore` and a `next` cursor link."
+      },
+      "PagedResponsePublicItemStockLevel": {
+        "required": [
+          "data",
+          "pageSize",
+          "count",
+          "hasMore"
+        ],
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublicItemStockLevel"
+            }
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "hasMore": {
+            "type": "boolean"
+          },
+          "nextCursor": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "next": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "description": "A single page of PublicItemStockLevel items, with `hasMore` and a `next` cursor link."
       },
       "PagedResponsePublicItemType": {
         "required": [
@@ -6410,6 +7057,87 @@
         },
         "description": "    A hierarchical category, as it appears inline on an item. Three fields; `/v1/financials/item-hierarchical-categories`\n    carries the whole tree and the `isDeleted` flag.\n    NULLABLE ON THE ITEM: Items.HierarchicalCategoryId is INT NULL, and a null means the item has\nnot been filed in the tree — a normal state, not missing data."
       },
+      "PublicInventoryAdjustment": {
+        "type": "object",
+        "properties": {
+          "adjustmentId": {
+            "type": "integer",
+            "description": "Gets the adjustment id.",
+            "format": "int32"
+          },
+          "itemId": {
+            "type": "integer",
+            "description": "Gets the catalog item whose stock moved, readable at `/v1/financials/items/{itemId}`.",
+            "format": "int32"
+          },
+          "locationId": {
+            "type": "integer",
+            "description": "Gets the location whose stock moved.",
+            "format": "int32"
+          },
+          "effectiveDate": {
+            "type": "string",
+            "description": "Gets the business date of the movement. A `DATE` column — a calendar date with no time part.",
+            "format": "date"
+          },
+          "delta": {
+            "type": "number",
+            "description": "Gets the signed change to stock: negative for a sale, positive for a return or a receipt.",
+            "format": "double"
+          },
+          "isInternal": {
+            "type": "boolean",
+            "description": "Gets a value indicating whether the system generated the movement — from an invoice or credit-note\nline, or a new batch — rather than a staff member entering it."
+          },
+          "invoiceItemId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "description": "Gets the invoice line that caused the movement, or null.",
+            "format": "int32"
+          },
+          "creditNoteItemId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "description": "Gets the credit-note line that caused the movement, or null.",
+            "format": "int32"
+          },
+          "batchId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "description": "Gets the item batch (lot) the movement belongs to, or null.",
+            "format": "int32"
+          },
+          "bulkAdjustmentId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "description": "Gets the bulk stock count the movement was part of, or null.",
+            "format": "int32"
+          },
+          "isDeleted": {
+            "type": "boolean",
+            "description": "Gets a value indicating whether the movement was withdrawn — what voiding the invoice or credit note that\ngenerated it, or returning that document to Draft, does. A consumer summing decimal PublicInventoryAdjustment.Delta must\nexclude deleted rows. The one exception is an adjustment removed together with its item batch: that is\na hard delete, and the row never reappears on the feed."
+          },
+          "createdUtcDate": {
+            "type": "string",
+            "description": "Gets the creation timestamp, in UTC.",
+            "format": "date-time"
+          },
+          "modifiedDateUtc": {
+            "type": "string",
+            "description": "Gets the change-feed watermark: `COALESCE(ModifiedUtcDate, CreatedUtcDate)`, in UTC. Equal to\nDateTimeOffset PublicInventoryAdjustment.CreatedUtcDate until the row is soft-deleted.",
+            "format": "date-time"
+          }
+        },
+        "description": "    One stock movement, as published by `/v1/financials/inventory-adjustments` (PLA-1438).\n    A LEDGER ROW. Adjustments are never edited after they are written: a correction is a new row. The only\nchange a consumer will ever observe on an existing adjustment is bool PublicInventoryAdjustment.IsDeleted becoming\ntrue, which is what voiding an invoice or credit note — or returning it to Draft — does to the\nadjustments it generated.\n    Property order is the wire order. Dropped from the stored row: Reason and Description, which\nare free text (the system-generated reason embeds the invoice or credit-note number);\nReferenceNumber, the same document number; CreatedUserID; and AccountID, which is\nledger wiring."
+      },
       "PublicInvoice": {
         "required": [
           "invoiceNumber",
@@ -6811,7 +7539,7 @@
             "format": "date-time"
           }
         },
-        "description": "    A catalog item — a service or product a practice sells.\n    THE ONLY RESOURCE ON THIS SURFACE THAT IS NOT PATIENT-LINKED except membership programmes: an item is a\npractice's configuration, shared by every patient ever billed for it, and no field on this payload\nidentifies a patient. That is why description ships unconditionally where the gift-card\ndescription needed four controls, and why the disclosure audit records carriedFreeText: false.\n    Property order is the wire order. Dropped from the stored row, on top of the shared conventions:\ntrackInventoryMode, priceType and parentChildType (the enums behind them are out of\nv1); purchaseInfo, so cost of goods and margin are not published at all; pictures[], which\nis v2; cptCodeSettings, which is insurance coding; apxId, galdermaProductId and\nbaseItemId, which are third-party ids and internal catalog plumbing; salesAccountId, which\nis ledger wiring; the per-location and tiered prices; all inventory; and\nCreatedByUserID / ModifiedByUserID."
+        "description": "    A catalog item — a service or product a practice sells.\n    THE ONLY RESOURCE ON THIS SURFACE THAT IS NOT PATIENT-LINKED except membership programmes: an item is a\npractice's configuration, shared by every patient ever billed for it, and no field on this payload\nidentifies a patient. That is why description ships unconditionally where the gift-card\ndescription needed four controls, and why the disclosure audit records carriedFreeText: false.\n    Property order is the wire order. Dropped from the stored row, on top of the shared conventions:\ntrackInventoryMode, priceType and parentChildType (the enums behind them are out of\nv1); purchaseInfo, so cost of goods and margin are not published at all; pictures[], which\nis v2; cptCodeSettings, which is insurance coding; apxId, galdermaProductId and\nbaseItemId, which are third-party ids and internal catalog plumbing; salesAccountId, which\nis ledger wiring; the per-location and tiered prices, which /item-prices publishes as their own\nresource (PLA-1438); all inventory, which /item-stock-levels publishes; and\nCreatedByUserID / ModifiedByUserID."
       },
       "PublicItemGroup": {
         "required": [
@@ -6875,6 +7603,152 @@
           }
         },
         "description": "    One member of an item group: which item, and how many of it.\n    TWO FIELDS, and the omissions are decisions rather than oversights. The detail row's own id is not\npublished because a detail is not addressable on this surface. Its price, discount and\ntype are not published because the group's money amounts are not, and those three exist only to\ncompute them — see GET /v1/financials/item-groups for why the amounts are withheld. Publishing the inputs to an\narithmetic whose output this contract cannot state would invite a consumer to reconstruct it from an\nincomplete set of terms."
+      },
+      "PublicItemLocationPrice": {
+        "type": "object",
+        "properties": {
+          "locationId": {
+            "type": "integer",
+            "description": "Gets the location.",
+            "format": "int32"
+          },
+          "price": {
+            "type": "number",
+            "description": "Gets the unit price at that location.",
+            "format": "double"
+          }
+        },
+        "description": "One location's unit price for an item."
+      },
+      "PublicItemPrice": {
+        "required": [
+          "locationPrices",
+          "priceTiers",
+          "currency"
+        ],
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": "integer",
+            "description": "Gets the catalog item, readable at `/v1/financials/items/{itemId}`.",
+            "format": "int32"
+          },
+          "pricingModel": {
+            "description": "Gets how to read this item's price. `Flat` uses IReadOnlyList&lt;PublicItemLocationPrice&gt; PublicItemPrice.LocationPrices then\ndecimal? PublicItemPrice.FlatPrice; the two tiered models use IReadOnlyList&lt;PublicItemPriceTier&gt; PublicItemPrice.PriceTiers.",
+            "$ref": "#/components/schemas/PublicPricingModel"
+          },
+          "flatPrice": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "description": "Gets the item's default unit price, or null when none is set. The same value `/items` publishes as\n`flatPrice`. Overridden at a location by that location's entry in IReadOnlyList&lt;PublicItemLocationPrice&gt; PublicItemPrice.LocationPrices.",
+            "format": "double"
+          },
+          "locationPrices": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublicItemLocationPrice"
+            },
+            "description": "Gets the per-location unit prices that override decimal? PublicItemPrice.FlatPrice for a `Flat` item, one per\nlocation at most. A location absent from the list charges decimal? PublicItemPrice.FlatPrice."
+          },
+          "priceTiers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublicItemPriceTier"
+            },
+            "description": "Gets the quantity bands a tiered item is priced from. To price a quantity at a location: use the bands\ncarrying that `locationId` if there are any, otherwise the bands whose `locationId` is null; then\ntake the band with the highest `minQuantity` not above the quantity. A location's bands REPLACE the\nevery-location bands rather than adding to them."
+          },
+          "currency": {
+            "type": "string",
+            "description": "Gets the currency every price here is in. Fixed `USD`, as on `/items`."
+          }
+        },
+        "description": "    One catalog item's price list, as published by `/v1/financials/item-prices` (PLA-1438).\n    THE RULES, NOT ONE NUMBER. An item's price depends on the location and, for tiered items, on the quantity,\nso there is no single \"effective price\" to publish; this carries every input and PublicPricingModel PublicItemPrice.PricingModel\nsays how to combine them. What a sale actually charged — after discounts, memberships and manual rates — is\non the invoice and credit-note line items, not here."
+      },
+      "PublicItemPriceTier": {
+        "type": "object",
+        "properties": {
+          "locationId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "description": "Gets the location the band applies at, or null for every location without bands of its own.",
+            "format": "int32"
+          },
+          "minQuantity": {
+            "type": "number",
+            "description": "Gets the lowest quantity the band applies from. It runs up to the next band's `minQuantity`.",
+            "format": "double"
+          },
+          "price": {
+            "type": "number",
+            "description": "Gets the band price: per unit for `TieredPerUnit`, for the whole line for `TieredPerLine`.",
+            "format": "double"
+          }
+        },
+        "description": "One quantity band."
+      },
+      "PublicItemStockLevel": {
+        "type": "object",
+        "properties": {
+          "stockLevelId": {
+            "type": "integer",
+            "description": "Gets the stock level id. The schema does not make `(locationId, itemId)` unique, so two rows can name\nthe same item at the same location, and a row outlives the deletion of its catalog item.",
+            "format": "int32"
+          },
+          "itemId": {
+            "type": "integer",
+            "description": "Gets the catalog item, readable at `/v1/financials/items/{itemId}`.",
+            "format": "int32"
+          },
+          "locationId": {
+            "type": "integer",
+            "description": "Gets the location. A bare id, as on every other resource on this surface: locations are not part of\nthe financials domain.",
+            "format": "int32"
+          },
+          "stock": {
+            "type": "number",
+            "description": "Gets the quantity on hand: the STORED running total, not a sum. Every adjustment moves it, but several\ninternal paths also set it directly — creating the row, a catalog migration — so it is not guaranteed\nto equal the sum of this location's `inventory-adjustments` deltas. Maintained only for items whose\ninventory is tracked per location; for any other item no adjustment moves it, so it holds whatever was\nlast written to it directly.",
+            "format": "double"
+          },
+          "minStock": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "description": "Gets the reorder threshold, or null when the practice set none. Low stock is `stock &lt; minStock`.",
+            "format": "double"
+          },
+          "desiredStock": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "description": "Gets the target quantity, or null when the practice set none.",
+            "format": "double"
+          },
+          "isForSale": {
+            "type": "boolean",
+            "description": "Gets a value indicating whether the item is for sale at this location. Independent of the item's own\n`isForSale` on `/items`."
+          },
+          "isDeleted": {
+            "type": "boolean",
+            "description": "Gets a value indicating whether the row is soft-deleted. Deleted rows stay on the feed so an\nincremental consumer can retire them."
+          },
+          "createdUtcDate": {
+            "type": "string",
+            "description": "Gets the creation timestamp, in UTC. `1900-01-01T00:00:00Z` means UNKNOWN: the row existed before\nits creation date was recorded.",
+            "format": "date-time"
+          },
+          "modifiedDateUtc": {
+            "type": "string",
+            "description": "Gets the change-feed watermark: `COALESCE(ModifiedUtcDate, CreatedUtcDate)`, in UTC. Moves on every\nchange to the row, including the stock change each inventory adjustment applies — and also when the\npractice changes the item's per-location price, which this resource does not publish, so a row can come\nback on the feed with no published field changed.",
+            "format": "date-time"
+          }
+        },
+        "description": "    One catalog item's stock at one location, as published by `/v1/financials/item-stock-levels` (PLA-1438).\n    Property order is the wire order. Dropped from the stored LocationItemInventory row:\nFlatPrice, the per-location price, which /items withholds as well."
       },
       "PublicItemType": {
         "required": [
@@ -7389,6 +8263,15 @@
           "Unknown"
         ],
         "description": "Payment method class. The only cross-tenant-stable way to bucket revenue: a payment mode's name is\ntenant-renamable and its id is tenant-local."
+      },
+      "PublicPricingModel": {
+        "enum": [
+          "Flat",
+          "TieredPerUnit",
+          "TieredPerLine",
+          "Unknown"
+        ],
+        "description": "How an item's price is read (PLA-1438) — named for what a consumer does with the price, not after the\nstored `ItemPriceType`. Mapped the way `ItemCalculator` prices a line: only the two tiered stored\ntypes read the quantity bands, and every other stored type prices flat."
       },
       "PublicProviderSelectionType": {
         "enum": [
@@ -8815,7 +9698,8 @@
         "Catalog",
         "Estimates",
         "Credit Notes",
-        "Memberships"
+        "Memberships",
+        "Inventory"
       ]
     },
     {
