@@ -122,6 +122,7 @@ unified model. That lives in `canonical/<audience>/<SchemaName>.json`:
 
 ```text
 canonical/public/ProblemDetails.json     → docs for the unified `ProblemDetails` in published/public-api.json
+canonical/public/IFormFile.json          → docs for the unified `IFormFile` (multipart file part) in published/public-api.json
 canonical/practice/ProblemDetails.json   → docs for the unified `ProblemDetails` in published/practice-api.json
 ```
 
@@ -143,7 +144,7 @@ one group per source spec named from the spec's `info.title` — so the portal w
 
 ```json
 {
-  "sections": ["Scheduling", "Financials", "Practice", "Patients", "Multimedia"]
+  "sections": ["Scheduling", "Financials", "Practice", "Patients", "Multimedia", "Documents"]
 }
 ```
 
@@ -153,6 +154,8 @@ one group per source spec named from the spec's `info.title` — so the portal w
 - `Multimedia` is fed by `multimedia-api-public` (`specs/multimedia-api-public/openapi.json`), which is
   generated and pushed by the devops-actions `publish-openapi-spec` action from `multimedia-api` — bot-owned,
   never hand-edited here.
+- `Documents` is fed by `documents-api-public` (`specs/documents-api-public/openapi.json`), pushed the same way
+  from `documents-api`. Its `Documents` and `Document Types` tags carry `x-domain: Documents`.
 - A tag's section comes from its own `x-domain` extension, which the owning service emits. Every surface
   does today, so the optional `tagDomains` fallback map is deliberately absent from this file.
 - A tag matched by neither **fails the compose**, because it would be missing from the portal navigation. A
