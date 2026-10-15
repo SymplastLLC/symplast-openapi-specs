@@ -130,7 +130,7 @@ and rebuilds it from `sections/<audience>.json`.
 
 ```json
 {
-  "sections": ["Scheduling", "Financials", "Practice", "Patients", "Multimedia"]
+  "sections": ["Scheduling", "Financials", "Practice", "Patients", "Multimedia", "Documents"]
 }
 ```
 
@@ -146,6 +146,11 @@ mapping cannot express either.
 The `Multimedia` section is fed by `multimedia-api-public` — `specs/multimedia-api-public/openapi.json`,
 bot-owned like every `specs/**` file, pushed by the devops-actions `publish-openapi-spec` action from the
 `multimedia-api` repo. Its tags carry `x-domain: Multimedia`; fix them in `multimedia-api`, never here.
+
+The `Documents` section is fed by `documents-api-public` — `specs/documents-api-public/openapi.json`, pushed the
+same way from the `documents-api` repo. Its `Documents` and `Document Types` tags carry `x-domain: Documents`; fix
+them in `documents-api`, never here. It shares `IFormFile` with `multimedia-api-public`, so
+`canonical/public/IFormFile.json` documents the unified schema.
 
 A tag's section is resolved in this order:
 
