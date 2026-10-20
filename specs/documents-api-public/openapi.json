@@ -1,0 +1,645 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "Symplast Documents Public API",
+    "description": "Authenticated public surface for patient documents: upload to a patient's chart, a change feed of document metadata, short-lived content links, and the practice's document types.",
+    "version": "1.44.3"
+  },
+  "servers": [
+    {
+      "url": "https://api.symplast.com"
+    }
+  ],
+  "paths": {
+    "/v1/documents/files": {
+      "post": {
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Upload a document to a patient's chart",
+        "description": "**Required scope:** `documents.files.write`\n\nUploads one document (`multipart/form-data`, at most 100 MiB) for a patient the signed-in user can access,\nfiled under an uploadable document type (see `GET /v1/documents/document-types`), an active provider and,\noptionally, an active location. The document is stored exactly as a document uploaded in Symplast and is\nattributed to the signed-in user. When `sharedWithPatient` is true, the patient receives the usual\nnotification.\n\nThere is no idempotency key: a retried upload creates a second document. `sha256` is an integrity check only.",
+        "operationId": "UploadDocument",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/PublicDocumentUploadRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicDocument"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Payload Too Large",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Documents"
+        ],
+        "summary": "List documents (change feed)",
+        "description": "**Required scope:** `documents.files.read`\n\nReturns a cursor-paged feed of the documents the signed-in user may access, ordered by `updatedAt`, then `id`.\n`updatedAt` is the latest change to the document, to its consent form's status, or to whether it is shared\nwith the patient. Filter with `updatedSince` (UTC, inclusive), `patientId` and `documentTypeId`; follow `next`\n(an opaque `cursor`) to page further. Pending consent forms are never returned.\n\nWith `updatedSince`, deleted documents are included with `isDeleted: true`, so a consumer observes deletions;\nwithout it, only active documents are returned. Documents removed permanently (rare, internal only) do not\nappear.\n\nDelivery is at-least-once across passes: dedupe on `id` keeping the highest `updatedAt`, and resume at\n`updatedSince = lastSeenUpdatedAt - 1 hour` (the overlap absorbs daylight-saving changes on the server).",
+        "operationId": "GetDocuments",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedResponsePublicDocument"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/documents/files/{id}": {
+      "get": {
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Get a document's metadata",
+        "description": "**Required scope:** `documents.files.read`\n\nReturns one active document that the signed-in user may access.",
+        "operationId": "GetDocumentById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The document id.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicDocument"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/documents/files/{id}/content": {
+      "get": {
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Get a short-lived download link",
+        "description": "**Required scope:** `documents.files.read`\n\nReturns a presigned URL for the document's original content, with the time it expires. Download it without\nan `Authorization` header. Request a new link rather than caching one.",
+        "operationId": "GetDocumentContent",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The document id.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicDocumentLink"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/documents/document-types": {
+      "get": {
+        "tags": [
+          "Document Types"
+        ],
+        "summary": "List document types",
+        "description": "**Required scope:** `documents.files.read`\n\nReturns a cursor-paged list of the practice's active document types, in id order. Every type a document can\ncarry is listed; `uploadable` is false for types that do not accept uploads (consent forms, read-only system\nfolders, and types the app generates itself).",
+        "operationId": "GetDocumentTypes",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedResponsePublicDocumentType"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "IFormFile": {
+        "type": [
+          "null",
+          "string"
+        ],
+        "format": "binary"
+      },
+      "PagedResponsePublicDocument": {
+        "required": [
+          "data",
+          "pageSize",
+          "count",
+          "hasMore"
+        ],
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublicDocument"
+            }
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "hasMore": {
+            "type": "boolean"
+          },
+          "nextCursor": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "next": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "PagedResponsePublicDocumentType": {
+        "required": [
+          "data",
+          "pageSize",
+          "count",
+          "hasMore"
+        ],
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublicDocumentType"
+            }
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "hasMore": {
+            "type": "boolean"
+          },
+          "nextCursor": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "next": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "ProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "title": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "detail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "instance": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "PublicDocument": {
+        "required": [
+          "id",
+          "fileName",
+          "extension",
+          "patientId",
+          "documentTypeName",
+          "providerId",
+          "locationId",
+          "sharedWithPatient",
+          "isDeleted",
+          "createdAt",
+          "updatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "The document id, unique within the tenant.",
+            "format": "int32"
+          },
+          "fileName": {
+            "type": "string",
+            "description": "The file name: the renamed name when the document was renamed (for example by a folder move), otherwise the\nuploaded name. May be empty for legacy documents that never had one."
+          },
+          "extension": {
+            "type": "string",
+            "description": "The stored file extension, lowercase, without a dot."
+          },
+          "description": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The description, or `null`."
+          },
+          "patientId": {
+            "type": "integer",
+            "description": "The patient the document belongs to.",
+            "format": "int32"
+          },
+          "documentTypeId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "description": "The document type (see `GET /document-types`), or `null` when the document's stored type matches no active\ndocument type (for example a folder deleted outside documents-api).",
+            "format": "int32"
+          },
+          "documentTypeName": {
+            "type": "string",
+            "description": "The document type's display name, or the stored type name when no active type matches."
+          },
+          "providerId": {
+            "type": "integer",
+            "description": "The provider the document is filed under.",
+            "format": "int32"
+          },
+          "locationId": {
+            "type": "integer",
+            "description": "The location the document is filed under, or 0 when none.",
+            "format": "int32"
+          },
+          "sharedWithPatient": {
+            "type": "boolean",
+            "description": "Whether the document is shared with the patient."
+          },
+          "isDeleted": {
+            "type": "boolean",
+            "description": "Whether the document is deleted. Deleted documents appear only in feeds requested with `updatedSince`."
+          },
+          "uploadedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "When the document was uploaded (UTC), or `null` for legacy documents.",
+            "format": "date-time"
+          },
+          "uploadedByUserId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "description": "The Symplast user who uploaded the document, or `null` for legacy documents.",
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "When the document record was created (UTC).",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "The change-feed watermark (UTC): the latest change to the document, its consent record, or its sharing with the\npatient.",
+            "format": "date-time"
+          }
+        },
+        "description": "A document in a patient's chart. All timestamps are UTC (ISO-8601)."
+      },
+      "PublicDocumentLink": {
+        "required": [
+          "url",
+          "expiresAt"
+        ],
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "The presigned URL. Never log or cache it."
+          },
+          "expiresAt": {
+            "type": "string",
+            "description": "When the URL stops working (UTC).",
+            "format": "date-time"
+          }
+        },
+        "description": "A short-lived download link for a document's original content. Download it without an `Authorization` header:\nthe URL is presigned, and storage rejects a request carrying both."
+      },
+      "PublicDocumentType": {
+        "required": [
+          "id",
+          "name",
+          "uploadable"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "The type id, as used by `documentTypeId`.",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string",
+            "description": "The stored type name."
+          },
+          "displayName": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The display name, or `null` when the type has none (show `name` instead)."
+          },
+          "uploadable": {
+            "type": "boolean",
+            "description": "Whether documents may be uploaded under this type. Consent forms, read-only system folders and system-generated\ntypes are listed (their documents appear in the feed) but are not uploadable."
+          }
+        },
+        "description": "A document type (a folder in the patient's chart)."
+      },
+      "PublicDocumentUploadRequest": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "description": "The file part (required). Its file name must have an extension. At most 100 MiB.",
+                "$ref": "#/components/schemas/IFormFile"
+              }
+            ]
+          },
+          "patientId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "description": "The patient the document belongs to (required). The signed-in user must be able to access the patient.",
+            "format": "int32"
+          },
+          "documentTypeId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "description": "The document type (required): an id from `GET /document-types` with `uploadable: true`.",
+            "format": "int32"
+          },
+          "providerId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "description": "The provider to file the document under (required): an active provider in the practice.",
+            "format": "int32"
+          },
+          "locationId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "description": "The location to file the document under: an active location in the practice. Defaults to none (0).",
+            "format": "int32"
+          },
+          "description": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "A description."
+          },
+          "sharedWithPatient": {
+            "type": [
+              "null",
+              "boolean"
+            ],
+            "description": "Whether to share the document with the patient. Defaults to `false`."
+          },
+          "sha256": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The content's SHA-256 (hex). When given, a mismatch rejects the upload with `422 hash-mismatch`."
+          }
+        },
+        "description": "A `multipart/form-data` upload of one document to a patient's chart."
+      }
+    },
+    "securitySchemes": {
+      "Bearer": {
+        "type": "http",
+        "description": "Bearer access token. Send it as the `Authorization: Bearer <token>` header.",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "security": [
+    {
+      "Bearer": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Documents",
+      "x-domain": "Documents"
+    },
+    {
+      "name": "Document Types",
+      "x-domain": "Documents"
+    }
+  ]
+}
