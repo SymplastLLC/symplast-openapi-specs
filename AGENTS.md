@@ -138,6 +138,7 @@ and rebuilds it from `sections/<audience>.json`.
 | --- | --- |
 | `sections` | The audience's section names, **in the order the portal renders them** |
 | `tagDomains` | Optional fallback tag→section map. Deliberately **absent** — every surface emits `x-domain` |
+| `tagDescriptions` | **legacy-api-only exception** (PLA-1531): tag→description for the frozen legacy-api's Practice tags. Fills a tag only when its service emitted no description, so a service description always wins. Other services declare tag descriptions in code (Symplast.Common `PublicApiTag`) — never add them here |
 
 **Membership is per TAG, never per spec.** That is what allows several services to share one section
 (`legacy-api` and `users-api` both land in `Practice`) and one service to span several sections. A spec-level
@@ -173,6 +174,7 @@ Guards, all hard failures:
 | A resolved section not present in `sections` | Fail, naming tag → section (catches typos) |
 | Audience has no `sections/<audience>.json` | Fail |
 | Section in `sections` with no tags | Omitted silently — no empty sections |
+| Tag with no description after the `tagDescriptions` fill | **Warning** naming the tags (the portal section has no intro text) |
 
 The tag list checked is the **union of declared tags and tags actually referenced by operations**, so an
 operation carrying an undeclared tag cannot slip through ungrouped. Declaration order is preserved within a

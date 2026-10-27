@@ -160,6 +160,9 @@ one group per source spec named from the spec's `info.title` — so the portal w
   does today, so the optional `tagDomains` fallback map is deliberately absent from this file.
 - A tag matched by neither **fails the compose**, because it would be missing from the portal navigation. A
   section name that isn't in `sections` also fails, which catches typos.
+- `tagDescriptions` is a **legacy-api-only exception**: legacy-api is frozen, so its three Practice tags get their
+  portal intro text from this file. It only fills a tag its service left undescribed. Every other service
+  declares its tag descriptions in code, and the compose warns about any tag still left without one.
 
 A service declares the section on each tag, so the choice lives with the team that owns the routes:
 
