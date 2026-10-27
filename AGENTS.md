@@ -174,12 +174,14 @@ Guards, all hard failures:
 | A resolved section not present in `sections` | Fail, naming tag → section (catches typos) |
 | Audience has no `sections/<audience>.json` | Fail |
 | Section in `sections` with no tags | Omitted silently — no empty sections |
-| Tag with no description after the `tagDescriptions` fill | **Warning** naming the tags (the portal section has no intro text) |
 
 The tag list checked is the **union of declared tags and tags actually referenced by operations**, so an
 operation carrying an undeclared tag cannot slip through ungrouped. Declaration order is preserved within a
 section, and `x-domain` is stripped from the published `tags` — the grouping is already expressed in
 `x-tagGroups`.
+
+One non-fatal check: a **declared** tag still without a description after the `tagDescriptions` fill gets a
+**warning** naming it, because its portal section would have no intro text.
 
 ## Build, Test, and Run
 
