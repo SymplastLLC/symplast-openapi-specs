@@ -255,12 +255,25 @@ for aud in $audiences; do
     continue
   fi
 
+  # Tag descriptions are the portal's intro text for each section entry. Services own them; the
+  # tagDescriptions map in sections/<aud>.json only fills a tag its service left undescribed (today: the
+  # frozen legacy-api's Practice tags), so a service-provided description always wins.
   tmp="$(mktemp)"
-  jq --argjson groups "$(jq -c '.groups' <<< "$resolved")" '
+  jq --argjson groups "$(jq -c '.groups' <<< "$resolved")" \
+     --argjson descs "$(jq -c '.tagDescriptions // {}' "$sections_file")" '
       .["x-tagGroups"] = $groups
-    | if .tags then .tags |= map(del(.["x-domain"])) else . end' "$out" > "$tmp"
+    | if .tags then .tags |= map(
+          del(.["x-domain"])
+        | if ((.description // "") | test("\\S")) then . else
+            (.name as $n | if $descs[$n] then .description = $descs[$n] else . end) end)
+      else . end' "$out" > "$tmp"
   mv "$tmp" "$out"
   echo "  sections: $(jq -r '[.groups[] | "\(.name)(\(.tags | length))"] | join("  ")' <<< "$resolved")"
+
+  undescribed="$(jq -r '[.tags[]? | select(((.description // "") | test("\\S")) | not) | .name] | join(", ")' "$out")"
+  if [ -n "$undescribed" ]; then
+    echo "::warning::These '${aud}' tags have no description, so their portal section entry has no intro text: ${undescribed}. Declare it in the owning service."
+  fi
 
   # Stamp the composite's identity + server + version, overriding whatever the source specs carry (build
   # defaults such as localhost/per-env hosts, and each service's own image-tag info.version). info.version

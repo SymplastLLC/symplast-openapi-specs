@@ -1,5 +1,5 @@
 {
-  "$comment": "Portal navigation sections for the 'public' audience. Order here is the order Scalar renders them. A tag's section comes from the x-domain extension its owning service emits; every surface now does, so there is no tagDomains fallback here. A tag the composer cannot place from x-domain is a hard failure -- add x-domain in the owning service rather than reintroducing a fallback, or the section a tag belongs to stops being owned by the team that owns the routes.",
+  "$comment": "Portal navigation sections for the 'public' audience. Order here is the order Scalar renders them. A tag's section comes from the x-domain extension its owning service emits; every surface now does, so there is no tagDomains fallback here. A tag the composer cannot place from x-domain is a hard failure -- add x-domain in the owning service rather than reintroducing a fallback, or the section a tag belongs to stops being owned by the team that owns the routes. tagDescriptions is a LEGACY-API-ONLY EXCEPTION (PLA-1531): legacy-api is frozen, so its three Practice tags get their portal intro text here. It only fills a tag the service left undescribed, so a service-provided description always wins. Every other service declares its tag descriptions in code; do not add their tags here.",
   "sections": [
     "Scheduling",
     "Financials",
@@ -7,5 +7,10 @@
     "Patients",
     "Multimedia",
     "Documents"
-  ]
+  ],
+  "tagDescriptions": {
+    "Practice info": "The practice's own profile: name, address and contact details. There is one per practice.",
+    "Offices": "The practice's offices. Each location can belong to an office.",
+    "Locations": "The places where the practice sees patients and keeps stock. Other resources refer to them by `locationId`."
+  }
 }

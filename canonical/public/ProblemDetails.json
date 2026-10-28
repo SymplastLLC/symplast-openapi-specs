@@ -5,32 +5,37 @@
       "type": [
         "null",
         "string"
-      ]
+      ],
+      "description": "URI identifying the problem type."
     },
     "title": {
       "type": [
         "null",
         "string"
-      ]
+      ],
+      "description": "Short, human-readable summary of the problem type."
     },
     "status": {
       "type": [
         "null",
         "integer"
       ],
-      "format": "int32"
+      "format": "int32",
+      "description": "The HTTP status code."
     },
     "detail": {
       "type": [
         "null",
         "string"
-      ]
+      ],
+      "description": "Human-readable explanation of this occurrence of the problem."
     },
     "instance": {
       "type": [
         "null",
         "string"
-      ]
+      ],
+      "description": "URI reference identifying this occurrence of the problem."
     }
   },
   "description": "RFC 9457 problem details describing an error response. Returned for 4xx and 5xx conditions across this API.",
