@@ -3,7 +3,7 @@
   "info": {
     "title": "Symplast Documents Public API",
     "description": "Authenticated public surface for patient documents: upload to a patient's chart, a change feed of document metadata, short-lived content links, and the practice's document types.",
-    "version": "1.44.11"
+    "version": "1.44.13"
   },
   "servers": [
     {
