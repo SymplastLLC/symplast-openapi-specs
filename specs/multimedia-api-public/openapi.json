@@ -3,7 +3,7 @@
   "info": {
     "title": "Symplast Multimedia Public API",
     "description": "Authenticated public surface for patient photos, videos and documents: upload to a patient's chart, a change feed of file metadata, short-lived content links, practice albums, and file tags.",
-    "version": "2.79.2"
+    "version": "2.79.11"
   },
   "servers": [
     {
@@ -51,7 +51,7 @@
             }
           },
           "403": {
-            "description": "Forbidden",
+            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -77,8 +77,74 @@
           "Files"
         ],
         "summary": "List files (change feed)",
-        "description": "**Required scope:** `multimedia.files.read`\n\nReturns a cursor-paged feed of the tenant's files that the signed-in user may access, ordered by `updatedAt`\n(the last change to the file's metadata, one-second resolution), then `id`. Every write moves a file, including\ntag, status and description changes. Files in every status are included (`active`, `hidden`, `deleted`), so a\nconsumer observes deletions. Filter with `updatedSince` (UTC, inclusive), `patientId`, `appointmentId` and `type`;\nfollow `next` (an opaque `cursor`) to page further.\n\nDelivery is at-least-once across passes: dedupe on `id` keeping the highest `updatedAt`, and resume at\n`updatedSince = lastSeenUpdatedAt`.",
+        "description": "**Required scope:** `multimedia.files.read`\n\nReturns a cursor-paged feed of the tenant's files that the signed-in user may access. Ordered by `updatedAt`\nascending, then `id` ascending. Resume with `updatedSince` or follow `next`. `updatedAt` is the last change to the\nfile's metadata, at one-second resolution; every write moves a file, including tag, status and description\nchanges. Files in every status are included (`active`, `hidden`, `deleted`), so a consumer observes deletions.\nFilter with `updatedSince` (inclusive), `patientId`, `appointmentId` and `type`.\n\nDelivery is at-least-once across passes: dedupe on `id` keeping the highest `updatedAt`, and resume at\n`updatedSince = lastSeenUpdatedAt`.",
         "operationId": "GetFiles",
+        "parameters": [
+          {
+            "name": "updatedSince",
+            "in": "query",
+            "description": "Only files changed at or after this instant (inclusive), as an ISO-8601 date-time; a value with no offset is UTC. `updatedAt` has one-second resolution, so the value is floored to the whole second. To resume a sync, pass the largest `updatedAt` you have already received, or follow `next`. Omit it to start from the beginning of the feed.",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "patientId",
+            "in": "query",
+            "description": "Only files linked to this patient. Omit it for files of every patient the signed-in user may access.",
+            "schema": {
+              "minimum": 1,
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "appointmentId",
+            "in": "query",
+            "description": "Only files linked to this appointment. Omit it for files with or without an appointment.",
+            "schema": {
+              "minimum": 1,
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "description": "Only files of this type (the values `type` takes on a file). Omit it for files of every type. Case is ignored.",
+            "schema": {
+              "enum": [
+                "unknown",
+                "image",
+                "video",
+                "pdf",
+                "audio"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "Number of items per page, from 1 to 200. Defaults to 50.",
+            "schema": {
+              "maximum": 200,
+              "minimum": 1,
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "Opaque cursor for the next page, taken from the previous page's `nextCursor`. Pass it back unchanged; omit it for the first page. The `next` link already carries it.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -101,7 +167,7 @@
             }
           },
           "403": {
-            "description": "Forbidden",
+            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -144,7 +210,7 @@
             }
           },
           "403": {
-            "description": "Forbidden",
+            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -187,8 +253,14 @@
           {
             "name": "rendition",
             "in": "query",
-            "description": "`original` (default), `large`, `medium` or `small`. Thumbnails exist only when `hasThumbnail` is true.",
+            "description": "Which content to link: `original` (when omitted) or the `large`, `medium` or `small` thumbnail. Thumbnails exist only when the file's `hasThumbnail` is true. Case is ignored.",
             "schema": {
+              "enum": [
+                "original",
+                "large",
+                "medium",
+                "small"
+              ],
               "type": "string"
             }
           }
@@ -215,7 +287,7 @@
             }
           },
           "403": {
-            "description": "Forbidden",
+            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -288,7 +360,7 @@
             }
           },
           "403": {
-            "description": "Forbidden",
+            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -343,7 +415,7 @@
             "description": "No Content"
           },
           "403": {
-            "description": "Forbidden",
+            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -371,8 +443,30 @@
           "Albums"
         ],
         "summary": "List albums",
-        "description": "**Required scope:** `multimedia.albums.read`\n\nReturns a cursor-paged list of the practice's active albums. The order is stable but not alphabetical;\nsort client-side for display. Album audiences are never returned.",
+        "description": "**Required scope:** `multimedia.albums.read`\n\nReturns a cursor-paged list of the practice's active albums. Ordered by `id` ascending, which is not\nalphabetical; sort client-side for display. Follow `next` to page further. Album audiences are never returned.",
         "operationId": "GetAlbums",
+        "parameters": [
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "Number of items per page, from 1 to 200. Defaults to 50.",
+            "schema": {
+              "maximum": 200,
+              "minimum": 1,
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "Opaque cursor for the next page, taken from the previous page's `nextCursor`. Pass it back unchanged; omit it for the first page. The `next` link already carries it.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -395,7 +489,7 @@
             }
           },
           "403": {
-            "description": "Forbidden",
+            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -438,7 +532,7 @@
             }
           },
           "403": {
-            "description": "Forbidden",
+            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -466,7 +560,7 @@
           "Files"
         ],
         "summary": "List an album's files",
-        "description": "**Required scope:** `multimedia.files.read`\n\nReturns the files carrying ANY of the album's tag names, with the same paging, shape and per-user patient\nrestriction as the file feed.",
+        "description": "**Required scope:** `multimedia.files.read`\n\nReturns the files carrying ANY of the album's tag names, with the same paging, shape and per-user patient\nrestriction as the file feed. Ordered by `updatedAt` ascending, then `id` ascending. Follow `next` to page\nfurther.",
         "operationId": "GetAlbumFiles",
         "parameters": [
           {
@@ -474,6 +568,26 @@
             "in": "path",
             "description": "The album id.",
             "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "Number of items per page, from 1 to 200. Defaults to 50.",
+            "schema": {
+              "maximum": 200,
+              "minimum": 1,
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "Opaque cursor for the next page, taken from the previous page's `nextCursor`. Pass it back unchanged; omit it for the first page. The `next` link already carries it.",
             "schema": {
               "type": "string"
             }
@@ -501,7 +615,7 @@
             }
           },
           "403": {
-            "description": "Forbidden",
+            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -529,8 +643,38 @@
           "Tags"
         ],
         "summary": "List the practice's tag catalog",
-        "description": "**Required scope:** `multimedia.files.read`\n\nReturns a cursor-paged list of the practice's tag names, optionally filtered by a case-insensitive name\nprefix (`search`). The order is stable but not alphabetical; sort client-side for display.",
+        "description": "**Required scope:** `multimedia.files.read`\n\nReturns a cursor-paged list of the practice's tag names, optionally filtered by a case-insensitive name\nprefix (`search`). Ordered by the tag's internal id ascending, which is not returned, so the order is not\nalphabetical; sort client-side for display. Follow `next` to page further.",
         "operationId": "GetTags",
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "description": "Only tags whose name starts with this text, ignoring case. Omit it for every tag.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "Number of items per page, from 1 to 200. Defaults to 50.",
+            "schema": {
+              "maximum": 200,
+              "minimum": 1,
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "Opaque cursor for the next page, taken from the previous page's `nextCursor`. Pass it back unchanged; omit it for the first page. The `next` link already carries it.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -553,7 +697,7 @@
             }
           },
           "403": {
-            "description": "Forbidden",
+            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -573,6 +717,7 @@
           "null",
           "string"
         ],
+        "description": "The binary content of an uploaded file, sent as a part of a multipart/form-data request body.",
         "format": "binary"
       },
       "PagedResponsePublicAlbum": {
@@ -588,32 +733,39 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/PublicAlbum"
-            }
+            },
+            "description": "The items in this page, in feed order. Empty when there are none."
           },
           "pageSize": {
             "type": "integer",
+            "description": "The page size used for this page: the requested `pageSize`, or the default.",
             "format": "int32"
           },
           "count": {
             "type": "integer",
+            "description": "The number of items in `data`; never more than `pageSize`.",
             "format": "int32"
           },
           "hasMore": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Whether another page follows. Keep paging while this is true."
           },
           "nextCursor": {
             "type": [
               "null",
               "string"
-            ]
+            ],
+            "description": "Cursor for the next page, to pass as `cursor`. Null when `hasMore` is false."
           },
           "next": {
             "type": [
               "null",
               "string"
-            ]
+            ],
+            "description": "Relative URL of the next page, ready to request. Null when `hasMore` is false."
           }
-        }
+        },
+        "description": "One page of `PublicAlbum` items. Keep following `next` (or pass `nextCursor` as `cursor`) while `hasMore` is true."
       },
       "PagedResponsePublicFile": {
         "required": [
@@ -628,32 +780,39 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/PublicFile"
-            }
+            },
+            "description": "The items in this page, in feed order. Empty when there are none."
           },
           "pageSize": {
             "type": "integer",
+            "description": "The page size used for this page: the requested `pageSize`, or the default.",
             "format": "int32"
           },
           "count": {
             "type": "integer",
+            "description": "The number of items in `data`; never more than `pageSize`.",
             "format": "int32"
           },
           "hasMore": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Whether another page follows. Keep paging while this is true."
           },
           "nextCursor": {
             "type": [
               "null",
               "string"
-            ]
+            ],
+            "description": "Cursor for the next page, to pass as `cursor`. Null when `hasMore` is false."
           },
           "next": {
             "type": [
               "null",
               "string"
-            ]
+            ],
+            "description": "Relative URL of the next page, ready to request. Null when `hasMore` is false."
           }
-        }
+        },
+        "description": "One page of `PublicFile` items. Keep following `next` (or pass `nextCursor` as `cursor`) while `hasMore` is true."
       },
       "PagedResponsePublicTag": {
         "required": [
@@ -668,32 +827,39 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/PublicTag"
-            }
+            },
+            "description": "The items in this page, in feed order. Empty when there are none."
           },
           "pageSize": {
             "type": "integer",
+            "description": "The page size used for this page: the requested `pageSize`, or the default.",
             "format": "int32"
           },
           "count": {
             "type": "integer",
+            "description": "The number of items in `data`; never more than `pageSize`.",
             "format": "int32"
           },
           "hasMore": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Whether another page follows. Keep paging while this is true."
           },
           "nextCursor": {
             "type": [
               "null",
               "string"
-            ]
+            ],
+            "description": "Cursor for the next page, to pass as `cursor`. Null when `hasMore` is false."
           },
           "next": {
             "type": [
               "null",
               "string"
-            ]
+            ],
+            "description": "Relative URL of the next page, ready to request. Null when `hasMore` is false."
           }
-        }
+        },
+        "description": "One page of `PublicTag` items. Keep following `next` (or pass `nextCursor` as `cursor`) while `hasMore` is true."
       },
       "ProblemDetails": {
         "type": "object",
@@ -702,34 +868,40 @@
             "type": [
               "null",
               "string"
-            ]
+            ],
+            "description": "URI identifying the problem type."
           },
           "title": {
             "type": [
               "null",
               "string"
-            ]
+            ],
+            "description": "Short, human-readable summary of the problem type."
           },
           "status": {
             "type": [
               "null",
               "integer"
             ],
+            "description": "The HTTP status code.",
             "format": "int32"
           },
           "detail": {
             "type": [
               "null",
               "string"
-            ]
+            ],
+            "description": "Human-readable explanation of this occurrence of the problem."
           },
           "instance": {
             "type": [
               "null",
               "string"
-            ]
+            ],
+            "description": "URI reference identifying this occurrence of the problem."
           }
-        }
+        },
+        "description": "RFC 9457 problem details describing an error response."
       },
       "PublicAlbum": {
         "required": [
@@ -1022,14 +1194,17 @@
   "tags": [
     {
       "name": "Files",
+      "description": "Photos and other media files in patients' charts. Sync them from the change feed, download through a short-lived link, or upload a new file to a chart.",
       "x-domain": "Multimedia"
     },
     {
       "name": "Tags",
+      "description": "The practice's labels for files. List them, and add or remove them on a file.",
       "x-domain": "Multimedia"
     },
     {
       "name": "Albums",
+      "description": "Named groups of files that the practice has set up. List the albums, then list the files in one.",
       "x-domain": "Multimedia"
     }
   ]

@@ -3,7 +3,7 @@
   "info": {
     "title": "Symplast Documents Public API",
     "description": "Authenticated public surface for patient documents: upload to a patient's chart, a change feed of document metadata, short-lived content links, and the practice's document types.",
-    "version": "1.44.3"
+    "version": "1.44.11"
   },
   "servers": [
     {
@@ -51,7 +51,7 @@
             }
           },
           "403": {
-            "description": "Forbidden",
+            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -87,8 +87,59 @@
           "Documents"
         ],
         "summary": "List documents (change feed)",
-        "description": "**Required scope:** `documents.files.read`\n\nReturns a cursor-paged feed of the documents the signed-in user may access, ordered by `updatedAt`, then `id`.\n`updatedAt` is the latest change to the document, to its consent form's status, or to whether it is shared\nwith the patient. Filter with `updatedSince` (UTC, inclusive), `patientId` and `documentTypeId`; follow `next`\n(an opaque `cursor`) to page further. Pending consent forms are never returned.\n\nWith `updatedSince`, deleted documents are included with `isDeleted: true`, so a consumer observes deletions;\nwithout it, only active documents are returned. Documents removed permanently (rare, internal only) do not\nappear.\n\nDelivery is at-least-once across passes: dedupe on `id` keeping the highest `updatedAt`, and resume at\n`updatedSince = lastSeenUpdatedAt - 1 hour` (the overlap absorbs daylight-saving changes on the server).",
+        "description": "**Required scope:** `documents.files.read`\n\nReturns a cursor-paged feed of the documents the signed-in user may access. Ordered by `updatedAt` ascending,\nthen `id` ascending. Resume with `updatedSince` or follow `next`. `updatedAt` is the latest change to the\ndocument, to its consent form's status, or to whether it is shared with the patient. Filter with\n`updatedSince` (UTC, inclusive), `patientId` and `documentTypeId`. Pending consent forms are never returned.\n\nWith `updatedSince`, deleted documents are included with `isDeleted: true`, so a consumer observes deletions;\nwithout it, only active documents are returned. Documents removed permanently (rare, internal only) do not\nappear.\n\nDelivery is at-least-once across passes: dedupe on `id` keeping the highest `updatedAt`, and resume at\n`updatedSince = lastSeenUpdatedAt - 1 hour` (the overlap absorbs daylight-saving changes on the server).",
         "operationId": "GetDocuments",
+        "parameters": [
+          {
+            "name": "updatedSince",
+            "in": "query",
+            "description": "Only documents changed at or after this instant (inclusive), as an ISO-8601 date-time; a value with no offset is UTC. To resume a sync, pass the largest `updatedAt` you have already received (less one hour; see the operation description), or follow `next`. With it, deleted documents are included with `isDeleted: true`. Omit it to start from the beginning of the feed (active documents only).",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "patientId",
+            "in": "query",
+            "description": "Only documents in this patient's chart. Omit it for every patient the signed-in user may access.",
+            "schema": {
+              "minimum": 1,
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "documentTypeId",
+            "in": "query",
+            "description": "Only documents of this type: an `id` from `GET /v1/documents/document-types`. Omit it for every type.",
+            "schema": {
+              "minimum": 1,
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "Number of items per page, from 1 to 200. Defaults to 50.",
+            "schema": {
+              "maximum": 200,
+              "minimum": 1,
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "Opaque cursor for the next page, taken from the previous page's `nextCursor`. Pass it back unchanged; omit it for the first page. The `next` link already carries it.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -111,7 +162,7 @@
             }
           },
           "403": {
-            "description": "Forbidden",
+            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -154,7 +205,7 @@
             }
           },
           "403": {
-            "description": "Forbidden",
+            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -207,7 +258,7 @@
             }
           },
           "403": {
-            "description": "Forbidden",
+            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -235,8 +286,30 @@
           "Document Types"
         ],
         "summary": "List document types",
-        "description": "**Required scope:** `documents.files.read`\n\nReturns a cursor-paged list of the practice's active document types, in id order. Every type a document can\ncarry is listed; `uploadable` is false for types that do not accept uploads (consent forms, read-only system\nfolders, and types the app generates itself).",
+        "description": "**Required scope:** `documents.files.read`\n\nReturns a cursor-paged list of the practice's active document types. Ordered by `id` ascending. Every type a\ndocument can carry is listed; `uploadable` is false for types that do not accept uploads (consent forms, read-only system\nfolders, and types the app generates itself).",
         "operationId": "GetDocumentTypes",
+        "parameters": [
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "Number of items per page, from 1 to 200. Defaults to 50.",
+            "schema": {
+              "maximum": 200,
+              "minimum": 1,
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "Opaque cursor for the next page, taken from the previous page's `nextCursor`. Pass it back unchanged; omit it for the first page. The `next` link already carries it.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -259,7 +332,7 @@
             }
           },
           "403": {
-            "description": "Forbidden",
+            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -279,6 +352,7 @@
           "null",
           "string"
         ],
+        "description": "The binary content of an uploaded file, sent as a part of a multipart/form-data request body.",
         "format": "binary"
       },
       "PagedResponsePublicDocument": {
@@ -294,32 +368,39 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/PublicDocument"
-            }
+            },
+            "description": "The items in this page, in feed order. Empty when there are none."
           },
           "pageSize": {
             "type": "integer",
+            "description": "The page size used for this page: the requested `pageSize`, or the default.",
             "format": "int32"
           },
           "count": {
             "type": "integer",
+            "description": "The number of items in `data`; never more than `pageSize`.",
             "format": "int32"
           },
           "hasMore": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Whether another page follows. Keep paging while this is true."
           },
           "nextCursor": {
             "type": [
               "null",
               "string"
-            ]
+            ],
+            "description": "Cursor for the next page, to pass as `cursor`. Null when `hasMore` is false."
           },
           "next": {
             "type": [
               "null",
               "string"
-            ]
+            ],
+            "description": "Relative URL of the next page, ready to request. Null when `hasMore` is false."
           }
-        }
+        },
+        "description": "One page of `PublicDocument` items. Keep following `next` (or pass `nextCursor` as `cursor`) while `hasMore` is true."
       },
       "PagedResponsePublicDocumentType": {
         "required": [
@@ -334,32 +415,39 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/PublicDocumentType"
-            }
+            },
+            "description": "The items in this page, in feed order. Empty when there are none."
           },
           "pageSize": {
             "type": "integer",
+            "description": "The page size used for this page: the requested `pageSize`, or the default.",
             "format": "int32"
           },
           "count": {
             "type": "integer",
+            "description": "The number of items in `data`; never more than `pageSize`.",
             "format": "int32"
           },
           "hasMore": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Whether another page follows. Keep paging while this is true."
           },
           "nextCursor": {
             "type": [
               "null",
               "string"
-            ]
+            ],
+            "description": "Cursor for the next page, to pass as `cursor`. Null when `hasMore` is false."
           },
           "next": {
             "type": [
               "null",
               "string"
-            ]
+            ],
+            "description": "Relative URL of the next page, ready to request. Null when `hasMore` is false."
           }
-        }
+        },
+        "description": "One page of `PublicDocumentType` items. Keep following `next` (or pass `nextCursor` as `cursor`) while `hasMore` is true."
       },
       "ProblemDetails": {
         "type": "object",
@@ -368,34 +456,40 @@
             "type": [
               "null",
               "string"
-            ]
+            ],
+            "description": "URI identifying the problem type."
           },
           "title": {
             "type": [
               "null",
               "string"
-            ]
+            ],
+            "description": "Short, human-readable summary of the problem type."
           },
           "status": {
             "type": [
               "null",
               "integer"
             ],
+            "description": "The HTTP status code.",
             "format": "int32"
           },
           "detail": {
             "type": [
               "null",
               "string"
-            ]
+            ],
+            "description": "Human-readable explanation of this occurrence of the problem."
           },
           "instance": {
             "type": [
               "null",
               "string"
-            ]
+            ],
+            "description": "URI reference identifying this occurrence of the problem."
           }
-        }
+        },
+        "description": "RFC 9457 problem details describing an error response."
       },
       "PublicDocument": {
         "required": [
@@ -635,10 +729,12 @@
   "tags": [
     {
       "name": "Documents",
+      "description": "Documents in patients' charts, such as forms, letters and consents. Sync them from the change feed, download the content through a short-lived link, or upload a new document to a chart.",
       "x-domain": "Documents"
     },
     {
       "name": "Document Types",
+      "description": "The kinds of document the practice uses. Every document has one, and `uploadable` says which ones accept uploads.",
       "x-domain": "Documents"
     }
   ]
