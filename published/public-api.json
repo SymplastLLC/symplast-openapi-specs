@@ -3,7 +3,7 @@
   "info": {
     "title": "Symplast Public API",
     "description": "The unified Symplast Public API surface, composed from each service specification.",
-    "version": "0.1.235"
+    "version": "0.1.238"
   },
   "servers": [
     {
@@ -68,15 +68,18 @@
     },
     {
       "name": "Practice info",
-      "x-displayName": "Practice info"
+      "x-displayName": "Practice info",
+      "description": "The practice's own profile: name, address and contact details. There is one per practice."
     },
     {
       "name": "Locations",
-      "x-displayName": "Locations"
+      "x-displayName": "Locations",
+      "description": "The places where the practice sees patients and keeps stock. Other resources refer to them by `locationId`."
     },
     {
       "name": "Offices",
-      "x-displayName": "Offices"
+      "x-displayName": "Offices",
+      "description": "The practice's offices. Each location can belong to an office."
     },
     {
       "name": "Files",
@@ -6136,32 +6139,37 @@
             "type": [
               "null",
               "string"
-            ]
+            ],
+            "description": "URI identifying the problem type."
           },
           "title": {
             "type": [
               "null",
               "string"
-            ]
+            ],
+            "description": "Short, human-readable summary of the problem type."
           },
           "status": {
             "type": [
               "null",
               "integer"
             ],
-            "format": "int32"
+            "format": "int32",
+            "description": "The HTTP status code."
           },
           "detail": {
             "type": [
               "null",
               "string"
-            ]
+            ],
+            "description": "Human-readable explanation of this occurrence of the problem."
           },
           "instance": {
             "type": [
               "null",
               "string"
-            ]
+            ],
+            "description": "URI reference identifying this occurrence of the problem."
           }
         },
         "description": "RFC 9457 problem details describing an error response. Returned for 4xx and 5xx conditions across this API.",
