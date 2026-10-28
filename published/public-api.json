@@ -3,7 +3,7 @@
   "info": {
     "title": "Symplast Public API",
     "description": "The unified Symplast Public API surface, composed from each service specification.",
-    "version": "0.1.230"
+    "version": "0.1.231"
   },
   "servers": [
     {
@@ -86,6 +86,7 @@
     },
     {
       "name": "Users",
+      "description": "The practice's active staff and providers; patients and referring physicians are not included. Use a user's `id` to match the user references on other resources.",
       "x-displayName": "Users"
     }
   ],
@@ -5177,8 +5178,39 @@
           "Users"
         ],
         "summary": "List users",
-        "description": "**Required scope:** `practice.users.read`\n\nReturns a cursor-paged list of the caller's tenant users, ordered by last-modified time.\nPass `updatedSince` (UTC) to scope by change time and `pageSize` to size the page; follow\nthe `next` link (an opaque `cursor`) to page further.",
+        "description": "**Required scope:** `practice.users.read`\n\nReturns the practice's active staff and providers, one page at a time. Patients, referring\nphysicians and Symplast internal accounts are not included.\n\nOrdered by `updatedAt` ascending, then `id` ascending. Follow `next` within a pass.\n\nDelivery is at-least-once across passes: dedupe on `id` keeping the highest `updatedAt`, and resume at\n`updatedSince = lastSeenUpdatedAt - 1 hour` (the overlap absorbs daylight-saving changes on the server\nand late-committing writes).",
         "operationId": "GetUsers",
+        "parameters": [
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "Number of items per page, from 1 to 200. Defaults to 50.",
+            "schema": {
+              "maximum": 200,
+              "minimum": 1,
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "Opaque cursor for the next page, taken from the previous page's `nextCursor`. Pass it back unchanged; omit it for the first page. The `next` link already carries it.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "updatedSince",
+            "in": "query",
+            "description": "Only items changed at or after this instant (inclusive), as an ISO-8601 date-time; a value with no offset is UTC. To resume a sync, pass the largest `updatedAt` you have already received, or follow `next`. Omit it to start from the beginning of the feed.",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -5199,6 +5231,9 @@
                 }
               }
             }
+          },
+          "403": {
+            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`."
           }
         },
         "security": [
@@ -5214,7 +5249,7 @@
           "Users"
         ],
         "summary": "Get a user by id",
-        "description": "**Required scope:** `practice.users.read`\n\nReturns a single user in the caller's tenant.",
+        "description": "**Required scope:** `practice.users.read`\n\nReturns one user in the caller's practice. A user this API does not include (a patient,\nreferring physician, internal or inactive account) is a 404, the same as an id that does not exist.",
         "operationId": "GetUserById",
         "parameters": [
           {
@@ -5238,6 +5273,9 @@
                 }
               }
             }
+          },
+          "403": {
+            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`."
           },
           "404": {
             "description": "Not Found",
@@ -10158,36 +10196,44 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/PublicUser"
-            }
+            },
+            "description": "The items in this page, in feed order. Empty when there are none."
           },
           "pageSize": {
             "type": "integer",
+            "description": "The page size used for this page: the requested `pageSize`, or the default.",
             "format": "int32"
           },
           "count": {
             "type": "integer",
+            "description": "The number of items in `data`; never more than `pageSize`.",
             "format": "int32"
           },
           "hasMore": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Whether another page follows. Keep paging while this is true."
           },
           "nextCursor": {
             "type": [
               "null",
               "string"
-            ]
+            ],
+            "description": "Cursor for the next page, to pass as `cursor`. Null when `hasMore` is false."
           },
           "next": {
             "type": [
               "null",
               "string"
-            ]
+            ],
+            "description": "Relative URL of the next page, ready to request. Null when `hasMore` is false."
           }
-        }
+        },
+        "description": "One page of `PublicUser` items. Keep following `next` (or pass `nextCursor` as `cursor`) while `hasMore` is true."
       },
       "PublicUser": {
         "required": [
           "id",
+          "updatedAt",
           "tenantId",
           "userName",
           "displayName",
@@ -10209,6 +10255,11 @@
             "type": "integer",
             "description": "The legacy user id.",
             "format": "int32"
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "Last change to the user record (UTC). Delivery is at-least-once across passes: dedupe on `Id` keeping the highest\nvalue, and resume at `updatedSince = lastSeenUpdatedAt - 1 hour` (the overlap absorbs daylight-saving\nchanges on the server and late-committing writes). Covers the user record itself; a change to the `usersDbId` link alone does not move it.",
+            "format": "date-time"
           },
           "tenantId": {
             "type": "integer",
@@ -10286,8 +10337,8 @@
             "description": "The National Provider Identifier, or `null` if not set. Public information (looked up via NPPES),\nnot PHI/PII — included, unlike the other bounded-context/sensitive fields this resource excludes."
           },
           "userType": {
-            "description": "The user's legacy type. Never UserType.Patient or UserType.RefByPhysician — excluded upstream.",
-            "$ref": "#/components/schemas/UserType"
+            "description": "The user's role in the practice. Never `patient` or `refByPhysician`: those users are not included in this API.",
+            "$ref": "#/components/schemas/PublicUserType"
           },
           "status": {
             "type": "boolean",
@@ -10304,7 +10355,7 @@
         },
         "description": "The minimal public identity/profile projection of a user. Deliberately excludes SSN, date of birth,\npermissions, security groups, custom settings, licenses, EHR-workflow flags, image URLs, role, and\nspeciality — this is the entire externally exposed field set. NPI is included (see string? PublicUser.Npi) —\nunlike the other excluded fields, it is itself public information (looked up via NPPES), not PHI/PII."
       },
-      "UserType": {
+      "PublicUserType": {
         "enum": [
           "all",
           "physician",
@@ -10318,7 +10369,8 @@
           "allPractice",
           "allExceptPatient",
           "unknown"
-        ]
+        ],
+        "description": "The user's role in the practice. This API returns only `physician`, `nurse`, `admin`, `staff`,\n`cosmeticCoordinator`, `nursePractitioner`, or `unknown` (a type this API does not recognise). The\nremaining values are part of the shared vocabulary but are never returned: patients and referring\nphysicians are not included in this API, and `all`, `allPractice` and `allExceptPatient` are filter\nvalues, not types a user can have."
       }
     },
     "securitySchemes": {
