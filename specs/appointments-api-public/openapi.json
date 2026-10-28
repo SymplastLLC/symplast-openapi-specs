@@ -3,7 +3,7 @@
   "info": {
     "title": "Symplast Appointments Public API",
     "description": "Authenticated, cursor-paged public read surface for appointment data.",
-    "version": "1.92.8"
+    "version": "1.92.17"
   },
   "servers": [
     {
@@ -17,8 +17,39 @@
           "Appointments"
         ],
         "summary": "List appointments",
-        "description": "Returns a cursor-paged feed of the caller's tenant appointments, newest changes first.\nPass `updatedSince` (UTC) to scope by change time and `pageSize` to size the page; follow\nthe `next` link (an opaque `cursor`) to page. Delivery is at-least-once — dedupe on `id`.",
+        "description": "**Required scope:** `scheduling.appointments.read`\n\nReturns a cursor-paged change feed of the caller's tenant appointments.\n\nOrdered by `updatedAt` ascending, then `id` ascending. Resume with `updatedSince` or follow `next`.\n\nDelivery is at-least-once, so dedupe on `id`. A `cursor` carries the `updatedSince` it was issued\nunder; sending a different `updatedSince` with it is rejected with `cursor-filter-mismatch`.",
         "operationId": "GetAppointments",
+        "parameters": [
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "Number of items per page, from 1 to 500. Defaults to 100.",
+            "schema": {
+              "maximum": 500,
+              "minimum": 1,
+              "type": "integer",
+              "format": "int32",
+              "default": 100
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "Opaque cursor for the next page, taken from the previous page's `nextCursor`. Pass it back unchanged; omit it for the first page. The `next` link already carries it.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "updatedSince",
+            "in": "query",
+            "description": "Only items changed at or after this instant (inclusive), as an ISO-8601 date-time; a value with no offset is UTC. To resume a sync, pass the largest `updatedAt` you have already received, or follow `next`. Omit it to start from the beginning of the feed.",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -94,7 +125,7 @@
             }
           },
           "403": {
-            "description": "Forbidden",
+            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -136,7 +167,7 @@
           "Appointments"
         ],
         "summary": "Get an appointment by id",
-        "description": "Returns a single appointment by its identifier, scoped to the caller's tenant. An id that\ndoes not exist in the tenant returns 404 (a cross-tenant id is indistinguishable from a\nmissing one — no disclosure).",
+        "description": "**Required scope:** `scheduling.appointments.read`\n\nReturns a single appointment by its identifier, scoped to the caller's tenant. An id that\ndoes not exist in the tenant returns 404 (a cross-tenant id is indistinguishable from a\nmissing one — no disclosure).",
         "operationId": "GetAppointmentById",
         "parameters": [
           {
@@ -216,7 +247,7 @@
             }
           },
           "403": {
-            "description": "Forbidden",
+            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -258,7 +289,7 @@
           "Appointments"
         ],
         "summary": "List appointment types",
-        "description": "Returns the caller tenant's appointment-type vocabulary (id, description, default duration, deleted flag).",
+        "description": "**Required scope:** `scheduling.reference.read`\n\nReturns the caller tenant's active appointment types; deleted types are left out. Use `id` to decode an appointment's `appointmentType`. Ordered by `description`.",
         "operationId": "GetAppointmentTypes",
         "responses": {
           "200": {
@@ -283,7 +314,7 @@
             }
           },
           "403": {
-            "description": "Forbidden",
+            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -325,7 +356,7 @@
           "Appointments"
         ],
         "summary": "List appointment purposes",
-        "description": "Returns the caller tenant's appointment-purpose vocabulary (id, description, deleted flag).",
+        "description": "**Required scope:** `scheduling.reference.read`\n\nReturns the caller tenant's appointment purposes (the reasons for a visit) that are not deleted; a purpose linked only to deleted appointment types is also left out. Ordered by `id` ascending.",
         "operationId": "GetAppointmentPurposes",
         "responses": {
           "200": {
@@ -349,7 +380,7 @@
             }
           },
           "403": {
-            "description": "Forbidden",
+            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -391,7 +422,7 @@
           "Appointments"
         ],
         "summary": "List appointment statuses",
-        "description": "Returns the caller tenant's appointment-status vocabulary (id, name, description, deleted flag).",
+        "description": "**Required scope:** `scheduling.reference.read`\n\nReturns the caller tenant's active appointment statuses; deleted statuses are left out. Use `id` to decode an appointment's `status`. Ordered by the practice's display order, then `id` ascending.",
         "operationId": "GetAppointmentStatuses",
         "responses": {
           "200": {
@@ -416,7 +447,7 @@
             }
           },
           "403": {
-            "description": "Forbidden",
+            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -458,7 +489,7 @@
           "Appointments"
         ],
         "summary": "List appointment stages",
-        "description": "Returns the caller tenant's appointment-stage vocabulary; each stage lists the status ids it couples to.",
+        "description": "**Required scope:** `scheduling.reference.read`\n\nReturns the fixed appointment stages, each with the ids of the caller tenant's statuses assigned to it. Ordered by workflow: `Unassigned`, `Scheduled`, `RemindersSent`, `Confirmed`, `Started`, `Occurred`, `NotOccurred`.",
         "operationId": "GetAppointmentStages",
         "responses": {
           "200": {
@@ -485,7 +516,7 @@
             }
           },
           "403": {
-            "description": "Forbidden",
+            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -527,7 +558,7 @@
           "Appointments"
         ],
         "summary": "List appointment payment types",
-        "description": "Returns the caller tenant's appointment payment-type vocabulary (id, description).",
+        "description": "**Required scope:** `scheduling.reference.read`\n\nReturns the caller tenant's appointment payment types. Ordered by `id` ascending.",
         "operationId": "GetAppointmentPaymentTypes",
         "responses": {
           "200": {
@@ -550,7 +581,7 @@
             }
           },
           "403": {
-            "description": "Forbidden",
+            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -599,15 +630,18 @@
         "properties": {
           "id": {
             "type": "integer",
+            "description": "The appointment purpose identifier. Not stable across tenants.",
             "format": "int32",
             "example": 2
           },
           "description": {
             "type": "string",
+            "description": "The purpose's display name.",
             "example": "New Patient"
           },
           "isDeleted": {
             "type": "boolean",
+            "description": "Whether the purpose has been deleted. Deleted purposes are left out of the list, so this is `false` here.",
             "example": false
           }
         },
@@ -628,10 +662,12 @@
         "properties": {
           "stageType": {
             "type": "string",
+            "description": "The stage's fixed key: `Unassigned`, `Scheduled`, `RemindersSent`, `Confirmed`, `Started`, `Occurred` or `NotOccurred`.",
             "example": "Scheduled"
           },
           "description": {
             "type": "string",
+            "description": "The stage's display name, e.g. `Not Confirmed` for `RemindersSent`.",
             "example": "Scheduled stage"
           },
           "statusIds": {
@@ -640,6 +676,7 @@
               "type": "integer",
               "format": "int32"
             },
+            "description": "The ids of the tenant's statuses assigned to this stage (see `GET /v1/scheduling/appointment-statuses`). Empty when none are.",
             "example": [
               5,
               6
@@ -667,19 +704,23 @@
         "properties": {
           "id": {
             "type": "integer",
+            "description": "The status identifier; matches `status.id` on an appointment and the `statusIds` of a stage. Not stable across tenants.",
             "format": "int32",
             "example": 5
           },
           "name": {
             "type": "string",
+            "description": "The status's short name.",
             "example": "Confirmed"
           },
           "description": {
             "type": "string",
+            "description": "The status's longer description.",
             "example": "Appointment confirmed by the patient"
           },
           "isDeleted": {
             "type": "boolean",
+            "description": "Whether the status has been deleted. Deleted statuses are left out of the list, so this is `false` here.",
             "example": false
           }
         },
@@ -702,11 +743,13 @@
         "properties": {
           "id": {
             "type": "integer",
+            "description": "The appointment type identifier; matches `appointmentType.id` on an appointment. Not stable across tenants.",
             "format": "int32",
             "example": 1
           },
           "description": {
             "type": "string",
+            "description": "The appointment type's display name.",
             "example": "Consultation"
           },
           "durationInMinutes": {
@@ -714,11 +757,13 @@
               "null",
               "integer"
             ],
+            "description": "The default length of an appointment of this type, in minutes; `null` when none is set.",
             "format": "int32",
             "example": 30
           },
           "isDeleted": {
             "type": "boolean",
+            "description": "Whether the type has been deleted. Deleted types are left out of the list, so this is `false` here.",
             "example": false
           }
         },
@@ -772,6 +817,7 @@
             "items": {
               "$ref": "#/components/schemas/PublicAppointment"
             },
+            "description": "The items in this page, in feed order. Empty when there are none.",
             "example": [
               {
                 "id": 1024,
@@ -797,32 +843,37 @@
           },
           "pageSize": {
             "type": "integer",
+            "description": "The page size used for this page: the requested `pageSize`, or the default.",
             "format": "int32",
             "example": 50
           },
           "count": {
             "type": "integer",
+            "description": "The number of items in `data`; never more than `pageSize`.",
             "format": "int32",
             "example": 1
           },
           "hasMore": {
             "type": "boolean",
+            "description": "Whether another page follows. Keep paging while this is true.",
             "example": false
           },
           "nextCursor": {
             "type": [
               "null",
               "string"
-            ]
+            ],
+            "description": "Cursor for the next page, to pass as `cursor`. Null when `hasMore` is false."
           },
           "next": {
             "type": [
               "null",
               "string"
-            ]
+            ],
+            "description": "Relative URL of the next page, ready to request. Null when `hasMore` is false."
           }
         },
-        "description": "A single page of PublicAppointment items with `hasMore` plus `self`/`next` paging links.",
+        "description": "One page of `PublicAppointment` items. Keep following `next` (or pass `nextCursor` as `cursor`) while `hasMore` is true.",
         "example": {
           "data": [
             {
@@ -862,11 +913,13 @@
         "properties": {
           "id": {
             "type": "integer",
+            "description": "The payment type identifier.",
             "format": "int32",
             "example": 1
           },
           "description": {
             "type": "string",
+            "description": "The payment type's display name.",
             "example": "Cash"
           }
         },
@@ -884,6 +937,7 @@
               "null",
               "string"
             ],
+            "description": "URI identifying the problem type.",
             "example": "https://api.symplast.com/problems/appointments/invalid-cursor"
           },
           "title": {
@@ -891,6 +945,7 @@
               "null",
               "string"
             ],
+            "description": "Short, human-readable summary of the problem type.",
             "example": "Invalid cursor"
           },
           "status": {
@@ -898,6 +953,7 @@
               "null",
               "integer"
             ],
+            "description": "The HTTP status code.",
             "format": "int32",
             "example": 400
           },
@@ -906,13 +962,15 @@
               "null",
               "string"
             ],
+            "description": "Human-readable explanation of this occurrence of the problem.",
             "example": "The supplied cursor could not be decoded."
           },
           "instance": {
             "type": [
               "null",
               "string"
-            ]
+            ],
+            "description": "URI reference identifying this occurrence of the problem."
           }
         },
         "description": "RFC 9457 problem details describing an error response.",
@@ -1070,6 +1128,7 @@
   "tags": [
     {
       "name": "Appointments",
+      "description": "Appointments on the practice calendar. Keep a copy in sync with the change feed; the type and status lists decode an appointment's `appointmentType` and `status`, the stage list groups statuses into stages, and the purpose and payment-type lists hold the practice's other scheduling vocabularies.",
       "x-domain": "Scheduling"
     }
   ]
