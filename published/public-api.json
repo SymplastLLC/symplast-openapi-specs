@@ -3,7 +3,7 @@
   "info": {
     "title": "Symplast Public API",
     "description": "The unified Symplast Public API surface, composed from each service specification.",
-    "version": "0.1.240"
+    "version": "0.1.241"
   },
   "servers": [
     {
@@ -28,42 +28,34 @@
     },
     {
       "name": "Payments",
-      "description": "Money received from patients and insurers, and refunds paid back. Payment modes and reasons describe how and why each payment was made.",
       "x-displayName": "Payments"
     },
     {
       "name": "Invoices",
-      "description": "Bills issued to patients, each with its line items. Sync them from the feed and filter by patient, status or date.",
       "x-displayName": "Invoices"
     },
     {
       "name": "Gift Cards",
-      "description": "Gift cards the practice has issued, with their remaining balances. Card numbers are always masked.",
       "x-displayName": "Gift Cards"
     },
     {
       "name": "Catalog",
-      "description": "The products and services the practice sells: items, item groups, prices, and the brands, categories and types that classify them.",
       "x-displayName": "Catalog"
     },
     {
       "name": "Estimates",
-      "description": "Quotes prepared for patients before treatment, each with its line items.",
       "x-displayName": "Estimates"
     },
     {
       "name": "Credit Notes",
-      "description": "Credits issued against a patient's account, each with its line items. A credit can be applied as a payment or refunded.",
       "x-displayName": "Credit Notes"
     },
     {
       "name": "Memberships",
-      "description": "Membership programs the practice offers, and the patients enrolled in them.",
       "x-displayName": "Memberships"
     },
     {
       "name": "Inventory",
-      "description": "Stock on hand for each item at each location, and the adjustments that changed it.",
       "x-displayName": "Inventory"
     },
     {
@@ -1113,25 +1105,20 @@
           "Payments"
         ],
         "summary": "List payment modes",
-        "description": "**Required scope:** `financials.reference.read`\n\nEvery payment mode configured for the tenant, ordered by `id` ascending. Group and compare on `paymentType`, since the name is practice-renamable and the id is tenant-local.",
+        "description": "Every payment mode configured for the tenant, ordered by `id`. Group and compare on `paymentType`, since the name is practice-renamable and the id is tenant-local.",
         "operationId": "GetPaymentModes",
         "parameters": [
           {
             "name": "pageSize",
             "in": "query",
-            "description": "Number of items per page, from 1 to 500. Defaults to 100.",
             "schema": {
-              "maximum": 500,
-              "minimum": 1,
               "type": "integer",
-              "format": "int32",
-              "default": 100
+              "format": "int32"
             }
           },
           {
             "name": "cursor",
             "in": "query",
-            "description": "Opaque cursor for the next page, taken from the previous page's `nextCursor`. Pass it back unchanged; omit it for the first page. The `next` link already carries it.",
             "schema": {
               "type": "string"
             }
@@ -1159,7 +1146,7 @@
             }
           },
           "403": {
-            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
+            "description": "Forbidden",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -1192,25 +1179,20 @@
           "Payments"
         ],
         "summary": "List payment reasons",
-        "description": "**Required scope:** `financials.reference.read`\n\nEvery payment reason configured for the tenant, ordered by `id` ascending.",
+        "description": "Every payment reason configured for the tenant, ordered by `id`.",
         "operationId": "GetPaymentReasons",
         "parameters": [
           {
             "name": "pageSize",
             "in": "query",
-            "description": "Number of items per page, from 1 to 500. Defaults to 100.",
             "schema": {
-              "maximum": 500,
-              "minimum": 1,
               "type": "integer",
-              "format": "int32",
-              "default": 100
+              "format": "int32"
             }
           },
           {
             "name": "cursor",
             "in": "query",
-            "description": "Opaque cursor for the next page, taken from the previous page's `nextCursor`. Pass it back unchanged; omit it for the first page. The `next` link already carries it.",
             "schema": {
               "type": "string"
             }
@@ -1238,7 +1220,7 @@
             }
           },
           "403": {
-            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
+            "description": "Forbidden",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -1271,25 +1253,20 @@
           "Invoices"
         ],
         "summary": "List discount reasons",
-        "description": "**Required scope:** `financials.reference.read`\n\nEvery discount reason configured for the tenant, ordered by `id` ascending.",
+        "description": "Every discount reason configured for the tenant, ordered by `id`.",
         "operationId": "GetDiscountReasons",
         "parameters": [
           {
             "name": "pageSize",
             "in": "query",
-            "description": "Number of items per page, from 1 to 500. Defaults to 100.",
             "schema": {
-              "maximum": 500,
-              "minimum": 1,
               "type": "integer",
-              "format": "int32",
-              "default": 100
+              "format": "int32"
             }
           },
           {
             "name": "cursor",
             "in": "query",
-            "description": "Opaque cursor for the next page, taken from the previous page's `nextCursor`. Pass it back unchanged; omit it for the first page. The `next` link already carries it.",
             "schema": {
               "type": "string"
             }
@@ -1317,7 +1294,7 @@
             }
           },
           "403": {
-            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
+            "description": "Forbidden",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -1350,25 +1327,20 @@
           "Gift Cards"
         ],
         "summary": "List occasions",
-        "description": "**Required scope:** `financials.reference.read`\n\nEvery gift card occasion configured for the tenant, ordered by `id` ascending. An id of 0 is the platform-seeded `Other` occasion rather than a not-set sentinel.",
+        "description": "Every gift card occasion configured for the tenant, ordered by `id`. An id of 0 is the platform-seeded `Other` occasion rather than a not-set sentinel.",
         "operationId": "GetOccasions",
         "parameters": [
           {
             "name": "pageSize",
             "in": "query",
-            "description": "Number of items per page, from 1 to 500. Defaults to 100.",
             "schema": {
-              "maximum": 500,
-              "minimum": 1,
               "type": "integer",
-              "format": "int32",
-              "default": 100
+              "format": "int32"
             }
           },
           {
             "name": "cursor",
             "in": "query",
-            "description": "Opaque cursor for the next page, taken from the previous page's `nextCursor`. Pass it back unchanged; omit it for the first page. The `next` link already carries it.",
             "schema": {
               "type": "string"
             }
@@ -1396,7 +1368,7 @@
             }
           },
           "403": {
-            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
+            "description": "Forbidden",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -1429,25 +1401,20 @@
           "Catalog"
         ],
         "summary": "List brands",
-        "description": "**Required scope:** `financials.reference.read`\n\nEvery brand configured for the tenant, ordered by `id` ascending. Additive to the inline `brand` object on an item.",
+        "description": "Every brand configured for the tenant, ordered by `id`. Additive to the inline `brand` object on an item.",
         "operationId": "GetBrands",
         "parameters": [
           {
             "name": "pageSize",
             "in": "query",
-            "description": "Number of items per page, from 1 to 500. Defaults to 100.",
             "schema": {
-              "maximum": 500,
-              "minimum": 1,
               "type": "integer",
-              "format": "int32",
-              "default": 100
+              "format": "int32"
             }
           },
           {
             "name": "cursor",
             "in": "query",
-            "description": "Opaque cursor for the next page, taken from the previous page's `nextCursor`. Pass it back unchanged; omit it for the first page. The `next` link already carries it.",
             "schema": {
               "type": "string"
             }
@@ -1475,7 +1442,7 @@
             }
           },
           "403": {
-            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
+            "description": "Forbidden",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -1508,25 +1475,20 @@
           "Catalog"
         ],
         "summary": "List categories",
-        "description": "**Required scope:** `financials.reference.read`\n\nEvery flat item category configured for the tenant, ordered by `id` ascending. A separate table from the hierarchical categories on `/v1/financials/item-hierarchical-categories`, with no parent and no delete flag.",
+        "description": "Every flat item category configured for the tenant, ordered by `id`. A separate table from the hierarchical categories on `/v1/financials/item-hierarchical-categories`, with no parent and no delete flag.",
         "operationId": "GetCategories",
         "parameters": [
           {
             "name": "pageSize",
             "in": "query",
-            "description": "Number of items per page, from 1 to 500. Defaults to 100.",
             "schema": {
-              "maximum": 500,
-              "minimum": 1,
               "type": "integer",
-              "format": "int32",
-              "default": 100
+              "format": "int32"
             }
           },
           {
             "name": "cursor",
             "in": "query",
-            "description": "Opaque cursor for the next page, taken from the previous page's `nextCursor`. Pass it back unchanged; omit it for the first page. The `next` link already carries it.",
             "schema": {
               "type": "string"
             }
@@ -1554,7 +1516,7 @@
             }
           },
           "403": {
-            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
+            "description": "Forbidden",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -1587,25 +1549,20 @@
           "Catalog"
         ],
         "summary": "List hierarchical categories",
-        "description": "**Required scope:** `financials.reference.read`\n\nEvery hierarchical item category configured for the tenant, ordered by `id` ascending and flat rather than nested, so build the tree client-side from `id` and `parentId`. Ordering is by id rather than tree position, so a child can arrive on an earlier page than its parent. `parentId` may name a category whose own `isDeleted` is true, so resolve it against this same collection including deleted rows.",
+        "description": "Every hierarchical item category configured for the tenant, ordered by `id` and flat rather than nested, so build the tree client-side from `id` and `parentId`. Ordering is by id rather than tree position, so a child can arrive on an earlier page than its parent. `parentId` may name a category whose own `isDeleted` is true, so resolve it against this same collection including deleted rows.",
         "operationId": "GetHierarchicalCategories",
         "parameters": [
           {
             "name": "pageSize",
             "in": "query",
-            "description": "Number of items per page, from 1 to 500. Defaults to 100.",
             "schema": {
-              "maximum": 500,
-              "minimum": 1,
               "type": "integer",
-              "format": "int32",
-              "default": 100
+              "format": "int32"
             }
           },
           {
             "name": "cursor",
             "in": "query",
-            "description": "Opaque cursor for the next page, taken from the previous page's `nextCursor`. Pass it back unchanged; omit it for the first page. The `next` link already carries it.",
             "schema": {
               "type": "string"
             }
@@ -1633,7 +1590,7 @@
             }
           },
           "403": {
-            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
+            "description": "Forbidden",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -1666,25 +1623,20 @@
           "Catalog"
         ],
         "summary": "List item types",
-        "description": "**Required scope:** `financials.reference.read`\n\nEvery item type configured for the tenant, ordered by `id` ascending. Additive to the inline `itemType` object on an item.",
+        "description": "Every item type configured for the tenant, ordered by `id`. Additive to the inline `itemType` object on an item.",
         "operationId": "GetItemTypes",
         "parameters": [
           {
             "name": "pageSize",
             "in": "query",
-            "description": "Number of items per page, from 1 to 500. Defaults to 100.",
             "schema": {
-              "maximum": 500,
-              "minimum": 1,
               "type": "integer",
-              "format": "int32",
-              "default": 100
+              "format": "int32"
             }
           },
           {
             "name": "cursor",
             "in": "query",
-            "description": "Opaque cursor for the next page, taken from the previous page's `nextCursor`. Pass it back unchanged; omit it for the first page. The `next` link already carries it.",
             "schema": {
               "type": "string"
             }
@@ -1712,7 +1664,7 @@
             }
           },
           "403": {
-            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
+            "description": "Forbidden",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -1745,25 +1697,20 @@
           "Estimates"
         ],
         "summary": "List estimates",
-        "description": "**Required scope:** `financials.estimates.read`\n\nA page of the tenant's estimates, each with its line items inline. Filters: `updatedSince`, `patientId`, `status` (repeatable, values from `/v1/financials/estimate-statuses`), and the inclusive `effectiveDateFrom` / `effectiveDateTo` range over `effectiveDate`. Rejected, cancelled, deleted and expired estimates are all returned, and a cloned estimate is an independent row with no link to its original, so a naive conversion rate double-counts the opportunity. Ordered by `modifiedDateUtc` ascending, then `estimateId` ascending. Resume with `updatedSince` or follow `next`.",
+        "description": "A page of the tenant's estimates, each with its line items inline. Filters: `updatedSince`, `patientId`, `status` (repeatable, values from `/v1/financials/estimate-statuses`), and the inclusive `effectiveDateFrom` / `effectiveDateTo` range over `effectiveDate`. Rejected, cancelled, deleted and expired estimates are all returned, and a cloned estimate is an independent row with no link to its original, so a naive conversion rate double-counts the opportunity.",
         "operationId": "GetEstimates",
         "parameters": [
           {
             "name": "pageSize",
             "in": "query",
-            "description": "Number of items per page, from 1 to 500. Defaults to 100.",
             "schema": {
-              "maximum": 500,
-              "minimum": 1,
               "type": "integer",
-              "format": "int32",
-              "default": 100
+              "format": "int32"
             }
           },
           {
             "name": "cursor",
             "in": "query",
-            "description": "Opaque cursor for the next page, taken from the previous page's `nextCursor`. Pass it back unchanged; omit it for the first page. The `next` link already carries it.",
             "schema": {
               "type": "string"
             }
@@ -1771,41 +1718,23 @@
           {
             "name": "updatedSince",
             "in": "query",
-            "description": "Only estimates changed at or after this instant (inclusive), as an ISO-8601 date-time; a value with no offset is UTC. To resume a sync, pass the largest `modifiedDateUtc` you have already received, or follow `next`. Omit it to start from the beginning of the feed.",
             "schema": {
-              "type": "string",
-              "format": "date-time"
+              "type": "string"
             }
           },
           {
             "name": "patientId",
             "in": "query",
-            "description": "Only estimates for this patient, by patient id (a positive integer). Omit it for every patient.",
             "schema": {
-              "minimum": 1,
-              "type": "integer",
-              "format": "int32"
+              "type": "string"
             }
           },
           {
             "name": "status",
             "in": "query",
-            "description": "Only estimates whose `status` is one of these values, matched exactly (case-sensitive). Repeat the parameter to match several (`status=A&status=B`); omit it for every status. Allowed values are listed by `GET /v1/financials/estimate-statuses`.",
             "schema": {
               "type": "array",
               "items": {
-                "enum": [
-                  "Draft",
-                  "Open",
-                  "ReviewedByPatient",
-                  "Rejected",
-                  "ApprovedByPatient",
-                  "Delivered",
-                  "Cancelled",
-                  "Deleted",
-                  "Funded",
-                  "PartiallyFunded"
-                ],
                 "type": "string"
               }
             }
@@ -1813,19 +1742,15 @@
           {
             "name": "effectiveDateFrom",
             "in": "query",
-            "description": "Only estimates whose `effectiveDate` is on or after this calendar date (inclusive), in `yyyy-MM-dd` form. A date-time is rejected.",
             "schema": {
-              "type": "string",
-              "format": "date"
+              "type": "string"
             }
           },
           {
             "name": "effectiveDateTo",
             "in": "query",
-            "description": "Only estimates whose `effectiveDate` is on or before this calendar date (inclusive), in `yyyy-MM-dd` form. A date-time is rejected.",
             "schema": {
-              "type": "string",
-              "format": "date"
+              "type": "string"
             }
           }
         ],
@@ -1851,7 +1776,7 @@
             }
           },
           "403": {
-            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
+            "description": "Forbidden",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -1884,13 +1809,12 @@
           "Estimates"
         ],
         "summary": "Get an estimate",
-        "description": "**Required scope:** `financials.estimates.read`\n\nOne estimate with its line items inline, the same payload the collection returns. An id belonging to another tenant answers 404 rather than 403.",
+        "description": "One estimate with its line items inline, the same payload the collection returns. An id belonging to another tenant answers 404 rather than 403.",
         "operationId": "GetEstimate",
         "parameters": [
           {
             "name": "estimateId",
             "in": "path",
-            "description": "The estimate's `estimateId`.",
             "required": true,
             "schema": {
               "type": "integer",
@@ -1910,7 +1834,7 @@
             }
           },
           "403": {
-            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
+            "description": "Forbidden",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -1953,25 +1877,20 @@
           "Invoices"
         ],
         "summary": "List invoices",
-        "description": "**Required scope:** `financials.invoices.read`\n\nA page of the tenant's invoices, each with its line items inline. Filters: `updatedSince`, `patientId`, `status` (repeatable, values from `/v1/financials/invoice-statuses`), and the inclusive `effectiveDateFrom` / `effectiveDateTo` range over `effectiveDate`. `amount` and `balanceDue` are authoritative, and `paidAmount` is `amount - balanceDue` from the invoice's own balance rather than a reconciliation against payments — the field notes on the schema carry the rest. Ordered by `modifiedDateUtc` ascending, then `invoiceId` ascending. Resume with `updatedSince` or follow `next`.",
+        "description": "A page of the tenant's invoices, each with its line items inline. Filters: `updatedSince`, `patientId`, `status` (repeatable, values from `/v1/financials/invoice-statuses`), and the inclusive `effectiveDateFrom` / `effectiveDateTo` range over `effectiveDate`. `amount` and `balanceDue` are authoritative, and `paidAmount` is `amount - balanceDue` from the invoice's own balance rather than a reconciliation against payments — the field notes on the schema carry the rest.",
         "operationId": "GetInvoices",
         "parameters": [
           {
             "name": "pageSize",
             "in": "query",
-            "description": "Number of items per page, from 1 to 500. Defaults to 100.",
             "schema": {
-              "maximum": 500,
-              "minimum": 1,
               "type": "integer",
-              "format": "int32",
-              "default": 100
+              "format": "int32"
             }
           },
           {
             "name": "cursor",
             "in": "query",
-            "description": "Opaque cursor for the next page, taken from the previous page's `nextCursor`. Pass it back unchanged; omit it for the first page. The `next` link already carries it.",
             "schema": {
               "type": "string"
             }
@@ -1979,38 +1898,23 @@
           {
             "name": "updatedSince",
             "in": "query",
-            "description": "Only invoices changed at or after this instant (inclusive), as an ISO-8601 date-time; a value with no offset is UTC. To resume a sync, pass the largest `modifiedDateUtc` you have already received, or follow `next`. Omit it to start from the beginning of the feed.",
             "schema": {
-              "type": "string",
-              "format": "date-time"
+              "type": "string"
             }
           },
           {
             "name": "patientId",
             "in": "query",
-            "description": "Only invoices for this patient, by patient id (a positive integer). Omit it for every patient.",
             "schema": {
-              "minimum": 1,
-              "type": "integer",
-              "format": "int32"
+              "type": "string"
             }
           },
           {
             "name": "status",
             "in": "query",
-            "description": "Only invoices whose `status` is one of these values, matched exactly (case-sensitive). Repeat the parameter to match several (`status=A&status=B`); omit it for every status. Allowed values are listed by `GET /v1/financials/invoice-statuses`.",
             "schema": {
               "type": "array",
               "items": {
-                "enum": [
-                  "Draft",
-                  "Open",
-                  "ViewedByPatient",
-                  "PartiallyPaid",
-                  "Paid",
-                  "Void",
-                  "Deleted"
-                ],
                 "type": "string"
               }
             }
@@ -2018,19 +1922,15 @@
           {
             "name": "effectiveDateFrom",
             "in": "query",
-            "description": "Only invoices whose `effectiveDate` is on or after this calendar date (inclusive), in `yyyy-MM-dd` form. A date-time is rejected.",
             "schema": {
-              "type": "string",
-              "format": "date"
+              "type": "string"
             }
           },
           {
             "name": "effectiveDateTo",
             "in": "query",
-            "description": "Only invoices whose `effectiveDate` is on or before this calendar date (inclusive), in `yyyy-MM-dd` form. A date-time is rejected.",
             "schema": {
-              "type": "string",
-              "format": "date"
+              "type": "string"
             }
           }
         ],
@@ -2056,7 +1956,7 @@
             }
           },
           "403": {
-            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
+            "description": "Forbidden",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -2089,13 +1989,12 @@
           "Invoices"
         ],
         "summary": "Get an invoice",
-        "description": "**Required scope:** `financials.invoices.read`\n\nOne invoice with its line items inline, the same payload the collection returns. An id belonging to another tenant answers 404 rather than 403.",
+        "description": "One invoice with its line items inline, the same payload the collection returns. An id belonging to another tenant answers 404 rather than 403.",
         "operationId": "GetInvoice",
         "parameters": [
           {
             "name": "invoiceId",
             "in": "path",
-            "description": "The invoice's `invoiceId`.",
             "required": true,
             "schema": {
               "type": "integer",
@@ -2115,7 +2014,7 @@
             }
           },
           "403": {
-            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
+            "description": "Forbidden",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -2158,25 +2057,20 @@
           "Credit Notes"
         ],
         "summary": "List credit notes",
-        "description": "**Required scope:** `financials.credit-notes.read`\n\nA page of the tenant's credit notes, each with its line items inline. Filters: `updatedSince`, `patientId`, `status` (repeatable, values from `/v1/financials/credit-note-statuses`), and the inclusive `effectiveDateFrom` / `effectiveDateTo` range over `effectiveDate`. No tax field is published and its absence is not an implicit zero, `patientId` may be null, and `appliedAsPaymentAmount + refundedAmount + balance == amount` reading each null as zero. Ordered by `modifiedDateUtc` ascending, then `creditNoteId` ascending. Resume with `updatedSince` or follow `next`.",
+        "description": "A page of the tenant's credit notes, each with its line items inline. Filters: `updatedSince`, `patientId`, `status` (repeatable, values from `/v1/financials/credit-note-statuses`), and the inclusive `effectiveDateFrom` / `effectiveDateTo` range over `effectiveDate`. No tax field is published and its absence is not an implicit zero, `patientId` may be null, and `appliedAsPaymentAmount + refundedAmount + balance == amount` reading each null as zero.",
         "operationId": "GetCreditNotes",
         "parameters": [
           {
             "name": "pageSize",
             "in": "query",
-            "description": "Number of items per page, from 1 to 500. Defaults to 100.",
             "schema": {
-              "maximum": 500,
-              "minimum": 1,
               "type": "integer",
-              "format": "int32",
-              "default": 100
+              "format": "int32"
             }
           },
           {
             "name": "cursor",
             "in": "query",
-            "description": "Opaque cursor for the next page, taken from the previous page's `nextCursor`. Pass it back unchanged; omit it for the first page. The `next` link already carries it.",
             "schema": {
               "type": "string"
             }
@@ -2184,36 +2078,23 @@
           {
             "name": "updatedSince",
             "in": "query",
-            "description": "Only credit notes changed at or after this instant (inclusive), as an ISO-8601 date-time; a value with no offset is UTC. To resume a sync, pass the largest `modifiedDateUtc` you have already received, or follow `next`. Omit it to start from the beginning of the feed.",
             "schema": {
-              "type": "string",
-              "format": "date-time"
+              "type": "string"
             }
           },
           {
             "name": "patientId",
             "in": "query",
-            "description": "Only credit notes for this patient, by patient id (a positive integer). Omit it for every patient.",
             "schema": {
-              "minimum": 1,
-              "type": "integer",
-              "format": "int32"
+              "type": "string"
             }
           },
           {
             "name": "status",
             "in": "query",
-            "description": "Only credit notes whose `status` is one of these values, matched exactly (case-sensitive). Repeat the parameter to match several (`status=A&status=B`); omit it for every status. Allowed values are listed by `GET /v1/financials/credit-note-statuses`.",
             "schema": {
               "type": "array",
               "items": {
-                "enum": [
-                  "Draft",
-                  "Open",
-                  "Void",
-                  "Deleted",
-                  "Closed"
-                ],
                 "type": "string"
               }
             }
@@ -2221,19 +2102,15 @@
           {
             "name": "effectiveDateFrom",
             "in": "query",
-            "description": "Only credit notes whose `effectiveDate` is on or after this calendar date (inclusive), in `yyyy-MM-dd` form. A date-time is rejected.",
             "schema": {
-              "type": "string",
-              "format": "date"
+              "type": "string"
             }
           },
           {
             "name": "effectiveDateTo",
             "in": "query",
-            "description": "Only credit notes whose `effectiveDate` is on or before this calendar date (inclusive), in `yyyy-MM-dd` form. A date-time is rejected.",
             "schema": {
-              "type": "string",
-              "format": "date"
+              "type": "string"
             }
           }
         ],
@@ -2259,7 +2136,7 @@
             }
           },
           "403": {
-            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
+            "description": "Forbidden",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -2292,13 +2169,12 @@
           "Credit Notes"
         ],
         "summary": "Get a credit note",
-        "description": "**Required scope:** `financials.credit-notes.read`\n\nOne credit note with its line items inline, the same payload the collection returns. An id belonging to another tenant answers 404 rather than 403.",
+        "description": "One credit note with its line items inline, the same payload the collection returns. An id belonging to another tenant answers 404 rather than 403.",
         "operationId": "GetCreditNote",
         "parameters": [
           {
             "name": "creditNoteId",
             "in": "path",
-            "description": "The credit note's `creditNoteId`.",
             "required": true,
             "schema": {
               "type": "integer",
@@ -2318,7 +2194,7 @@
             }
           },
           "403": {
-            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
+            "description": "Forbidden",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -2361,25 +2237,20 @@
           "Payments"
         ],
         "summary": "List payments",
-        "description": "**Required scope:** `financials.payments.read`\n\nA page of the tenant's payments. Filters: `updatedSince`, `patientId`, `status` (repeatable, values from `/v1/financials/payment-statuses`), and the inclusive `paymentDateFrom` / `paymentDateTo` range over `paymentDate`. `amount` is unsigned so direction comes from `isRefund`, `paymentMode.paymentType` is the only classification comparable across tenants, and a null `patientId` is an insurance payment whose payer this contract does not publish. Ordered by `modifiedDateUtc` ascending, then `paymentId` ascending. Resume with `updatedSince` or follow `next`.",
+        "description": "A page of the tenant's payments. Filters: `updatedSince`, `patientId`, `status` (repeatable, values from `/v1/financials/payment-statuses`), and the inclusive `paymentDateFrom` / `paymentDateTo` range over `paymentDate`. `amount` is unsigned so direction comes from `isRefund`, `paymentMode.paymentType` is the only classification comparable across tenants, and a null `patientId` is an insurance payment whose payer this contract does not publish.",
         "operationId": "GetPayments",
         "parameters": [
           {
             "name": "pageSize",
             "in": "query",
-            "description": "Number of items per page, from 1 to 500. Defaults to 100.",
             "schema": {
-              "maximum": 500,
-              "minimum": 1,
               "type": "integer",
-              "format": "int32",
-              "default": 100
+              "format": "int32"
             }
           },
           {
             "name": "cursor",
             "in": "query",
-            "description": "Opaque cursor for the next page, taken from the previous page's `nextCursor`. Pass it back unchanged; omit it for the first page. The `next` link already carries it.",
             "schema": {
               "type": "string"
             }
@@ -2387,34 +2258,23 @@
           {
             "name": "updatedSince",
             "in": "query",
-            "description": "Only payments changed at or after this instant (inclusive), as an ISO-8601 date-time; a value with no offset is UTC. To resume a sync, pass the largest `modifiedDateUtc` you have already received, or follow `next`. Omit it to start from the beginning of the feed.",
             "schema": {
-              "type": "string",
-              "format": "date-time"
+              "type": "string"
             }
           },
           {
             "name": "patientId",
             "in": "query",
-            "description": "Only payments for this patient, by patient id (a positive integer). Omit it for every patient.",
             "schema": {
-              "minimum": 1,
-              "type": "integer",
-              "format": "int32"
+              "type": "string"
             }
           },
           {
             "name": "status",
             "in": "query",
-            "description": "Only payments whose `status` is one of these values, matched exactly (case-sensitive). Repeat the parameter to match several (`status=A&status=B`); omit it for every status. Allowed values are listed by `GET /v1/financials/payment-statuses`.",
             "schema": {
               "type": "array",
               "items": {
-                "enum": [
-                  "Active",
-                  "Deleted",
-                  "Voided"
-                ],
                 "type": "string"
               }
             }
@@ -2422,19 +2282,15 @@
           {
             "name": "paymentDateFrom",
             "in": "query",
-            "description": "Only payments whose `paymentDate` is on or after this calendar date (inclusive), in `yyyy-MM-dd` form. A date-time is rejected.",
             "schema": {
-              "type": "string",
-              "format": "date"
+              "type": "string"
             }
           },
           {
             "name": "paymentDateTo",
             "in": "query",
-            "description": "Only payments whose `paymentDate` is on or before this calendar date (inclusive), in `yyyy-MM-dd` form. A date-time is rejected.",
             "schema": {
-              "type": "string",
-              "format": "date"
+              "type": "string"
             }
           }
         ],
@@ -2460,7 +2316,7 @@
             }
           },
           "403": {
-            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
+            "description": "Forbidden",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -2493,13 +2349,12 @@
           "Payments"
         ],
         "summary": "Get a payment",
-        "description": "**Required scope:** `financials.payments.read`\n\nOne payment by id. An id belonging to another tenant answers 404 rather than 403.",
+        "description": "One payment by id. An id belonging to another tenant answers 404 rather than 403.",
         "operationId": "GetPayment",
         "parameters": [
           {
             "name": "paymentId",
             "in": "path",
-            "description": "The payment's `paymentId`.",
             "required": true,
             "schema": {
               "type": "integer",
@@ -2519,7 +2374,7 @@
             }
           },
           "403": {
-            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
+            "description": "Forbidden",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -2562,25 +2417,20 @@
           "Memberships"
         ],
         "summary": "List membership programs",
-        "description": "**Required scope:** `financials.membership-programs.read`\n\nA page of the tenant's membership programmes. Filters: `updatedSince` and `status`, which accepts the values `/v1/financials/membership-program-statuses` returns. Deletion here is a hard delete, so a removed programme simply stops appearing and cannot be detected incrementally — reconcile against a full unfiltered page if you must notice removals. Ordered by `modifiedDateUtc` ascending, then `membershipProgramId` ascending. Resume with `updatedSince` or follow `next`.",
+        "description": "A page of the tenant's membership programmes. Filters: `updatedSince` and `status`, which accepts the values `/v1/financials/membership-program-statuses` returns. Deletion here is a hard delete, so a removed programme simply stops appearing and cannot be detected incrementally — reconcile against a full unfiltered page if you must notice removals.",
         "operationId": "GetMembershipPrograms",
         "parameters": [
           {
             "name": "pageSize",
             "in": "query",
-            "description": "Number of items per page, from 1 to 500. Defaults to 100.",
             "schema": {
-              "maximum": 500,
-              "minimum": 1,
               "type": "integer",
-              "format": "int32",
-              "default": 100
+              "format": "int32"
             }
           },
           {
             "name": "cursor",
             "in": "query",
-            "description": "Opaque cursor for the next page, taken from the previous page's `nextCursor`. Pass it back unchanged; omit it for the first page. The `next` link already carries it.",
             "schema": {
               "type": "string"
             }
@@ -2588,23 +2438,16 @@
           {
             "name": "updatedSince",
             "in": "query",
-            "description": "Only membership programs changed at or after this instant (inclusive), as an ISO-8601 date-time; a value with no offset is UTC. To resume a sync, pass the largest `modifiedDateUtc` you have already received, or follow `next`. Omit it to start from the beginning of the feed.",
             "schema": {
-              "type": "string",
-              "format": "date-time"
+              "type": "string"
             }
           },
           {
             "name": "status",
             "in": "query",
-            "description": "Only membership programs whose `status` is one of these values, matched exactly (case-sensitive). Repeat the parameter to match several (`status=A&status=B`); omit it for every status. Allowed values are listed by `GET /v1/financials/membership-program-statuses`.",
             "schema": {
               "type": "array",
               "items": {
-                "enum": [
-                  "Active",
-                  "Inactive"
-                ],
                 "type": "string"
               }
             }
@@ -2632,7 +2475,7 @@
             }
           },
           "403": {
-            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
+            "description": "Forbidden",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -2665,13 +2508,12 @@
           "Memberships"
         ],
         "summary": "Get a membership program",
-        "description": "**Required scope:** `financials.membership-programs.read`\n\nOne membership programme by id. An id belonging to another tenant answers 404 rather than 403, and so does one that was hard-deleted, which is why a membership can name a programme this endpoint cannot return.",
+        "description": "One membership programme by id. An id belonging to another tenant answers 404 rather than 403, and so does one that was hard-deleted, which is why a membership can name a programme this endpoint cannot return.",
         "operationId": "GetMembershipProgram",
         "parameters": [
           {
             "name": "membershipProgramId",
             "in": "path",
-            "description": "The membership program's `membershipProgramId`.",
             "required": true,
             "schema": {
               "type": "integer",
@@ -2691,7 +2533,7 @@
             }
           },
           "403": {
-            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
+            "description": "Forbidden",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -2734,25 +2576,20 @@
           "Memberships"
         ],
         "summary": "List memberships",
-        "description": "**Required scope:** `financials.memberships.read`\n\nA page of the tenant's patient memberships. Filters: `updatedSince`, `patientId`, `status` (repeatable, values from `/v1/financials/membership-statuses`), and the inclusive `startDateFrom` / `startDateTo` range over `startDate`. `status` is derived and `Active` includes a membership that has not started yet, while `Past` is reserved and never returned because supersession cannot be derived from a single row. Ordered by `modifiedDateUtc` ascending, then `membershipId` ascending. Resume with `updatedSince` or follow `next`.",
+        "description": "A page of the tenant's patient memberships. Filters: `updatedSince`, `patientId`, `status` (repeatable, values from `/v1/financials/membership-statuses`), and the inclusive `startDateFrom` / `startDateTo` range over `startDate`. `status` is derived and `Active` includes a membership that has not started yet, while `Past` is reserved and never returned because supersession cannot be derived from a single row.",
         "operationId": "GetMemberships",
         "parameters": [
           {
             "name": "pageSize",
             "in": "query",
-            "description": "Number of items per page, from 1 to 500. Defaults to 100.",
             "schema": {
-              "maximum": 500,
-              "minimum": 1,
               "type": "integer",
-              "format": "int32",
-              "default": 100
+              "format": "int32"
             }
           },
           {
             "name": "cursor",
             "in": "query",
-            "description": "Opaque cursor for the next page, taken from the previous page's `nextCursor`. Pass it back unchanged; omit it for the first page. The `next` link already carries it.",
             "schema": {
               "type": "string"
             }
@@ -2760,35 +2597,23 @@
           {
             "name": "updatedSince",
             "in": "query",
-            "description": "Only memberships changed at or after this instant (inclusive), as an ISO-8601 date-time; a value with no offset is UTC. To resume a sync, pass the largest `modifiedDateUtc` you have already received, or follow `next`. Omit it to start from the beginning of the feed.",
             "schema": {
-              "type": "string",
-              "format": "date-time"
+              "type": "string"
             }
           },
           {
             "name": "patientId",
             "in": "query",
-            "description": "Only memberships for this patient, by patient id (a positive integer). Omit it for every patient.",
             "schema": {
-              "minimum": 1,
-              "type": "integer",
-              "format": "int32"
+              "type": "string"
             }
           },
           {
             "name": "status",
             "in": "query",
-            "description": "Only memberships whose `status` is one of these values, matched exactly (case-sensitive). Repeat the parameter to match several (`status=A&status=B`); omit it for every status. Allowed values are listed by `GET /v1/financials/membership-statuses`.",
             "schema": {
               "type": "array",
               "items": {
-                "enum": [
-                  "Active",
-                  "Expired",
-                  "Past",
-                  "Cancelled"
-                ],
                 "type": "string"
               }
             }
@@ -2796,19 +2621,15 @@
           {
             "name": "startDateFrom",
             "in": "query",
-            "description": "Only memberships whose `startDate` is on or after this calendar date (inclusive), in `yyyy-MM-dd` form. A date-time is rejected.",
             "schema": {
-              "type": "string",
-              "format": "date"
+              "type": "string"
             }
           },
           {
             "name": "startDateTo",
             "in": "query",
-            "description": "Only memberships whose `startDate` is on or before this calendar date (inclusive), in `yyyy-MM-dd` form. A date-time is rejected.",
             "schema": {
-              "type": "string",
-              "format": "date"
+              "type": "string"
             }
           }
         ],
@@ -2834,7 +2655,7 @@
             }
           },
           "403": {
-            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
+            "description": "Forbidden",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -2867,13 +2688,12 @@
           "Memberships"
         ],
         "summary": "Get a membership",
-        "description": "**Required scope:** `financials.memberships.read`\n\nOne patient membership by id. An id belonging to another tenant answers 404 rather than 403.",
+        "description": "One patient membership by id. An id belonging to another tenant answers 404 rather than 403.",
         "operationId": "GetMembership",
         "parameters": [
           {
             "name": "membershipId",
             "in": "path",
-            "description": "The membership's `membershipId`.",
             "required": true,
             "schema": {
               "type": "integer",
@@ -2893,7 +2713,7 @@
             }
           },
           "403": {
-            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
+            "description": "Forbidden",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -2936,25 +2756,20 @@
           "Gift Cards"
         ],
         "summary": "List gift cards",
-        "description": "**Required scope:** `financials.gift-cards.read`\n\nA page of the tenant's gift cards. Filters: `updatedSince`, `status` (repeatable, values from `/v1/financials/gift-card-statuses`), and the inclusive `issuedDateFrom` / `issuedDateTo` range over `issuedDate`. `cardNumber` is always masked, `value` is the remaining balance while `maxValue` is the face value and a null there is not zero, and `description` is operator free text. Ordered by `modifiedDateUtc` ascending, then `giftCardId` ascending. Resume with `updatedSince` or follow `next`.",
+        "description": "A page of the tenant's gift cards. Filters: `updatedSince`, `status` (repeatable, values from `/v1/financials/gift-card-statuses`), and the inclusive `issuedDateFrom` / `issuedDateTo` range over `issuedDate`. `cardNumber` is always masked, `value` is the remaining balance while `maxValue` is the face value and a null there is not zero, and `description` is operator free text.",
         "operationId": "GetGiftCards",
         "parameters": [
           {
             "name": "pageSize",
             "in": "query",
-            "description": "Number of items per page, from 1 to 500. Defaults to 100.",
             "schema": {
-              "maximum": 500,
-              "minimum": 1,
               "type": "integer",
-              "format": "int32",
-              "default": 100
+              "format": "int32"
             }
           },
           {
             "name": "cursor",
             "in": "query",
-            "description": "Opaque cursor for the next page, taken from the previous page's `nextCursor`. Pass it back unchanged; omit it for the first page. The `next` link already carries it.",
             "schema": {
               "type": "string"
             }
@@ -2962,26 +2777,16 @@
           {
             "name": "updatedSince",
             "in": "query",
-            "description": "Only gift cards changed at or after this instant (inclusive), as an ISO-8601 date-time; a value with no offset is UTC. To resume a sync, pass the largest `modifiedDateUtc` you have already received, or follow `next`. Omit it to start from the beginning of the feed.",
             "schema": {
-              "type": "string",
-              "format": "date-time"
+              "type": "string"
             }
           },
           {
             "name": "status",
             "in": "query",
-            "description": "Only gift cards whose `status` is one of these values, matched exactly (case-sensitive). Repeat the parameter to match several (`status=A&status=B`); omit it for every status. Allowed values are listed by `GET /v1/financials/gift-card-statuses`.",
             "schema": {
               "type": "array",
               "items": {
-                "enum": [
-                  "Draft",
-                  "Active",
-                  "Deleted",
-                  "Expired",
-                  "Redeemed"
-                ],
                 "type": "string"
               }
             }
@@ -2989,19 +2794,15 @@
           {
             "name": "issuedDateFrom",
             "in": "query",
-            "description": "Only gift cards whose `issuedDate` is on or after this calendar date (inclusive), in `yyyy-MM-dd` form. A date-time is rejected.",
             "schema": {
-              "type": "string",
-              "format": "date"
+              "type": "string"
             }
           },
           {
             "name": "issuedDateTo",
             "in": "query",
-            "description": "Only gift cards whose `issuedDate` is on or before this calendar date (inclusive), in `yyyy-MM-dd` form. A date-time is rejected.",
             "schema": {
-              "type": "string",
-              "format": "date"
+              "type": "string"
             }
           }
         ],
@@ -3027,7 +2828,7 @@
             }
           },
           "403": {
-            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
+            "description": "Forbidden",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -3060,13 +2861,12 @@
           "Gift Cards"
         ],
         "summary": "Get a gift card",
-        "description": "**Required scope:** `financials.gift-cards.read`\n\nOne gift card by id. An id belonging to another tenant answers 404 rather than 403.",
+        "description": "One gift card by id. An id belonging to another tenant answers 404 rather than 403.",
         "operationId": "GetGiftCard",
         "parameters": [
           {
             "name": "giftCardId",
             "in": "path",
-            "description": "The gift card's `giftCardId`.",
             "required": true,
             "schema": {
               "type": "integer",
@@ -3086,7 +2886,7 @@
             }
           },
           "403": {
-            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
+            "description": "Forbidden",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -3129,25 +2929,20 @@
           "Catalog"
         ],
         "summary": "List catalog items",
-        "description": "**Required scope:** `financials.items.read`\n\nA page of the tenant's catalog items, which are global to the tenant. Filters: `updatedSince`, `isForSale`, and the inclusive `createdFrom` / `createdTo` range over the calendar date of `createdUtcDate`. `isForSale`, `status` and `isDeleted` are three independent flags rather than one active state, and `flatPrice` is the global list price that a per-location price, a quantity tier or a document discount all override. Ordered by `modifiedDateUtc` ascending, then `itemId` ascending. Resume with `updatedSince` or follow `next`.",
+        "description": "A page of the tenant's catalog items, which are global to the tenant. Filters: `updatedSince`, `isForSale`, and the inclusive `createdFrom` / `createdTo` range over the calendar date of `createdUtcDate`. `isForSale`, `status` and `isDeleted` are three independent flags rather than one active state, and `flatPrice` is the global list price that a per-location price, a quantity tier or a document discount all override.",
         "operationId": "GetItems",
         "parameters": [
           {
             "name": "pageSize",
             "in": "query",
-            "description": "Number of items per page, from 1 to 500. Defaults to 100.",
             "schema": {
-              "maximum": 500,
-              "minimum": 1,
               "type": "integer",
-              "format": "int32",
-              "default": 100
+              "format": "int32"
             }
           },
           {
             "name": "cursor",
             "in": "query",
-            "description": "Opaque cursor for the next page, taken from the previous page's `nextCursor`. Pass it back unchanged; omit it for the first page. The `next` link already carries it.",
             "schema": {
               "type": "string"
             }
@@ -3155,36 +2950,29 @@
           {
             "name": "updatedSince",
             "in": "query",
-            "description": "Only items changed at or after this instant (inclusive), as an ISO-8601 date-time; a value with no offset is UTC. To resume a sync, pass the largest `modifiedDateUtc` you have already received, or follow `next`. Omit it to start from the beginning of the feed.",
             "schema": {
-              "type": "string",
-              "format": "date-time"
+              "type": "string"
             }
           },
           {
             "name": "isForSale",
             "in": "query",
-            "description": "Only items whose `isForSale` flag has this value: `true` or `false`. Independent of `status` and `isDeleted`. Omit it for both.",
             "schema": {
-              "type": "boolean"
+              "type": "string"
             }
           },
           {
             "name": "createdFrom",
             "in": "query",
-            "description": "Only items whose creation date (the UTC calendar date of `createdUtcDate`) is on or after this calendar date (inclusive), in `yyyy-MM-dd` form. A date-time is rejected.",
             "schema": {
-              "type": "string",
-              "format": "date"
+              "type": "string"
             }
           },
           {
             "name": "createdTo",
             "in": "query",
-            "description": "Only items whose creation date (the UTC calendar date of `createdUtcDate`) is on or before this calendar date (inclusive), in `yyyy-MM-dd` form. A date-time is rejected.",
             "schema": {
-              "type": "string",
-              "format": "date"
+              "type": "string"
             }
           }
         ],
@@ -3210,7 +2998,7 @@
             }
           },
           "403": {
-            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
+            "description": "Forbidden",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -3243,13 +3031,12 @@
           "Catalog"
         ],
         "summary": "Get a catalog item",
-        "description": "**Required scope:** `financials.items.read`\n\nOne catalog item by id. An id belonging to another tenant answers 404 rather than 403.",
+        "description": "One catalog item by id. An id belonging to another tenant answers 404 rather than 403.",
         "operationId": "GetItem",
         "parameters": [
           {
             "name": "itemId",
             "in": "path",
-            "description": "The catalog item's `itemId`.",
             "required": true,
             "schema": {
               "type": "integer",
@@ -3269,7 +3056,7 @@
             }
           },
           "403": {
-            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
+            "description": "Forbidden",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -3312,25 +3099,20 @@
           "Catalog"
         ],
         "summary": "List item groups",
-        "description": "**Required scope:** `financials.item-groups.read`\n\nA page of the tenant's item groups, each a named bundle of catalog items with its members inline in `details[]`. Filters: `updatedSince` and `isActive`. No money amount and no `isForSale` is published, because both would depend on a location, a price schedule and a per-member discount kind that this contract does not carry. Ordered by `modifiedDateUtc` ascending, then `itemGroupId` ascending. Resume with `updatedSince` or follow `next`.",
+        "description": "A page of the tenant's item groups, each a named bundle of catalog items with its members inline in `details[]`. Filters: `updatedSince` and `isActive`. No money amount and no `isForSale` is published, because both would depend on a location, a price schedule and a per-member discount kind that this contract does not carry.",
         "operationId": "GetItemGroups",
         "parameters": [
           {
             "name": "pageSize",
             "in": "query",
-            "description": "Number of items per page, from 1 to 500. Defaults to 100.",
             "schema": {
-              "maximum": 500,
-              "minimum": 1,
               "type": "integer",
-              "format": "int32",
-              "default": 100
+              "format": "int32"
             }
           },
           {
             "name": "cursor",
             "in": "query",
-            "description": "Opaque cursor for the next page, taken from the previous page's `nextCursor`. Pass it back unchanged; omit it for the first page. The `next` link already carries it.",
             "schema": {
               "type": "string"
             }
@@ -3338,18 +3120,15 @@
           {
             "name": "updatedSince",
             "in": "query",
-            "description": "Only item groups changed at or after this instant (inclusive), as an ISO-8601 date-time; a value with no offset is UTC. To resume a sync, pass the largest `modifiedDateUtc` you have already received, or follow `next`. Omit it to start from the beginning of the feed.",
             "schema": {
-              "type": "string",
-              "format": "date-time"
+              "type": "string"
             }
           },
           {
             "name": "isActive",
             "in": "query",
-            "description": "Only item groups whose `isActive` flag has this value: `true` or `false`. Independent of `isDeleted`. Omit it for both.",
             "schema": {
-              "type": "boolean"
+              "type": "string"
             }
           }
         ],
@@ -3375,7 +3154,7 @@
             }
           },
           "403": {
-            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
+            "description": "Forbidden",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -3408,13 +3187,12 @@
           "Catalog"
         ],
         "summary": "Get an item group",
-        "description": "**Required scope:** `financials.item-groups.read`\n\nOne item group with its members inline, the same payload the collection returns. An id belonging to another tenant answers 404 rather than 403.",
+        "description": "One item group with its members inline, the same payload the collection returns. An id belonging to another tenant answers 404 rather than 403.",
         "operationId": "GetItemGroup",
         "parameters": [
           {
             "name": "itemGroupId",
             "in": "path",
-            "description": "The item group's `itemGroupId`.",
             "required": true,
             "schema": {
               "type": "integer",
@@ -3434,7 +3212,7 @@
             }
           },
           "403": {
-            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
+            "description": "Forbidden",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -3477,25 +3255,20 @@
           "Inventory"
         ],
         "summary": "List item stock levels",
-        "description": "**Required scope:** `financials.item-stock-levels.read`\n\nA page of the tenant's stock levels, one row per catalog item per location, with soft-deleted rows kept on the feed carrying `isDeleted: true`. Filters: `updatedSince`, `locationId`, `itemId` and `isForSale`; any other parameter, including `lowStockOnly`, is ignored rather than rejected, and low stock is `stock < minStock` on the row itself. `stock` is the stored running total, which need not equal the sum of `/inventory-adjustments` deltas. Ordered by `modifiedDateUtc` ascending, then `stockLevelId` ascending. Resume with `updatedSince` or follow `next`.",
+        "description": "A page of the tenant's stock levels, one row per catalog item per location, with soft-deleted rows kept on the feed carrying `isDeleted: true`. Filters: `updatedSince`, `locationId`, `itemId` and `isForSale`; any other parameter, including `lowStockOnly`, is ignored rather than rejected, and low stock is `stock < minStock` on the row itself. `stock` is the stored running total, which need not equal the sum of `/inventory-adjustments` deltas.",
         "operationId": "GetItemStockLevels",
         "parameters": [
           {
             "name": "pageSize",
             "in": "query",
-            "description": "Number of items per page, from 1 to 500. Defaults to 100.",
             "schema": {
-              "maximum": 500,
-              "minimum": 1,
               "type": "integer",
-              "format": "int32",
-              "default": 100
+              "format": "int32"
             }
           },
           {
             "name": "cursor",
             "in": "query",
-            "description": "Opaque cursor for the next page, taken from the previous page's `nextCursor`. Pass it back unchanged; omit it for the first page. The `next` link already carries it.",
             "schema": {
               "type": "string"
             }
@@ -3503,38 +3276,29 @@
           {
             "name": "updatedSince",
             "in": "query",
-            "description": "Only stock levels changed at or after this instant (inclusive), as an ISO-8601 date-time; a value with no offset is UTC. To resume a sync, pass the largest `modifiedDateUtc` you have already received, or follow `next`. Omit it to start from the beginning of the feed.",
             "schema": {
-              "type": "string",
-              "format": "date-time"
+              "type": "string"
             }
           },
           {
             "name": "locationId",
             "in": "query",
-            "description": "Only stock levels at this location, by `locationId` (a positive integer).",
             "schema": {
-              "minimum": 1,
-              "type": "integer",
-              "format": "int32"
+              "type": "string"
             }
           },
           {
             "name": "itemId",
             "in": "query",
-            "description": "Only stock levels of this catalog item, by `itemId` (a positive integer).",
             "schema": {
-              "minimum": 1,
-              "type": "integer",
-              "format": "int32"
+              "type": "string"
             }
           },
           {
             "name": "isForSale",
             "in": "query",
-            "description": "Only stock levels whose per-location `isForSale` flag has this value: `true` or `false`. Independent of the item's own `isForSale` on `/items`. Omit it for both.",
             "schema": {
-              "type": "boolean"
+              "type": "string"
             }
           }
         ],
@@ -3560,7 +3324,7 @@
             }
           },
           "403": {
-            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
+            "description": "Forbidden",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -3593,13 +3357,12 @@
           "Inventory"
         ],
         "summary": "Get an item stock level",
-        "description": "**Required scope:** `financials.item-stock-levels.read`\n\nOne stock level by id. An id belonging to another tenant answers 404 rather than 403.",
+        "description": "One stock level by id. An id belonging to another tenant answers 404 rather than 403.",
         "operationId": "GetItemStockLevel",
         "parameters": [
           {
             "name": "stockLevelId",
             "in": "path",
-            "description": "The stock level's `stockLevelId`.",
             "required": true,
             "schema": {
               "type": "integer",
@@ -3619,7 +3382,7 @@
             }
           },
           "403": {
-            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
+            "description": "Forbidden",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -3662,25 +3425,20 @@
           "Inventory"
         ],
         "summary": "List inventory adjustments",
-        "description": "**Required scope:** `financials.inventory-adjustments.read`\n\nA page of the tenant's inventory adjustments: the ledger of stock movements, one signed `delta` per row. Filters: `updatedSince`, `locationId`, `itemId`, `isInternal`, and the inclusive `effectiveDateFrom` / `effectiveDateTo` range over `effectiveDate`; any other parameter is ignored rather than rejected. Adjustments are never edited, so the only change an existing row can show is `isDeleted` becoming `true` when its invoice or credit note is voided, and a consumer summing `delta` must exclude deleted rows. Ordered by `modifiedDateUtc` ascending, then `adjustmentId` ascending. Resume with `updatedSince` or follow `next`.",
+        "description": "A page of the tenant's inventory adjustments: the ledger of stock movements, one signed `delta` per row. Filters: `updatedSince`, `locationId`, `itemId`, `isInternal`, and the inclusive `effectiveDateFrom` / `effectiveDateTo` range over `effectiveDate`; any other parameter is ignored rather than rejected. Adjustments are never edited, so the only change an existing row can show is `isDeleted` becoming `true` when its invoice or credit note is voided, and a consumer summing `delta` must exclude deleted rows.",
         "operationId": "GetInventoryAdjustments",
         "parameters": [
           {
             "name": "pageSize",
             "in": "query",
-            "description": "Number of items per page, from 1 to 500. Defaults to 100.",
             "schema": {
-              "maximum": 500,
-              "minimum": 1,
               "type": "integer",
-              "format": "int32",
-              "default": 100
+              "format": "int32"
             }
           },
           {
             "name": "cursor",
             "in": "query",
-            "description": "Opaque cursor for the next page, taken from the previous page's `nextCursor`. Pass it back unchanged; omit it for the first page. The `next` link already carries it.",
             "schema": {
               "type": "string"
             }
@@ -3688,56 +3446,43 @@
           {
             "name": "updatedSince",
             "in": "query",
-            "description": "Only adjustments changed at or after this instant (inclusive), as an ISO-8601 date-time; a value with no offset is UTC. To resume a sync, pass the largest `modifiedDateUtc` you have already received, or follow `next`. Omit it to start from the beginning of the feed.",
             "schema": {
-              "type": "string",
-              "format": "date-time"
+              "type": "string"
             }
           },
           {
             "name": "locationId",
             "in": "query",
-            "description": "Only adjustments at this location, by `locationId` (a positive integer).",
             "schema": {
-              "minimum": 1,
-              "type": "integer",
-              "format": "int32"
+              "type": "string"
             }
           },
           {
             "name": "itemId",
             "in": "query",
-            "description": "Only adjustments of this catalog item, by `itemId` (a positive integer).",
             "schema": {
-              "minimum": 1,
-              "type": "integer",
-              "format": "int32"
+              "type": "string"
             }
           },
           {
             "name": "effectiveDateFrom",
             "in": "query",
-            "description": "Only adjustments whose `effectiveDate` is on or after this calendar date (inclusive), in `yyyy-MM-dd` form. A date-time is rejected.",
             "schema": {
-              "type": "string",
-              "format": "date"
+              "type": "string"
             }
           },
           {
             "name": "effectiveDateTo",
             "in": "query",
-            "description": "Only adjustments whose `effectiveDate` is on or before this calendar date (inclusive), in `yyyy-MM-dd` form. A date-time is rejected.",
             "schema": {
-              "type": "string",
-              "format": "date"
+              "type": "string"
             }
           },
           {
             "name": "isInternal",
             "in": "query",
-            "description": "`true` for only system-generated adjustments (from an invoice or credit-note line, or a new batch), `false` for only those a staff member entered. Omit it for both.",
             "schema": {
-              "type": "boolean"
+              "type": "string"
             }
           }
         ],
@@ -3763,7 +3508,7 @@
             }
           },
           "403": {
-            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
+            "description": "Forbidden",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -3796,13 +3541,12 @@
           "Inventory"
         ],
         "summary": "Get an inventory adjustment",
-        "description": "**Required scope:** `financials.inventory-adjustments.read`\n\nOne inventory adjustment by id. An id belonging to another tenant answers 404 rather than 403.",
+        "description": "One inventory adjustment by id. An id belonging to another tenant answers 404 rather than 403.",
         "operationId": "GetInventoryAdjustment",
         "parameters": [
           {
             "name": "adjustmentId",
             "in": "path",
-            "description": "The inventory adjustment's `adjustmentId`.",
             "required": true,
             "schema": {
               "type": "integer",
@@ -3822,7 +3566,7 @@
             }
           },
           "403": {
-            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
+            "description": "Forbidden",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -3865,25 +3609,20 @@
           "Catalog"
         ],
         "summary": "List item prices",
-        "description": "**Required scope:** `financials.item-prices.read`\n\nA snapshot of every live catalog item's prices, ordered by `itemId` ascending with no `updatedSince` — re-read it to stay current, and see the invoice and credit-note line items for what a sale actually charged. `pricingModel` says how to read each row: `Flat` uses the location's `locationPrices` entry or else `flatPrice`, and the tiered models use `priceTiers`. With `locationId`, each row carries only the prices that apply at that location.",
+        "description": "A snapshot of every live catalog item's prices, ordered by `itemId` with no `updatedSince` — re-read it to stay current, and see the invoice and credit-note line items for what a sale actually charged. `pricingModel` says how to read each row: `Flat` uses the location's `locationPrices` entry or else `flatPrice`, and the tiered models use `priceTiers`. With `locationId`, each row carries only the prices that apply at that location.",
         "operationId": "GetItemPrices",
         "parameters": [
           {
             "name": "pageSize",
             "in": "query",
-            "description": "Number of items per page, from 1 to 500. Defaults to 100.",
             "schema": {
-              "maximum": 500,
-              "minimum": 1,
               "type": "integer",
-              "format": "int32",
-              "default": 100
+              "format": "int32"
             }
           },
           {
             "name": "cursor",
             "in": "query",
-            "description": "Opaque cursor for the next page, taken from the previous page's `nextCursor`. Pass it back unchanged; omit it for the first page. The `next` link already carries it.",
             "schema": {
               "type": "string"
             }
@@ -3891,11 +3630,8 @@
           {
             "name": "locationId",
             "in": "query",
-            "description": "Narrow each row to the prices that apply at this location, by `locationId` (a positive integer). Omit it for every location's prices.",
             "schema": {
-              "minimum": 1,
-              "type": "integer",
-              "format": "int32"
+              "type": "string"
             }
           }
         ],
@@ -3921,7 +3657,7 @@
             }
           },
           "403": {
-            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
+            "description": "Forbidden",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -3954,13 +3690,12 @@
           "Catalog"
         ],
         "summary": "Get an item's prices",
-        "description": "**Required scope:** `financials.item-prices.read`\n\nOne item's prices, optionally narrowed to the prices that apply at `locationId`. A deleted item, or an id belonging to another tenant, answers 404.",
+        "description": "One item's prices, optionally narrowed to the prices that apply at `locationId`. A deleted item, or an id belonging to another tenant, answers 404.",
         "operationId": "GetItemPrice",
         "parameters": [
           {
             "name": "itemId",
             "in": "path",
-            "description": "The catalog item's `itemId`.",
             "required": true,
             "schema": {
               "type": "integer",
@@ -3970,11 +3705,8 @@
           {
             "name": "locationId",
             "in": "query",
-            "description": "Narrow each row to the prices that apply at this location, by `locationId` (a positive integer). Omit it for every location's prices.",
             "schema": {
-              "minimum": 1,
-              "type": "integer",
-              "format": "int32"
+              "type": "string"
             }
           }
         ],
@@ -4000,7 +3732,7 @@
             }
           },
           "403": {
-            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
+            "description": "Forbidden",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -4043,7 +3775,7 @@
           "Invoices"
         ],
         "summary": "List invoice statuses",
-        "description": "**Required scope:** `financials.reference.read`\n\nEvery value a invoice's `status` field can carry, and every value its `status` filter accepts.",
+        "description": "Every value a invoice's `status` field can carry, and every value its `status` filter accepts.",
         "operationId": "GetInvoiceStatuses",
         "responses": {
           "200": {
@@ -4057,7 +3789,7 @@
             }
           },
           "403": {
-            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
+            "description": "Forbidden",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -4090,7 +3822,7 @@
           "Credit Notes"
         ],
         "summary": "List credit note statuses",
-        "description": "**Required scope:** `financials.reference.read`\n\nEvery value a credit note's `status` field can carry, and every value its `status` filter accepts.",
+        "description": "Every value a credit note's `status` field can carry, and every value its `status` filter accepts.",
         "operationId": "GetCreditNoteStatuses",
         "responses": {
           "200": {
@@ -4104,7 +3836,7 @@
             }
           },
           "403": {
-            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
+            "description": "Forbidden",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -4137,7 +3869,7 @@
           "Estimates"
         ],
         "summary": "List estimate statuses",
-        "description": "**Required scope:** `financials.reference.read`\n\nEvery value a estimate's `status` field can carry, and every value its `status` filter accepts.",
+        "description": "Every value a estimate's `status` field can carry, and every value its `status` filter accepts.",
         "operationId": "GetEstimateStatuses",
         "responses": {
           "200": {
@@ -4151,7 +3883,7 @@
             }
           },
           "403": {
-            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
+            "description": "Forbidden",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -4184,7 +3916,7 @@
           "Gift Cards"
         ],
         "summary": "List gift card statuses",
-        "description": "**Required scope:** `financials.reference.read`\n\nEvery value a gift card's `status` field can carry, and every value its `status` filter accepts.\n\nOne merged field: `Draft` and `Deleted` are stored and take precedence, while `Expired` and `Redeemed` are derived on read.",
+        "description": "Every value a gift card's `status` field can carry, and every value its `status` filter accepts.\n\nOne merged field: `Draft` and `Deleted` are stored and take precedence, while `Expired` and `Redeemed` are derived on read.",
         "operationId": "GetGiftCardStatuses",
         "responses": {
           "200": {
@@ -4198,7 +3930,7 @@
             }
           },
           "403": {
-            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
+            "description": "Forbidden",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -4231,7 +3963,7 @@
           "Memberships"
         ],
         "summary": "List membership statuses",
-        "description": "**Required scope:** `financials.reference.read`\n\nEvery value a membership's `status` field can carry, and every value its `status` filter accepts.\n\nDerived on read from the membership's dates and its cancellation, with no stored column behind it.",
+        "description": "Every value a membership's `status` field can carry, and every value its `status` filter accepts.\n\nDerived on read from the membership's dates and its cancellation, with no stored column behind it.",
         "operationId": "GetMembershipStatuses",
         "responses": {
           "200": {
@@ -4245,7 +3977,7 @@
             }
           },
           "403": {
-            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
+            "description": "Forbidden",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -4278,7 +4010,7 @@
           "Memberships"
         ],
         "summary": "List membership program statuses",
-        "description": "**Required scope:** `financials.reference.read`\n\nEvery value a membership program's `status` field can carry, and every value its `status` filter accepts.\n\nDerived on read, with no stored column behind it.",
+        "description": "Every value a membership program's `status` field can carry, and every value its `status` filter accepts.\n\nDerived on read, with no stored column behind it.",
         "operationId": "GetMembershipProgramStatuses",
         "responses": {
           "200": {
@@ -4292,7 +4024,7 @@
             }
           },
           "403": {
-            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
+            "description": "Forbidden",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -4325,7 +4057,7 @@
           "Payments"
         ],
         "summary": "List payment statuses",
-        "description": "**Required scope:** `financials.reference.read`\n\nEvery value a payment's `status` field can carry, and every value its `status` filter accepts.\n\nDerived from the internal deleted and voided flags, which are not exposed, so every payment maps onto exactly one of these three values.",
+        "description": "Every value a payment's `status` field can carry, and every value its `status` filter accepts.\n\nDerived from the internal deleted and voided flags, which are not exposed, so every payment maps onto exactly one of these three values.",
         "operationId": "GetPaymentStatuses",
         "responses": {
           "200": {
@@ -4339,7 +4071,7 @@
             }
           },
           "403": {
-            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
+            "description": "Forbidden",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -6643,39 +6375,33 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/PublicBrand"
-            },
-            "description": "The items in this page, in feed order. Empty when there are none."
+            }
           },
           "pageSize": {
             "type": "integer",
-            "description": "The page size used for this page: the requested `pageSize`, or the default.",
             "format": "int32"
           },
           "count": {
             "type": "integer",
-            "description": "The number of items in `data`; never more than `pageSize`.",
             "format": "int32"
           },
           "hasMore": {
-            "type": "boolean",
-            "description": "Whether another page follows. Keep paging while this is true."
+            "type": "boolean"
           },
           "nextCursor": {
             "type": [
               "null",
               "string"
-            ],
-            "description": "Cursor for the next page, to pass as `cursor`. Null when `hasMore` is false."
+            ]
           },
           "next": {
             "type": [
               "null",
               "string"
-            ],
-            "description": "Relative URL of the next page, ready to request. Null when `hasMore` is false."
+            ]
           }
         },
-        "description": "One page of `PublicBrand` items. Keep following `next` (or pass `nextCursor` as `cursor`) while `hasMore` is true."
+        "description": "A single page of PublicBrand items, with `hasMore` and a `next` cursor link."
       },
       "PagedResponsePublicCategory": {
         "required": [
@@ -6690,39 +6416,33 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/PublicCategory"
-            },
-            "description": "The items in this page, in feed order. Empty when there are none."
+            }
           },
           "pageSize": {
             "type": "integer",
-            "description": "The page size used for this page: the requested `pageSize`, or the default.",
             "format": "int32"
           },
           "count": {
             "type": "integer",
-            "description": "The number of items in `data`; never more than `pageSize`.",
             "format": "int32"
           },
           "hasMore": {
-            "type": "boolean",
-            "description": "Whether another page follows. Keep paging while this is true."
+            "type": "boolean"
           },
           "nextCursor": {
             "type": [
               "null",
               "string"
-            ],
-            "description": "Cursor for the next page, to pass as `cursor`. Null when `hasMore` is false."
+            ]
           },
           "next": {
             "type": [
               "null",
               "string"
-            ],
-            "description": "Relative URL of the next page, ready to request. Null when `hasMore` is false."
+            ]
           }
         },
-        "description": "One page of `PublicCategory` items. Keep following `next` (or pass `nextCursor` as `cursor`) while `hasMore` is true."
+        "description": "A single page of PublicCategory items, with `hasMore` and a `next` cursor link."
       },
       "PagedResponsePublicCreditNote": {
         "required": [
@@ -6737,39 +6457,33 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/PublicCreditNote"
-            },
-            "description": "The items in this page, in feed order. Empty when there are none."
+            }
           },
           "pageSize": {
             "type": "integer",
-            "description": "The page size used for this page: the requested `pageSize`, or the default.",
             "format": "int32"
           },
           "count": {
             "type": "integer",
-            "description": "The number of items in `data`; never more than `pageSize`.",
             "format": "int32"
           },
           "hasMore": {
-            "type": "boolean",
-            "description": "Whether another page follows. Keep paging while this is true."
+            "type": "boolean"
           },
           "nextCursor": {
             "type": [
               "null",
               "string"
-            ],
-            "description": "Cursor for the next page, to pass as `cursor`. Null when `hasMore` is false."
+            ]
           },
           "next": {
             "type": [
               "null",
               "string"
-            ],
-            "description": "Relative URL of the next page, ready to request. Null when `hasMore` is false."
+            ]
           }
         },
-        "description": "One page of `PublicCreditNote` items. Keep following `next` (or pass `nextCursor` as `cursor`) while `hasMore` is true."
+        "description": "A single page of PublicCreditNote items, with `hasMore` and a `next` cursor link."
       },
       "PagedResponsePublicDiscountReason": {
         "required": [
@@ -6784,39 +6498,33 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/PublicDiscountReason"
-            },
-            "description": "The items in this page, in feed order. Empty when there are none."
+            }
           },
           "pageSize": {
             "type": "integer",
-            "description": "The page size used for this page: the requested `pageSize`, or the default.",
             "format": "int32"
           },
           "count": {
             "type": "integer",
-            "description": "The number of items in `data`; never more than `pageSize`.",
             "format": "int32"
           },
           "hasMore": {
-            "type": "boolean",
-            "description": "Whether another page follows. Keep paging while this is true."
+            "type": "boolean"
           },
           "nextCursor": {
             "type": [
               "null",
               "string"
-            ],
-            "description": "Cursor for the next page, to pass as `cursor`. Null when `hasMore` is false."
+            ]
           },
           "next": {
             "type": [
               "null",
               "string"
-            ],
-            "description": "Relative URL of the next page, ready to request. Null when `hasMore` is false."
+            ]
           }
         },
-        "description": "One page of `PublicDiscountReason` items. Keep following `next` (or pass `nextCursor` as `cursor`) while `hasMore` is true."
+        "description": "A single page of PublicDiscountReason items, with `hasMore` and a `next` cursor link."
       },
       "PagedResponsePublicEstimate": {
         "required": [
@@ -6831,39 +6539,33 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/PublicEstimate"
-            },
-            "description": "The items in this page, in feed order. Empty when there are none."
+            }
           },
           "pageSize": {
             "type": "integer",
-            "description": "The page size used for this page: the requested `pageSize`, or the default.",
             "format": "int32"
           },
           "count": {
             "type": "integer",
-            "description": "The number of items in `data`; never more than `pageSize`.",
             "format": "int32"
           },
           "hasMore": {
-            "type": "boolean",
-            "description": "Whether another page follows. Keep paging while this is true."
+            "type": "boolean"
           },
           "nextCursor": {
             "type": [
               "null",
               "string"
-            ],
-            "description": "Cursor for the next page, to pass as `cursor`. Null when `hasMore` is false."
+            ]
           },
           "next": {
             "type": [
               "null",
               "string"
-            ],
-            "description": "Relative URL of the next page, ready to request. Null when `hasMore` is false."
+            ]
           }
         },
-        "description": "One page of `PublicEstimate` items. Keep following `next` (or pass `nextCursor` as `cursor`) while `hasMore` is true."
+        "description": "A single page of PublicEstimate items, with `hasMore` and a `next` cursor link."
       },
       "PagedResponsePublicGiftCard": {
         "required": [
@@ -6878,39 +6580,33 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/PublicGiftCard"
-            },
-            "description": "The items in this page, in feed order. Empty when there are none."
+            }
           },
           "pageSize": {
             "type": "integer",
-            "description": "The page size used for this page: the requested `pageSize`, or the default.",
             "format": "int32"
           },
           "count": {
             "type": "integer",
-            "description": "The number of items in `data`; never more than `pageSize`.",
             "format": "int32"
           },
           "hasMore": {
-            "type": "boolean",
-            "description": "Whether another page follows. Keep paging while this is true."
+            "type": "boolean"
           },
           "nextCursor": {
             "type": [
               "null",
               "string"
-            ],
-            "description": "Cursor for the next page, to pass as `cursor`. Null when `hasMore` is false."
+            ]
           },
           "next": {
             "type": [
               "null",
               "string"
-            ],
-            "description": "Relative URL of the next page, ready to request. Null when `hasMore` is false."
+            ]
           }
         },
-        "description": "One page of `PublicGiftCard` items. Keep following `next` (or pass `nextCursor` as `cursor`) while `hasMore` is true."
+        "description": "A single page of PublicGiftCard items, with `hasMore` and a `next` cursor link."
       },
       "PagedResponsePublicHierarchicalCategory": {
         "required": [
@@ -6925,39 +6621,33 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/PublicHierarchicalCategory"
-            },
-            "description": "The items in this page, in feed order. Empty when there are none."
+            }
           },
           "pageSize": {
             "type": "integer",
-            "description": "The page size used for this page: the requested `pageSize`, or the default.",
             "format": "int32"
           },
           "count": {
             "type": "integer",
-            "description": "The number of items in `data`; never more than `pageSize`.",
             "format": "int32"
           },
           "hasMore": {
-            "type": "boolean",
-            "description": "Whether another page follows. Keep paging while this is true."
+            "type": "boolean"
           },
           "nextCursor": {
             "type": [
               "null",
               "string"
-            ],
-            "description": "Cursor for the next page, to pass as `cursor`. Null when `hasMore` is false."
+            ]
           },
           "next": {
             "type": [
               "null",
               "string"
-            ],
-            "description": "Relative URL of the next page, ready to request. Null when `hasMore` is false."
+            ]
           }
         },
-        "description": "One page of `PublicHierarchicalCategory` items. Keep following `next` (or pass `nextCursor` as `cursor`) while `hasMore` is true."
+        "description": "A single page of PublicHierarchicalCategory items, with `hasMore` and a `next` cursor link."
       },
       "PagedResponsePublicInventoryAdjustment": {
         "required": [
@@ -6972,39 +6662,33 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/PublicInventoryAdjustment"
-            },
-            "description": "The items in this page, in feed order. Empty when there are none."
+            }
           },
           "pageSize": {
             "type": "integer",
-            "description": "The page size used for this page: the requested `pageSize`, or the default.",
             "format": "int32"
           },
           "count": {
             "type": "integer",
-            "description": "The number of items in `data`; never more than `pageSize`.",
             "format": "int32"
           },
           "hasMore": {
-            "type": "boolean",
-            "description": "Whether another page follows. Keep paging while this is true."
+            "type": "boolean"
           },
           "nextCursor": {
             "type": [
               "null",
               "string"
-            ],
-            "description": "Cursor for the next page, to pass as `cursor`. Null when `hasMore` is false."
+            ]
           },
           "next": {
             "type": [
               "null",
               "string"
-            ],
-            "description": "Relative URL of the next page, ready to request. Null when `hasMore` is false."
+            ]
           }
         },
-        "description": "One page of `PublicInventoryAdjustment` items. Keep following `next` (or pass `nextCursor` as `cursor`) while `hasMore` is true."
+        "description": "A single page of PublicInventoryAdjustment items, with `hasMore` and a `next` cursor link."
       },
       "PagedResponsePublicInvoice": {
         "required": [
@@ -7019,39 +6703,33 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/PublicInvoice"
-            },
-            "description": "The items in this page, in feed order. Empty when there are none."
+            }
           },
           "pageSize": {
             "type": "integer",
-            "description": "The page size used for this page: the requested `pageSize`, or the default.",
             "format": "int32"
           },
           "count": {
             "type": "integer",
-            "description": "The number of items in `data`; never more than `pageSize`.",
             "format": "int32"
           },
           "hasMore": {
-            "type": "boolean",
-            "description": "Whether another page follows. Keep paging while this is true."
+            "type": "boolean"
           },
           "nextCursor": {
             "type": [
               "null",
               "string"
-            ],
-            "description": "Cursor for the next page, to pass as `cursor`. Null when `hasMore` is false."
+            ]
           },
           "next": {
             "type": [
               "null",
               "string"
-            ],
-            "description": "Relative URL of the next page, ready to request. Null when `hasMore` is false."
+            ]
           }
         },
-        "description": "One page of `PublicInvoice` items. Keep following `next` (or pass `nextCursor` as `cursor`) while `hasMore` is true."
+        "description": "A single page of PublicInvoice items, with `hasMore` and a `next` cursor link."
       },
       "PagedResponsePublicItem": {
         "required": [
@@ -7066,39 +6744,33 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/PublicItem"
-            },
-            "description": "The items in this page, in feed order. Empty when there are none."
+            }
           },
           "pageSize": {
             "type": "integer",
-            "description": "The page size used for this page: the requested `pageSize`, or the default.",
             "format": "int32"
           },
           "count": {
             "type": "integer",
-            "description": "The number of items in `data`; never more than `pageSize`.",
             "format": "int32"
           },
           "hasMore": {
-            "type": "boolean",
-            "description": "Whether another page follows. Keep paging while this is true."
+            "type": "boolean"
           },
           "nextCursor": {
             "type": [
               "null",
               "string"
-            ],
-            "description": "Cursor for the next page, to pass as `cursor`. Null when `hasMore` is false."
+            ]
           },
           "next": {
             "type": [
               "null",
               "string"
-            ],
-            "description": "Relative URL of the next page, ready to request. Null when `hasMore` is false."
+            ]
           }
         },
-        "description": "One page of `PublicItem` items. Keep following `next` (or pass `nextCursor` as `cursor`) while `hasMore` is true."
+        "description": "A single page of PublicItem items, with `hasMore` and a `next` cursor link."
       },
       "PagedResponsePublicItemGroup": {
         "required": [
@@ -7113,39 +6785,33 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/PublicItemGroup"
-            },
-            "description": "The items in this page, in feed order. Empty when there are none."
+            }
           },
           "pageSize": {
             "type": "integer",
-            "description": "The page size used for this page: the requested `pageSize`, or the default.",
             "format": "int32"
           },
           "count": {
             "type": "integer",
-            "description": "The number of items in `data`; never more than `pageSize`.",
             "format": "int32"
           },
           "hasMore": {
-            "type": "boolean",
-            "description": "Whether another page follows. Keep paging while this is true."
+            "type": "boolean"
           },
           "nextCursor": {
             "type": [
               "null",
               "string"
-            ],
-            "description": "Cursor for the next page, to pass as `cursor`. Null when `hasMore` is false."
+            ]
           },
           "next": {
             "type": [
               "null",
               "string"
-            ],
-            "description": "Relative URL of the next page, ready to request. Null when `hasMore` is false."
+            ]
           }
         },
-        "description": "One page of `PublicItemGroup` items. Keep following `next` (or pass `nextCursor` as `cursor`) while `hasMore` is true."
+        "description": "A single page of PublicItemGroup items, with `hasMore` and a `next` cursor link."
       },
       "PagedResponsePublicItemPrice": {
         "required": [
@@ -7160,39 +6826,33 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/PublicItemPrice"
-            },
-            "description": "The items in this page, in feed order. Empty when there are none."
+            }
           },
           "pageSize": {
             "type": "integer",
-            "description": "The page size used for this page: the requested `pageSize`, or the default.",
             "format": "int32"
           },
           "count": {
             "type": "integer",
-            "description": "The number of items in `data`; never more than `pageSize`.",
             "format": "int32"
           },
           "hasMore": {
-            "type": "boolean",
-            "description": "Whether another page follows. Keep paging while this is true."
+            "type": "boolean"
           },
           "nextCursor": {
             "type": [
               "null",
               "string"
-            ],
-            "description": "Cursor for the next page, to pass as `cursor`. Null when `hasMore` is false."
+            ]
           },
           "next": {
             "type": [
               "null",
               "string"
-            ],
-            "description": "Relative URL of the next page, ready to request. Null when `hasMore` is false."
+            ]
           }
         },
-        "description": "One page of `PublicItemPrice` items. Keep following `next` (or pass `nextCursor` as `cursor`) while `hasMore` is true."
+        "description": "A single page of PublicItemPrice items, with `hasMore` and a `next` cursor link."
       },
       "PagedResponsePublicItemStockLevel": {
         "required": [
@@ -7207,39 +6867,33 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/PublicItemStockLevel"
-            },
-            "description": "The items in this page, in feed order. Empty when there are none."
+            }
           },
           "pageSize": {
             "type": "integer",
-            "description": "The page size used for this page: the requested `pageSize`, or the default.",
             "format": "int32"
           },
           "count": {
             "type": "integer",
-            "description": "The number of items in `data`; never more than `pageSize`.",
             "format": "int32"
           },
           "hasMore": {
-            "type": "boolean",
-            "description": "Whether another page follows. Keep paging while this is true."
+            "type": "boolean"
           },
           "nextCursor": {
             "type": [
               "null",
               "string"
-            ],
-            "description": "Cursor for the next page, to pass as `cursor`. Null when `hasMore` is false."
+            ]
           },
           "next": {
             "type": [
               "null",
               "string"
-            ],
-            "description": "Relative URL of the next page, ready to request. Null when `hasMore` is false."
+            ]
           }
         },
-        "description": "One page of `PublicItemStockLevel` items. Keep following `next` (or pass `nextCursor` as `cursor`) while `hasMore` is true."
+        "description": "A single page of PublicItemStockLevel items, with `hasMore` and a `next` cursor link."
       },
       "PagedResponsePublicItemType": {
         "required": [
@@ -7254,39 +6908,33 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/PublicItemType"
-            },
-            "description": "The items in this page, in feed order. Empty when there are none."
+            }
           },
           "pageSize": {
             "type": "integer",
-            "description": "The page size used for this page: the requested `pageSize`, or the default.",
             "format": "int32"
           },
           "count": {
             "type": "integer",
-            "description": "The number of items in `data`; never more than `pageSize`.",
             "format": "int32"
           },
           "hasMore": {
-            "type": "boolean",
-            "description": "Whether another page follows. Keep paging while this is true."
+            "type": "boolean"
           },
           "nextCursor": {
             "type": [
               "null",
               "string"
-            ],
-            "description": "Cursor for the next page, to pass as `cursor`. Null when `hasMore` is false."
+            ]
           },
           "next": {
             "type": [
               "null",
               "string"
-            ],
-            "description": "Relative URL of the next page, ready to request. Null when `hasMore` is false."
+            ]
           }
         },
-        "description": "One page of `PublicItemType` items. Keep following `next` (or pass `nextCursor` as `cursor`) while `hasMore` is true."
+        "description": "A single page of PublicItemType items, with `hasMore` and a `next` cursor link."
       },
       "PagedResponsePublicMembership": {
         "required": [
@@ -7301,39 +6949,33 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/PublicMembership"
-            },
-            "description": "The items in this page, in feed order. Empty when there are none."
+            }
           },
           "pageSize": {
             "type": "integer",
-            "description": "The page size used for this page: the requested `pageSize`, or the default.",
             "format": "int32"
           },
           "count": {
             "type": "integer",
-            "description": "The number of items in `data`; never more than `pageSize`.",
             "format": "int32"
           },
           "hasMore": {
-            "type": "boolean",
-            "description": "Whether another page follows. Keep paging while this is true."
+            "type": "boolean"
           },
           "nextCursor": {
             "type": [
               "null",
               "string"
-            ],
-            "description": "Cursor for the next page, to pass as `cursor`. Null when `hasMore` is false."
+            ]
           },
           "next": {
             "type": [
               "null",
               "string"
-            ],
-            "description": "Relative URL of the next page, ready to request. Null when `hasMore` is false."
+            ]
           }
         },
-        "description": "One page of `PublicMembership` items. Keep following `next` (or pass `nextCursor` as `cursor`) while `hasMore` is true."
+        "description": "A single page of PublicMembership items, with `hasMore` and a `next` cursor link."
       },
       "PagedResponsePublicMembershipProgram": {
         "required": [
@@ -7348,39 +6990,33 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/PublicMembershipProgram"
-            },
-            "description": "The items in this page, in feed order. Empty when there are none."
+            }
           },
           "pageSize": {
             "type": "integer",
-            "description": "The page size used for this page: the requested `pageSize`, or the default.",
             "format": "int32"
           },
           "count": {
             "type": "integer",
-            "description": "The number of items in `data`; never more than `pageSize`.",
             "format": "int32"
           },
           "hasMore": {
-            "type": "boolean",
-            "description": "Whether another page follows. Keep paging while this is true."
+            "type": "boolean"
           },
           "nextCursor": {
             "type": [
               "null",
               "string"
-            ],
-            "description": "Cursor for the next page, to pass as `cursor`. Null when `hasMore` is false."
+            ]
           },
           "next": {
             "type": [
               "null",
               "string"
-            ],
-            "description": "Relative URL of the next page, ready to request. Null when `hasMore` is false."
+            ]
           }
         },
-        "description": "One page of `PublicMembershipProgram` items. Keep following `next` (or pass `nextCursor` as `cursor`) while `hasMore` is true."
+        "description": "A single page of PublicMembershipProgram items, with `hasMore` and a `next` cursor link."
       },
       "PagedResponsePublicOccasion": {
         "required": [
@@ -7395,39 +7031,33 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/PublicOccasion"
-            },
-            "description": "The items in this page, in feed order. Empty when there are none."
+            }
           },
           "pageSize": {
             "type": "integer",
-            "description": "The page size used for this page: the requested `pageSize`, or the default.",
             "format": "int32"
           },
           "count": {
             "type": "integer",
-            "description": "The number of items in `data`; never more than `pageSize`.",
             "format": "int32"
           },
           "hasMore": {
-            "type": "boolean",
-            "description": "Whether another page follows. Keep paging while this is true."
+            "type": "boolean"
           },
           "nextCursor": {
             "type": [
               "null",
               "string"
-            ],
-            "description": "Cursor for the next page, to pass as `cursor`. Null when `hasMore` is false."
+            ]
           },
           "next": {
             "type": [
               "null",
               "string"
-            ],
-            "description": "Relative URL of the next page, ready to request. Null when `hasMore` is false."
+            ]
           }
         },
-        "description": "One page of `PublicOccasion` items. Keep following `next` (or pass `nextCursor` as `cursor`) while `hasMore` is true."
+        "description": "A single page of PublicOccasion items, with `hasMore` and a `next` cursor link."
       },
       "PagedResponsePublicPayment": {
         "required": [
@@ -7442,39 +7072,33 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/PublicPayment"
-            },
-            "description": "The items in this page, in feed order. Empty when there are none."
+            }
           },
           "pageSize": {
             "type": "integer",
-            "description": "The page size used for this page: the requested `pageSize`, or the default.",
             "format": "int32"
           },
           "count": {
             "type": "integer",
-            "description": "The number of items in `data`; never more than `pageSize`.",
             "format": "int32"
           },
           "hasMore": {
-            "type": "boolean",
-            "description": "Whether another page follows. Keep paging while this is true."
+            "type": "boolean"
           },
           "nextCursor": {
             "type": [
               "null",
               "string"
-            ],
-            "description": "Cursor for the next page, to pass as `cursor`. Null when `hasMore` is false."
+            ]
           },
           "next": {
             "type": [
               "null",
               "string"
-            ],
-            "description": "Relative URL of the next page, ready to request. Null when `hasMore` is false."
+            ]
           }
         },
-        "description": "One page of `PublicPayment` items. Keep following `next` (or pass `nextCursor` as `cursor`) while `hasMore` is true."
+        "description": "A single page of PublicPayment items, with `hasMore` and a `next` cursor link."
       },
       "PagedResponsePublicPaymentMode": {
         "required": [
@@ -7489,39 +7113,33 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/PublicPaymentMode"
-            },
-            "description": "The items in this page, in feed order. Empty when there are none."
+            }
           },
           "pageSize": {
             "type": "integer",
-            "description": "The page size used for this page: the requested `pageSize`, or the default.",
             "format": "int32"
           },
           "count": {
             "type": "integer",
-            "description": "The number of items in `data`; never more than `pageSize`.",
             "format": "int32"
           },
           "hasMore": {
-            "type": "boolean",
-            "description": "Whether another page follows. Keep paging while this is true."
+            "type": "boolean"
           },
           "nextCursor": {
             "type": [
               "null",
               "string"
-            ],
-            "description": "Cursor for the next page, to pass as `cursor`. Null when `hasMore` is false."
+            ]
           },
           "next": {
             "type": [
               "null",
               "string"
-            ],
-            "description": "Relative URL of the next page, ready to request. Null when `hasMore` is false."
+            ]
           }
         },
-        "description": "One page of `PublicPaymentMode` items. Keep following `next` (or pass `nextCursor` as `cursor`) while `hasMore` is true."
+        "description": "A single page of PublicPaymentMode items, with `hasMore` and a `next` cursor link."
       },
       "PagedResponsePublicPaymentReason": {
         "required": [
@@ -7536,39 +7154,33 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/PublicPaymentReason"
-            },
-            "description": "The items in this page, in feed order. Empty when there are none."
+            }
           },
           "pageSize": {
             "type": "integer",
-            "description": "The page size used for this page: the requested `pageSize`, or the default.",
             "format": "int32"
           },
           "count": {
             "type": "integer",
-            "description": "The number of items in `data`; never more than `pageSize`.",
             "format": "int32"
           },
           "hasMore": {
-            "type": "boolean",
-            "description": "Whether another page follows. Keep paging while this is true."
+            "type": "boolean"
           },
           "nextCursor": {
             "type": [
               "null",
               "string"
-            ],
-            "description": "Cursor for the next page, to pass as `cursor`. Null when `hasMore` is false."
+            ]
           },
           "next": {
             "type": [
               "null",
               "string"
-            ],
-            "description": "Relative URL of the next page, ready to request. Null when `hasMore` is false."
+            ]
           }
         },
-        "description": "One page of `PublicPaymentReason` items. Keep following `next` (or pass `nextCursor` as `cursor`) while `hasMore` is true."
+        "description": "A single page of PublicPaymentReason items, with `hasMore` and a `next` cursor link."
       },
       "PagedResponsePublicStatus": {
         "required": [
@@ -7583,39 +7195,33 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/PublicStatus"
-            },
-            "description": "The items in this page, in feed order. Empty when there are none."
+            }
           },
           "pageSize": {
             "type": "integer",
-            "description": "The page size used for this page: the requested `pageSize`, or the default.",
             "format": "int32"
           },
           "count": {
             "type": "integer",
-            "description": "The number of items in `data`; never more than `pageSize`.",
             "format": "int32"
           },
           "hasMore": {
-            "type": "boolean",
-            "description": "Whether another page follows. Keep paging while this is true."
+            "type": "boolean"
           },
           "nextCursor": {
             "type": [
               "null",
               "string"
-            ],
-            "description": "Cursor for the next page, to pass as `cursor`. Null when `hasMore` is false."
+            ]
           },
           "next": {
             "type": [
               "null",
               "string"
-            ],
-            "description": "Relative URL of the next page, ready to request. Null when `hasMore` is false."
+            ]
           }
         },
-        "description": "One page of `PublicStatus` items. Keep following `next` (or pass `nextCursor` as `cursor`) while `hasMore` is true."
+        "description": "A single page of PublicStatus items, with `hasMore` and a `next` cursor link."
       },
       "PublicBrand": {
         "required": [
@@ -7702,8 +7308,7 @@
           "Discover",
           "Debit",
           "CareCredit"
-        ],
-        "description": "Card brand of a card payment. `Unknown` is a real returned value: the brand was not recorded, or was one this contract does not list."
+        ]
       },
       "PublicCreditNote": {
         "required": [
