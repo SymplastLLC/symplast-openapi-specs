@@ -3,7 +3,7 @@
   "info": {
     "title": "Symplast Public API",
     "description": "The unified Symplast Public API surface, composed from each service specification.",
-    "version": "0.1.251"
+    "version": "0.1.252"
   },
   "servers": [
     {
@@ -98,6 +98,7 @@
     },
     {
       "name": "Patients",
+      "description": "The practice's patients. Sync patient records from the change feed, then fetch contact information, emergency contact, employment and referral details for one patient as needed.",
       "x-displayName": "Patients"
     },
     {
@@ -5329,8 +5330,39 @@
           "Patients"
         ],
         "summary": "List patients",
-        "description": "**Required scope:** `patients.basic.read`\n\nReturns a cursor-paged feed of the caller's tenant's patients that the signed-in user may access, ordered by\nthe patient record's last change. Pass `updatedSince` (UTC, inclusive) and `pageSize`; follow `next` (an\nopaque `cursor`) to page further. Deleted and inactive patients are included with flags.\n\n`updatedAt` reflects changes to the patient record only: edits to contact information, emergency contact,\nemployment or referral do not move a patient in this feed. Delivery is at-least-once across passes; dedupe\non `id` keeping the highest `updatedAt`, and resume at `updatedSince = lastSeen - overlap`.",
+        "description": "**Required scope:** `patients.basic.read`\n\nReturns a cursor-paged feed of the caller's tenant's patients that the signed-in user may access. Deleted and\ninactive patients are included with flags.\n\nOrdered by `updatedAt` ascending, then `id` ascending. Resume with `updatedSince` or follow `next`.\n\n`updatedAt` reflects changes to the patient record only: edits to contact information, emergency contact,\nemployment or referral do not move a patient in this feed. Delivery is at-least-once across passes; dedupe\non `id` keeping the highest `updatedAt`, and resume at `updatedSince = lastSeen - overlap`.\n\nA malformed or out-of-range `pageSize` or `updatedSince` returns `400` with code `invalid-query-parameter`,\nnaming every rejected parameter; a missing `pageSize` uses the default.",
         "operationId": "GetPatients",
+        "parameters": [
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "Number of items per page, from 1 to 200. Defaults to 50.",
+            "schema": {
+              "maximum": 200,
+              "minimum": 1,
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "Opaque cursor for the next page, taken from the previous page's `nextCursor`. Pass it back unchanged; omit it for the first page. The `next` link already carries it.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "updatedSince",
+            "in": "query",
+            "description": "Only patients whose record changed at or after this instant (inclusive), as an ISO-8601 date-time; a value with no offset is UTC. Changes to contact information, emergency contact, employment or referral do not count. To resume a sync, pass the largest `updatedAt` you have already received (less a small overlap), or follow `next`. Omit it to start from the beginning of the feed.",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -5353,7 +5385,7 @@
             }
           },
           "403": {
-            "description": "Forbidden",
+            "description": "The request has no signed-in user the API can resolve, or the user does not exist in the caller's tenant. That is an RFC 9457 problem with code `user-context-required`.\n\nA token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -5402,7 +5434,7 @@
             }
           },
           "403": {
-            "description": "Forbidden",
+            "description": "The request has no signed-in user the API can resolve, or the user does not exist in the caller's tenant. That is an RFC 9457 problem with code `user-context-required`.\n\nA token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -5461,7 +5493,7 @@
             }
           },
           "403": {
-            "description": "Forbidden",
+            "description": "The request has no signed-in user the API can resolve, or the user does not exist in the caller's tenant. That is an RFC 9457 problem with code `user-context-required`.\n\nA token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -5520,7 +5552,7 @@
             }
           },
           "403": {
-            "description": "Forbidden",
+            "description": "The request has no signed-in user the API can resolve, or the user does not exist in the caller's tenant. That is an RFC 9457 problem with code `user-context-required`.\n\nA token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -5579,7 +5611,7 @@
             }
           },
           "403": {
-            "description": "Forbidden",
+            "description": "The request has no signed-in user the API can resolve, or the user does not exist in the caller's tenant. That is an RFC 9457 problem with code `user-context-required`.\n\nA token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -5638,7 +5670,7 @@
             }
           },
           "403": {
-            "description": "Forbidden",
+            "description": "The request has no signed-in user the API can resolve, or the user does not exist in the caller's tenant. That is an RFC 9457 problem with code `user-context-required`.\n\nA token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -10346,7 +10378,8 @@
           "pager",
           "email",
           "other"
-        ]
+        ],
+        "description": "A way of contacting a patient. `home`: home phone. `work`: work phone. `cell`: cell phone. `fax`: fax. `pager`: pager. `email`: email. `other`: another method the practice records."
       },
       "PagedResponsePublicPatient": {
         "required": [
@@ -10361,38 +10394,46 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/PublicPatient"
-            }
+            },
+            "description": "The items in this page, in feed order. Empty when there are none."
           },
           "pageSize": {
             "type": "integer",
+            "description": "The page size used for this page: the requested `pageSize`, or the default.",
             "format": "int32"
           },
           "count": {
             "type": "integer",
+            "description": "The number of items in `data`; never more than `pageSize`.",
             "format": "int32"
           },
           "hasMore": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Whether another page follows. Keep paging while this is true."
           },
           "nextCursor": {
             "type": [
               "null",
               "string"
-            ]
+            ],
+            "description": "Cursor for the next page, to pass as `cursor`. Null when `hasMore` is false."
           },
           "next": {
             "type": [
               "null",
               "string"
-            ]
+            ],
+            "description": "Relative URL of the next page, ready to request. Null when `hasMore` is false."
           }
-        }
+        },
+        "description": "One page of `PublicPatient` items. Keep following `next` (or pass `nextCursor` as `cursor`) while `hasMore` is true."
       },
       "PatientMode": {
         "enum": [
           "active",
           "prospect"
-        ]
+        ],
+        "description": "Whether a patient record is an active patient or a prospect. `active`: an active patient. `prospect`: a prospect (lead) who is not yet an active patient."
       },
       "PatientStatus": {
         "enum": [
