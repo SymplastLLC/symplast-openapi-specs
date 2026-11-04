@@ -144,7 +144,7 @@ one group per source spec named from the spec's `info.title` — so the portal w
 
 ```json
 {
-  "sections": ["Scheduling", "Financials", "Practice", "Patients", "Multimedia", "Documents"]
+  "sections": ["Scheduling", "Financials", "Practice", "Patients", "Multimedia", "Documents", "Insurance"]
 }
 ```
 
@@ -156,6 +156,8 @@ one group per source spec named from the spec's `info.title` — so the portal w
   never hand-edited here.
 - `Documents` is fed by `documents-api-public` (`specs/documents-api-public/openapi.json`), pushed the same way
   from `documents-api`. Its `Documents` and `Document Types` tags carry `x-domain: Documents`.
+- `Insurance` is fed by `insurance-api-public` (`specs/insurance-api-public/openapi.json`), pushed the same way
+  from `insurance-api`. Its `Claims` and `Payers` tags carry `x-domain: Insurance`.
 - A tag's section comes from its own `x-domain` extension, which the owning service emits. Every surface
   does today, so the optional `tagDomains` fallback map is deliberately absent from this file.
 - A tag matched by neither **fails the compose**, because it would be missing from the portal navigation. A

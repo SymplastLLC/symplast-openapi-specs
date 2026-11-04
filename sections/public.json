@@ -6,7 +6,8 @@
     "Practice",
     "Patients",
     "Multimedia",
-    "Documents"
+    "Documents",
+    "Insurance"
   ],
   "tagDescriptions": {
     "Practice info": "The practice's own profile: name, address and contact details. There is one per practice.",
