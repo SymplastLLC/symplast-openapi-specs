@@ -2,8 +2,8 @@
   "openapi": "3.1.1",
   "info": {
     "title": "Symplast Patients Public API",
-    "description": "Authenticated, minimal read-only public surface for patient records and their contact, emergency-contact, employment and referral information.",
-    "version": "1.73.21"
+    "description": "Authenticated, minimal read-only public surface for patient records and their contact, emergency-contact, employment, referral and insurance information.",
+    "version": "1.74.7"
   },
   "servers": [
     {
@@ -353,6 +353,60 @@
           }
         }
       }
+    },
+    "/v1/patients/{id}/insurance": {
+      "get": {
+        "tags": [
+          "Patients"
+        ],
+        "summary": "Get a patient's insurance policies",
+        "description": "**Required scope:** `patients.insurance.read`\n\nReturns every insurance policy recorded for the patient, active and inactive, ordered by placement\n(primary, secondary, tertiary, supplementary) then by policy id. Each policy carries its payer id, policy\nand group numbers, effective and expiration dates, and the policy holder's name, relationship, date of\nbirth and sex.\n\n`payerId` is the payer's id in the insurance public API: resolve its name and address with\n`GET /v1/insurance/payers/{id}`. A patient with no recorded insurance returns `200` with an empty\n`policies` list.",
+        "operationId": "GetPatientInsurance",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The patient id, unique within the caller's tenant.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicPatientInsurance"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The request has no signed-in user the API can resolve, or the user does not exist in the caller's tenant. That is an RFC 9457 problem with code `user-context-required`.\n\nA token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -368,6 +422,15 @@
           "other"
         ],
         "description": "A way of contacting a patient. `home`: home phone. `work`: work phone. `cell`: cell phone. `fax`: fax. `pager`: pager. `email`: email. `other`: another method the practice records."
+      },
+      "InsurancePlacement": {
+        "enum": [
+          "primary",
+          "secondary",
+          "tertiary",
+          "supplementary"
+        ],
+        "description": "The billing order of a patient's insurance policy."
       },
       "PagedResponsePublicPatient": {
         "required": [
@@ -535,6 +598,144 @@
           }
         },
         "description": "A postal address. Used for both the patient's home address and their employer's address."
+      },
+      "PublicInsurancePolicy": {
+        "required": [
+          "id",
+          "placement",
+          "isActive",
+          "payerId",
+          "policyNumber",
+          "groupNumber",
+          "effectiveDate",
+          "expirationDate",
+          "subscriber",
+          "updatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "The policy id, unique within the practice.",
+            "format": "int32"
+          },
+          "placement": {
+            "description": "The policy's billing order for the patient.",
+            "$ref": "#/components/schemas/InsurancePlacement"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the practice marks the policy active."
+          },
+          "payerId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "description": "The insurance company (payer) id, the same id the insurance public API uses, or null if none is recorded.",
+            "format": "int32"
+          },
+          "policyNumber": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The policy (subscriber or member) number, or null."
+          },
+          "groupNumber": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The group number, or null."
+          },
+          "effectiveDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The date the policy takes effect, or null.",
+            "format": "date"
+          },
+          "expirationDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The date the policy ends, or null.",
+            "format": "date"
+          },
+          "subscriber": {
+            "description": "The policy holder. Every field is null when nothing is recorded.",
+            "$ref": "#/components/schemas/PublicInsuranceSubscriber"
+          },
+          "updatedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Approximate UTC time of the policy's last change, or of its creation if never changed, or null.",
+            "format": "date-time"
+          }
+        },
+        "description": "One insurance policy of a patient."
+      },
+      "PublicInsuranceSubscriber": {
+        "required": [
+          "firstName",
+          "lastName",
+          "suffix",
+          "relationship",
+          "dateOfBirth",
+          "sex"
+        ],
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The subscriber's first name, or null."
+          },
+          "lastName": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The subscriber's last name, or null."
+          },
+          "suffix": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The subscriber's name suffix or title, or null."
+          },
+          "relationship": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The subscriber's relationship to the patient as the practice records it (such as Self or Spouse), or null."
+          },
+          "dateOfBirth": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The subscriber's date of birth, or null.",
+            "format": "date"
+          },
+          "sex": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The subscriber's recorded sex, a free-form value from the practice's records, or null if not set."
+          }
+        },
+        "description": "The holder of an insurance policy (the subscriber), who may be the patient or someone else. Their phone, address and\nemployer are not exposed."
       },
       "PublicPatient": {
         "required": [
@@ -860,6 +1061,28 @@
         },
         "description": "A patient's employment. The employer contact person's name is not exposed."
       },
+      "PublicPatientInsurance": {
+        "required": [
+          "patientId",
+          "policies"
+        ],
+        "type": "object",
+        "properties": {
+          "patientId": {
+            "type": "integer",
+            "description": "The patient id.",
+            "format": "int32"
+          },
+          "policies": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublicInsurancePolicy"
+            },
+            "description": "Every policy recorded for the patient, ordered by placement (primary, secondary, tertiary, supplementary) then by\npolicy id. Empty when the patient has no recorded insurance."
+          }
+        },
+        "description": "A patient's insurance policies, active and inactive."
+      },
       "PublicPatientReferral": {
         "required": [
           "patientId",
@@ -996,7 +1219,7 @@
   "tags": [
     {
       "name": "Patients",
-      "description": "The practice's patients. Sync patient records from the change feed, then fetch contact information, emergency contact, employment and referral details for one patient as needed.",
+      "description": "The practice's patients. Sync patient records from the change feed, then fetch contact information, emergency contact, employment, referral and insurance details for one patient as needed.",
       "x-domain": "Patients"
     }
   ]
