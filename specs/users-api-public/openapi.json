@@ -3,7 +3,7 @@
   "info": {
     "title": "Symplast Users Public API",
     "description": "Authenticated, minimal read-only public surface for practice user identity/profile data.",
-    "version": "1.64.2"
+    "version": "1.63.14-gdd4d3989dd"
   },
   "servers": [
     {
