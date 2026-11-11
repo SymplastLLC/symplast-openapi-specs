@@ -130,7 +130,7 @@ and rebuilds it from `sections/<audience>.json`.
 
 ```json
 {
-  "sections": ["Scheduling", "Financials", "Practice", "Patients", "Multimedia", "Documents"]
+  "sections": ["Scheduling", "Financials", "Practice", "Patients", "Multimedia", "Documents", "Insurance"]
 }
 ```
 
@@ -152,6 +152,11 @@ The `Documents` section is fed by `documents-api-public` — `specs/documents-ap
 same way from the `documents-api` repo. Its `Documents` and `Document Types` tags carry `x-domain: Documents`; fix
 them in `documents-api`, never here. It shares `IFormFile` with `multimedia-api-public`, so
 `canonical/public/IFormFile.json` documents the unified schema.
+
+The `Insurance` section is fed by `insurance-api-public` — `specs/insurance-api-public/openapi.json`, pushed the
+same way from the `insurance-api` repo (PLA-1584). Its `Claims` and `Payers` tags carry `x-domain: Insurance`; fix
+them in `insurance-api`, never here. It shares `PublicAddress` (payer addresses) with legacy-api and patients-api,
+so `canonical/public/PublicAddress.json` documents the unified schema.
 
 A tag's section is resolved in this order:
 
