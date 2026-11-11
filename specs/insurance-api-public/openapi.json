@@ -1,0 +1,1055 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "Symplast Insurance Public API",
+    "description": "Authenticated, read-only public surface for a patient's insurance claims, with their charge lines, and for the practice's insurance companies (payers).",
+    "version": "1.123.5"
+  },
+  "servers": [
+    {
+      "url": "https://api.symplast.com"
+    }
+  ],
+  "paths": {
+    "/v1/insurance/claims": {
+      "get": {
+        "tags": [
+          "Claims"
+        ],
+        "summary": "Lists one patient's claims.",
+        "description": "**Required scope:** `insurance.claims.read`\n\nReturns one patient's insurance claims, cursor-paged, each with all of its charge lines. `patientId` is\nrequired. Claims in every status are included, deleted ones with `status` `deleted`. Ordered by `id`\nascending. Follow `next` to page further.\n\nA patient the signed-in user may not access gives an empty page, exactly like a patient with no claims. This\nis not a change feed: there is no `updatedSince`, and an unknown query parameter is ignored. Every page that\nreturns a claim is recorded in the practice's patient access log.",
+        "operationId": "ListClaims",
+        "parameters": [
+          {
+            "name": "patientId",
+            "in": "query",
+            "description": "The patient whose claims are listed (the patient id from the public patients API). Required. A patient the signed-in user may not access, or one with no claims, gives an empty page rather than an error.",
+            "required": true,
+            "schema": {
+              "minimum": 1,
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "Number of items per page, from 1 to 200. Defaults to 50.",
+            "schema": {
+              "maximum": 200,
+              "minimum": 1,
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "Opaque cursor for the next page, taken from the previous page's `nextCursor`. Pass it back unchanged with the same filters; omit it for the first page. The `next` link already carries it.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of the patient's claims, with their charge lines. Empty when the patient has no claims the signed-in user may see.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedResponsePublicClaim"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "A query value is missing, malformed or out of range (code `invalid-query-parameter`, with every rejected parameter in `errors`), the cursor is malformed or tampered (code `invalid-cursor`), or the cursor was issued for a different `patientId` (code `cursor-filter-mismatch`).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The request carries no valid gateway token. That is an RFC 9457 problem with code `unauthenticated`.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The request has no signed-in user the API can resolve, or the user does not exist in the caller's tenant. That is an RFC 9457 problem with code `user-context-required`.\n\nA token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error (RFC 9457 problem details).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/insurance/claims/{id}": {
+      "get": {
+        "tags": [
+          "Claims"
+        ],
+        "summary": "Gets one claim.",
+        "description": "**Required scope:** `insurance.claims.read`\n\nReturns one claim with all of its charge lines, in the same shape as the claims list. A claim of a patient the\nsigned-in user may not access is a 404, exactly like a claim that does not exist. A returned claim is\nrecorded in the practice's patient access log.",
+        "operationId": "GetClaimById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The claim id, as returned in `id` by the claims list.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The claim, with its charge lines.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicClaim"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The request carries no valid gateway token. That is an RFC 9457 problem with code `unauthenticated`.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The request has no signed-in user the API can resolve, or the user does not exist in the caller's tenant. That is an RFC 9457 problem with code `user-context-required`.\n\nA token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No claim with this id exists in the practice, or its patient is one the signed-in user may not access (code `not-found`).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error (RFC 9457 problem details).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/insurance/payers": {
+      "get": {
+        "tags": [
+          "Payers"
+        ],
+        "summary": "Lists the practice's payers.",
+        "description": "**Required scope:** `insurance.payers.read`\n\nReturns the practice's insurance companies (payers), cursor-paged, deleted ones included with `isDeleted`\ntrue, so every `payerId` on a claim or a patient insurance policy resolves. Ordered by `id` ascending. Follow\n`next` to page further. Needs no signed-in user.",
+        "operationId": "ListPayers",
+        "parameters": [
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "Number of items per page, from 1 to 200. Defaults to 50.",
+            "schema": {
+              "maximum": 200,
+              "minimum": 1,
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "Opaque cursor for the next page, taken from the previous page's `nextCursor`. Pass it back unchanged with the same filters; omit it for the first page. The `next` link already carries it.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of the practice's payers.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedResponsePublicPayer"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "A query value is malformed or out of range (code `invalid-query-parameter`, with every rejected parameter in `errors`), or the cursor is malformed or tampered (code `invalid-cursor`).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The request carries no valid gateway token. That is an RFC 9457 problem with code `unauthenticated`.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error (RFC 9457 problem details).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/insurance/payers/{id}": {
+      "get": {
+        "tags": [
+          "Payers"
+        ],
+        "summary": "Gets one payer.",
+        "description": "**Required scope:** `insurance.payers.read`\n\nReturns one of the practice's insurance companies, including a deleted one. Use it to resolve a `payerId`\nfrom a claim or a patient insurance policy. Needs no signed-in user.",
+        "operationId": "GetPayerById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The payer id, as claims return it in `payerId` and `secondaryPayerId`.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The payer.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicPayer"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The request carries no valid gateway token. That is an RFC 9457 problem with code `unauthenticated`.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No payer with this id exists in the practice (code `not-found`).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error (RFC 9457 problem details).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "PagedResponsePublicClaim": {
+        "required": [
+          "data",
+          "pageSize",
+          "count",
+          "hasMore"
+        ],
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublicClaim"
+            },
+            "description": "The items in this page, in feed order. Empty when there are none."
+          },
+          "pageSize": {
+            "type": "integer",
+            "description": "The page size used for this page: the requested `pageSize`, or the default.",
+            "format": "int32"
+          },
+          "count": {
+            "type": "integer",
+            "description": "The number of items in `data`; never more than `pageSize`.",
+            "format": "int32"
+          },
+          "hasMore": {
+            "type": "boolean",
+            "description": "Whether another page follows. Keep paging while this is true."
+          },
+          "nextCursor": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Cursor for the next page, to pass as `cursor`. Null when `hasMore` is false."
+          },
+          "next": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Relative URL of the next page, ready to request. Null when `hasMore` is false."
+          }
+        },
+        "description": "One page of `PublicClaim` items. Keep following `next` (or pass `nextCursor` as `cursor`) while `hasMore` is true."
+      },
+      "PagedResponsePublicPayer": {
+        "required": [
+          "data",
+          "pageSize",
+          "count",
+          "hasMore"
+        ],
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublicPayer"
+            },
+            "description": "The items in this page, in feed order. Empty when there are none."
+          },
+          "pageSize": {
+            "type": "integer",
+            "description": "The page size used for this page: the requested `pageSize`, or the default.",
+            "format": "int32"
+          },
+          "count": {
+            "type": "integer",
+            "description": "The number of items in `data`; never more than `pageSize`.",
+            "format": "int32"
+          },
+          "hasMore": {
+            "type": "boolean",
+            "description": "Whether another page follows. Keep paging while this is true."
+          },
+          "nextCursor": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Cursor for the next page, to pass as `cursor`. Null when `hasMore` is false."
+          },
+          "next": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Relative URL of the next page, ready to request. Null when `hasMore` is false."
+          }
+        },
+        "description": "One page of `PublicPayer` items. Keep following `next` (or pass `nextCursor` as `cursor`) while `hasMore` is true."
+      },
+      "ProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "URI identifying the problem type."
+          },
+          "title": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Short, human-readable summary of the problem type."
+          },
+          "status": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "description": "The HTTP status code.",
+            "format": "int32"
+          },
+          "detail": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Human-readable explanation of this occurrence of the problem."
+          },
+          "instance": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "URI reference identifying this occurrence of the problem."
+          }
+        },
+        "description": "RFC 9457 problem details describing an error response."
+      },
+      "PublicAddress": {
+        "required": [
+          "line",
+          "line2",
+          "city",
+          "stateCode",
+          "state",
+          "postalCode",
+          "country"
+        ],
+        "type": "object",
+        "properties": {
+          "line": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Street address."
+          },
+          "line2": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Second address line."
+          },
+          "city": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "City name."
+          },
+          "stateCode": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Two-letter state code."
+          },
+          "state": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Full state name."
+          },
+          "postalCode": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Postal / ZIP code."
+          },
+          "country": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Country name."
+          }
+        },
+        "description": "A postal address."
+      },
+      "PublicChargeStatus": {
+        "enum": [
+          "active",
+          "closed",
+          "deleted"
+        ],
+        "description": "Whether a charge line is active, closed or deleted. `active`: open. `closed`: closed. `deleted`: removed from the claim by the practice. New values may be added: tolerate unknown values."
+      },
+      "PublicClaim": {
+        "required": [
+          "id",
+          "claimNumber",
+          "patientId",
+          "status",
+          "type",
+          "relatedClaimId",
+          "dateOfService",
+          "createdAt",
+          "submittedAt",
+          "closedAt",
+          "payerId",
+          "policyNumber",
+          "secondaryPayerId",
+          "secondaryPolicyNumber",
+          "appointmentId",
+          "invoiceId",
+          "locationId",
+          "serviceLocationId",
+          "providerId",
+          "referringProvider",
+          "amount",
+          "balanceDue",
+          "insuranceBalanceDue",
+          "patientBalanceDue",
+          "charges"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "The claim id, unique within the practice.",
+            "format": "int32"
+          },
+          "claimNumber": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The practice's claim number, or `null` when none was recorded."
+          },
+          "patientId": {
+            "type": "integer",
+            "description": "The patient the claim is for (the same id as in the public patients API).",
+            "format": "int32"
+          },
+          "status": {
+            "description": "Where the claim is in its life cycle.",
+            "$ref": "#/components/schemas/PublicClaimStatus"
+          },
+          "type": {
+            "description": "Whether this is a primary claim or a secondary claim created from one.",
+            "$ref": "#/components/schemas/PublicClaimType"
+          },
+          "relatedClaimId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "description": "For a secondary claim, the primary claim it was created from; otherwise `null`.",
+            "format": "int32"
+          },
+          "dateOfService": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The date of service, as a calendar date (no time zone), or `null` when none was recorded.",
+            "format": "date"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "When the claim was created, as a UTC instant.",
+            "format": "date-time"
+          },
+          "submittedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "When the claim was submitted to the payer, as a UTC instant, or `null` when it has not been submitted.",
+            "format": "date-time"
+          },
+          "closedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "When the claim was closed, as a UTC instant, or `null` when it has not been closed.",
+            "format": "date-time"
+          },
+          "payerId": {
+            "type": "integer",
+            "description": "The primary payer. Resolve it with `GET /v1/insurance/payers/{id}`; patient insurance policies use the same id.",
+            "format": "int32"
+          },
+          "policyNumber": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The patient's policy number with the primary payer, or `null` when none was recorded."
+          },
+          "secondaryPayerId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "description": "The secondary payer, or `null` when the claim has none.",
+            "format": "int32"
+          },
+          "secondaryPolicyNumber": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The patient's policy number with the secondary payer, or `null` when none was recorded."
+          },
+          "appointmentId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "description": "The appointment the claim bills, or `null` when it is not linked to one.",
+            "format": "int32"
+          },
+          "invoiceId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "description": "The invoice the claim bills, or `null` when it is not linked to one.",
+            "format": "int32"
+          },
+          "locationId": {
+            "type": "integer",
+            "description": "The practice location that bills the claim.",
+            "format": "int32"
+          },
+          "serviceLocationId": {
+            "type": "integer",
+            "description": "The practice location where the service was provided.",
+            "format": "int32"
+          },
+          "providerId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "description": "The rendering provider's user id, or `null` when none was recorded.",
+            "format": "int32"
+          },
+          "referringProvider": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "description": "The referring provider, or `null` when the claim has none.",
+                "$ref": "#/components/schemas/PublicReferringProvider"
+              }
+            ]
+          },
+          "amount": {
+            "type": "number",
+            "description": "The total billed amount.",
+            "format": "double"
+          },
+          "balanceDue": {
+            "type": "number",
+            "description": "What is still owed on the claim: `insuranceBalanceDue` plus `patientBalanceDue`.",
+            "format": "double"
+          },
+          "insuranceBalanceDue": {
+            "type": "number",
+            "description": "What the payers still owe on the claim.",
+            "format": "double"
+          },
+          "patientBalanceDue": {
+            "type": "number",
+            "description": "What the patient still owes on the claim.",
+            "format": "double"
+          },
+          "charges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublicClaimCharge"
+            },
+            "description": "The claim's charge lines, ordered by `order`, then `id`. Deleted lines are included."
+          }
+        },
+        "description": "An insurance claim: what the practice billed a payer for one patient, its status, and what is still owed. This is the\nentire externally exposed field set: it excludes claim revisions and every EDI, X12 or HCFA payload, free-text notes,\nthe prior-authorization code, condition-related-to and accident indicators, user ids, the patient's name and date of\nbirth, cases, authorizations, remittances and individual payments."
+      },
+      "PublicClaimCharge": {
+        "required": [
+          "id",
+          "order",
+          "status",
+          "procedure",
+          "modifiers",
+          "diagnoses",
+          "units",
+          "amount",
+          "isPercentage",
+          "balanceDue",
+          "insuranceBalanceDue",
+          "patientBalanceDue",
+          "invoiceItemId",
+          "drug"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "The charge id.",
+            "format": "int32"
+          },
+          "order": {
+            "type": "integer",
+            "description": "The line's position on the claim, starting at 1.",
+            "format": "int32"
+          },
+          "status": {
+            "description": "Whether the line is active, closed or deleted.",
+            "$ref": "#/components/schemas/PublicChargeStatus"
+          },
+          "procedure": {
+            "description": "The procedure (CPT or HCPCS) code billed.",
+            "$ref": "#/components/schemas/PublicCodeReference"
+          },
+          "modifiers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublicCodeReference"
+            },
+            "description": "The procedure modifiers, in the order they were added. Empty when there are none."
+          },
+          "diagnoses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublicCodeReference"
+            },
+            "description": "The diagnosis (ICD) codes the line points to, in the line's diagnosis order. Empty when there are none."
+          },
+          "units": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "description": "The number of units billed, or `null` when none was recorded.",
+            "format": "int32"
+          },
+          "amount": {
+            "type": "number",
+            "description": "The billed amount, or a percentage when `isPercentage` is true.",
+            "format": "double"
+          },
+          "isPercentage": {
+            "type": "boolean",
+            "description": "Whether `amount` is a percentage rather than a money amount."
+          },
+          "balanceDue": {
+            "type": "number",
+            "description": "What is still owed on the line: `insuranceBalanceDue` plus `patientBalanceDue`.",
+            "format": "double"
+          },
+          "insuranceBalanceDue": {
+            "type": "number",
+            "description": "What the payer still owes on the line.",
+            "format": "double"
+          },
+          "patientBalanceDue": {
+            "type": "number",
+            "description": "What the patient still owes on the line.",
+            "format": "double"
+          },
+          "invoiceItemId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "description": "The invoice item the line bills, or `null` when it is not linked to one.",
+            "format": "int32"
+          },
+          "drug": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "description": "The drug (NDC) billed on the line, or `null` when the line bills no drug.",
+                "$ref": "#/components/schemas/PublicDrug"
+              }
+            ]
+          }
+        },
+        "description": "A charge line on a claim: one billed procedure with its codes, units, amounts and balances."
+      },
+      "PublicClaimStatus": {
+        "enum": [
+          "active",
+          "closed",
+          "submitted",
+          "rejected",
+          "approved",
+          "deleted",
+          "draft",
+          "queued",
+          "transmitted",
+          "exported",
+          "denied",
+          "paidPatientDue",
+          "paymentReceivedNeedsReview",
+          "paymentReceivedAppealing",
+          "paymentReceivedReadyForSecondary",
+          "paymentReceivedSecondaryCreated",
+          "closedSecondaryCreated",
+          "transmitFailed"
+        ],
+        "description": "Where a claim is in its life cycle. `draft`: being prepared. `active`: open. `queued`: waiting to be sent. `transmitted`: sent to the clearinghouse. `transmitFailed`: sending failed. `exported`: exported for submission outside Symplast. `submitted`: submitted to the payer. `approved`: approved by the payer. `rejected`: rejected by the clearinghouse or payer. `denied`: denied by the payer. `paidPatientDue`: paid by the payer, with a balance left for the patient. `paymentReceivedNeedsReview`: a payment arrived and needs review. `paymentReceivedAppealing`: a payment arrived and is being appealed. `paymentReceivedReadyForSecondary`: a payment arrived and the balance is ready to bill to the secondary payer. `paymentReceivedSecondaryCreated`: a payment arrived and a secondary claim was created. `closedSecondaryCreated`: closed after a secondary claim was created. `closed`: closed. `deleted`: deleted by the practice. New values may be added: treat an unknown value as an open claim in an unrecognised state rather than failing."
+      },
+      "PublicClaimType": {
+        "enum": [
+          "primary",
+          "secondary"
+        ],
+        "description": "Whether a claim bills the primary payer or the secondary payer. `primary`: a claim to the patient's primary payer. `secondary`: a claim to the secondary payer, created from a primary claim (see `relatedClaimId`). New values may be added: tolerate unknown values."
+      },
+      "PublicCodeReference": {
+        "required": [
+          "code",
+          "description"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The code, or `null` when the catalog entry has none."
+          },
+          "description": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The catalog's description of the code, or `null` when it has none."
+          }
+        },
+        "description": "A billing code from the practice's code catalog, with its description."
+      },
+      "PublicDrug": {
+        "required": [
+          "ndcCode",
+          "quantity",
+          "unitOfMeasure"
+        ],
+        "type": "object",
+        "properties": {
+          "ndcCode": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The National Drug Code, or `null` when none was recorded."
+          },
+          "quantity": {
+            "type": "number",
+            "description": "The quantity billed, in `unitOfMeasure` units.",
+            "format": "double"
+          },
+          "unitOfMeasure": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The unit `quantity` is measured in (such as `ML` or `UN`), or `null` when none was recorded."
+          }
+        },
+        "description": "A drug billed on a charge line, identified by its National Drug Code."
+      },
+      "PublicPayer": {
+        "required": [
+          "id",
+          "name",
+          "ediPayerId",
+          "phone",
+          "phoneExtension",
+          "fax",
+          "address",
+          "isDeleted"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "The payer id, unique within the practice. The value claims and patient insurance policies use as `payerId`.",
+            "format": "int32"
+          },
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The company name, or `null` when none was recorded."
+          },
+          "ediPayerId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The payer id used on electronic claims (assigned by the clearinghouse), or `null` when none was recorded."
+          },
+          "phone": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The phone number as the practice entered it, or `null`."
+          },
+          "phoneExtension": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The phone extension, or `null`."
+          },
+          "fax": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "The fax number as the practice entered it, or `null`."
+          },
+          "address": {
+            "description": "The payer's claims mailing address. Every field is present; any the practice did not enter is `null`.",
+            "$ref": "#/components/schemas/PublicAddress"
+          },
+          "isDeleted": {
+            "type": "boolean",
+            "description": "Whether the practice has deleted the payer."
+          }
+        },
+        "description": "One of the practice's insurance companies (payers). Claims (`payerId`, `secondaryPayerId`) and patient insurance\npolicies refer to payers by `id`. Deleted payers remain visible with `isDeleted` true, so every reference resolves."
+      },
+      "PublicReferringProvider": {
+        "required": [
+          "id",
+          "firstName",
+          "lastName",
+          "npi"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "The referring provider id, unique within the practice.",
+            "format": "int32"
+          },
+          "firstName": {
+            "type": "string",
+            "description": "The provider's first name."
+          },
+          "lastName": {
+            "type": "string",
+            "description": "The provider's last name."
+          },
+          "npi": {
+            "type": "string",
+            "description": "The provider's National Provider Identifier."
+          }
+        },
+        "description": "The provider who referred the patient for the billed service."
+      }
+    },
+    "securitySchemes": {
+      "Bearer": {
+        "type": "http",
+        "description": "Bearer access token. Send it as the `Authorization: Bearer <token>` header.",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "security": [
+    {
+      "Bearer": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Claims",
+      "description": "Insurance claims: what the practice billed a payer for a patient, with each charge line's procedure, diagnosis and drug codes, its status, and what is still owed. List a patient's claims, or read one by id.",
+      "x-domain": "Insurance"
+    },
+    {
+      "name": "Payers",
+      "description": "The practice's insurance companies. Resolve the `payerId` of a claim or a patient insurance policy here, or list them all.",
+      "x-domain": "Insurance"
+    }
+  ]
+}
