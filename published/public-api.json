@@ -3,7 +3,7 @@
   "info": {
     "title": "Symplast Public API",
     "description": "The unified Symplast Public API surface, composed from each service specification.",
-    "version": "0.1.310"
+    "version": "0.1.311"
   },
   "servers": [
     {
@@ -256,7 +256,7 @@
                   "$ref": "#/components/schemas/ProblemDetails"
                 },
                 "example": {
-                  "type": "https://api.symplast.com/problems/appointments/internal-error",
+                  "type": "https://api.symplast.com/problems/internal-error",
                   "title": "Internal server error",
                   "status": 500,
                   "detail": "An unexpected error occurred.",
@@ -383,7 +383,7 @@
                   "$ref": "#/components/schemas/ProblemDetails"
                 },
                 "example": {
-                  "type": "https://api.symplast.com/problems/appointments/internal-error",
+                  "type": "https://api.symplast.com/problems/internal-error",
                   "title": "Internal server error",
                   "status": 500,
                   "detail": "An unexpected error occurred.",
@@ -455,7 +455,7 @@
                   "$ref": "#/components/schemas/ProblemDetails"
                 },
                 "example": {
-                  "type": "https://api.symplast.com/problems/appointments/internal-error",
+                  "type": "https://api.symplast.com/problems/internal-error",
                   "title": "Internal server error",
                   "status": 500,
                   "detail": "An unexpected error occurred.",
@@ -526,7 +526,7 @@
                   "$ref": "#/components/schemas/ProblemDetails"
                 },
                 "example": {
-                  "type": "https://api.symplast.com/problems/appointments/internal-error",
+                  "type": "https://api.symplast.com/problems/internal-error",
                   "title": "Internal server error",
                   "status": 500,
                   "detail": "An unexpected error occurred.",
@@ -598,7 +598,7 @@
                   "$ref": "#/components/schemas/ProblemDetails"
                 },
                 "example": {
-                  "type": "https://api.symplast.com/problems/appointments/internal-error",
+                  "type": "https://api.symplast.com/problems/internal-error",
                   "title": "Internal server error",
                   "status": 500,
                   "detail": "An unexpected error occurred.",
@@ -672,7 +672,7 @@
                   "$ref": "#/components/schemas/ProblemDetails"
                 },
                 "example": {
-                  "type": "https://api.symplast.com/problems/appointments/internal-error",
+                  "type": "https://api.symplast.com/problems/internal-error",
                   "title": "Internal server error",
                   "status": 500,
                   "detail": "An unexpected error occurred.",
@@ -742,7 +742,7 @@
                   "$ref": "#/components/schemas/ProblemDetails"
                 },
                 "example": {
-                  "type": "https://api.symplast.com/problems/appointments/internal-error",
+                  "type": "https://api.symplast.com/problems/internal-error",
                   "title": "Internal server error",
                   "status": 500,
                   "detail": "An unexpected error occurred.",
