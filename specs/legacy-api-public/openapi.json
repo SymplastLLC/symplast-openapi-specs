@@ -3,7 +3,7 @@
   "info": {
     "title": "Symplast Legacy Public API",
     "description": "Authenticated public read surface for a practice's structural reference data — its locations, its offices, and its practice profile. Read-only; every route is scoped to the authenticated tenant.",
-    "version": "8.14.3"
+    "version": "8.14.7"
   },
   "servers": [
     {
@@ -41,7 +41,7 @@
             }
           },
           "403": {
-            "description": "The token is valid but does not carry the required scope. The response is an RFC 9457 problem with code `insufficient_scope`."
+            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`."
           }
         }
       }
@@ -69,7 +69,7 @@
             }
           },
           "403": {
-            "description": "The token is valid but does not carry the required scope. The response is an RFC 9457 problem with code `insufficient_scope`."
+            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`."
           }
         }
       }
@@ -116,7 +116,7 @@
             }
           },
           "403": {
-            "description": "The token is valid but does not carry the required scope. The response is an RFC 9457 problem with code `insufficient_scope`."
+            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`."
           }
         }
       }
@@ -144,7 +144,7 @@
             }
           },
           "403": {
-            "description": "The token is valid but does not carry the required scope. The response is an RFC 9457 problem with code `insufficient_scope`."
+            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`."
           }
         }
       }
@@ -191,7 +191,7 @@
             }
           },
           "403": {
-            "description": "The token is valid but does not carry the required scope. The response is an RFC 9457 problem with code `insufficient_scope`."
+            "description": "The caller is not allowed to do this. A token without the required scope gets an RFC 9457 problem with code `insufficient_scope`."
           }
         }
       }
@@ -206,32 +206,37 @@
             "type": [
               "null",
               "string"
-            ]
+            ],
+            "description": "URI identifying the problem type."
           },
           "title": {
             "type": [
               "null",
               "string"
-            ]
+            ],
+            "description": "Short, human-readable summary of the problem type."
           },
           "status": {
             "type": [
               "null",
               "integer"
             ],
+            "description": "The HTTP status code.",
             "format": "int32"
           },
           "detail": {
             "type": [
               "null",
               "string"
-            ]
+            ],
+            "description": "Human-readable explanation of this occurrence of the problem."
           },
           "instance": {
             "type": [
               "null",
               "string"
-            ]
+            ],
+            "description": "URI reference identifying this occurrence of the problem."
           }
         },
         "description": "RFC 9457 problem details. The discriminating code is carried in the `code` extension member.",
