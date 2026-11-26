@@ -3,7 +3,7 @@
   "info": {
     "title": "Symplast Appointments Public API",
     "description": "Authenticated, cursor-paged public read surface for appointment data.",
-    "version": "1.94.17"
+    "version": "1.94.21"
   },
   "servers": [
     {
@@ -149,7 +149,7 @@
                   "$ref": "#/components/schemas/ProblemDetails"
                 },
                 "example": {
-                  "type": "https://api.symplast.com/problems/appointments/internal-error",
+                  "type": "https://api.symplast.com/problems/internal-error",
                   "title": "Internal server error",
                   "status": 500,
                   "detail": "An unexpected error occurred.",
@@ -271,7 +271,7 @@
                   "$ref": "#/components/schemas/ProblemDetails"
                 },
                 "example": {
-                  "type": "https://api.symplast.com/problems/appointments/internal-error",
+                  "type": "https://api.symplast.com/problems/internal-error",
                   "title": "Internal server error",
                   "status": 500,
                   "detail": "An unexpected error occurred.",
@@ -338,7 +338,7 @@
                   "$ref": "#/components/schemas/ProblemDetails"
                 },
                 "example": {
-                  "type": "https://api.symplast.com/problems/appointments/internal-error",
+                  "type": "https://api.symplast.com/problems/internal-error",
                   "title": "Internal server error",
                   "status": 500,
                   "detail": "An unexpected error occurred.",
@@ -404,7 +404,7 @@
                   "$ref": "#/components/schemas/ProblemDetails"
                 },
                 "example": {
-                  "type": "https://api.symplast.com/problems/appointments/internal-error",
+                  "type": "https://api.symplast.com/problems/internal-error",
                   "title": "Internal server error",
                   "status": 500,
                   "detail": "An unexpected error occurred.",
@@ -471,7 +471,7 @@
                   "$ref": "#/components/schemas/ProblemDetails"
                 },
                 "example": {
-                  "type": "https://api.symplast.com/problems/appointments/internal-error",
+                  "type": "https://api.symplast.com/problems/internal-error",
                   "title": "Internal server error",
                   "status": 500,
                   "detail": "An unexpected error occurred.",
@@ -540,7 +540,7 @@
                   "$ref": "#/components/schemas/ProblemDetails"
                 },
                 "example": {
-                  "type": "https://api.symplast.com/problems/appointments/internal-error",
+                  "type": "https://api.symplast.com/problems/internal-error",
                   "title": "Internal server error",
                   "status": 500,
                   "detail": "An unexpected error occurred.",
@@ -605,7 +605,7 @@
                   "$ref": "#/components/schemas/ProblemDetails"
                 },
                 "example": {
-                  "type": "https://api.symplast.com/problems/appointments/internal-error",
+                  "type": "https://api.symplast.com/problems/internal-error",
                   "title": "Internal server error",
                   "status": 500,
                   "detail": "An unexpected error occurred.",
