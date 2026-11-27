@@ -3,7 +3,7 @@
   "info": {
     "title": "Symplast Insurance Public API",
     "description": "Authenticated, read-only public surface for a patient's insurance claims, with their charge lines, and for the practice's insurance companies (payers).",
-    "version": "1.126.2"
+    "version": "1.127.2"
   },
   "servers": [
     {
