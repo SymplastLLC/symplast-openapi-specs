@@ -3,7 +3,7 @@
   "info": {
     "title": "Symplast Multimedia Public API",
     "description": "Authenticated public surface for patient photos, videos and documents: upload to a patient's chart, a change feed of file metadata, short-lived content links, practice albums, and file tags.",
-    "version": "2.81.4"
+    "version": "2.81.5"
   },
   "servers": [
     {
@@ -238,7 +238,7 @@
           "Files"
         ],
         "summary": "Get a short-lived download link",
-        "description": "**Required scope:** `multimedia.files.read`\n\nReturns a presigned URL for the file's `original` content (default) or, when `hasThumbnail` is true, its\n`large`, `medium` or `small` thumbnail, with the time it expires. Download it without an `Authorization`\nheader. Request a new link rather than caching one.",
+        "description": "**Required scope:** `multimedia.files.read`\n\nReturns a presigned URL for the file's `original` content (default) or, when `hasThumbnail` is true, its\n`large`, `medium` or `small` thumbnail, with the time it expires. Download it without an `Authorization`\nheader. Request a new link rather than caching one. JPEG, TIFF and HEIC originals are stored auto-oriented with\ntheir metadata removed, so the `original` download can differ from the uploaded bytes and from `size`.",
         "operationId": "GetFileContent",
         "parameters": [
           {
@@ -955,7 +955,7 @@
           },
           "size": {
             "type": "integer",
-            "description": "The size in bytes.",
+            "description": "The size in bytes of the file as uploaded. JPEG, TIFF and HEIC originals are stored auto-oriented with their metadata\nremoved, so their download can differ in size.",
             "format": "int64"
           },
           "status": {
@@ -1086,7 +1086,7 @@
             "items": {
               "type": "string"
             },
-            "description": "One to 50 tag names."
+            "description": "One to 50 tag names. A `null` name rejects the request."
           }
         },
         "description": "Regular tags to add to a file. Names are trimmed; a name matching a catalog tag (ignoring case) takes the catalog's\ncasing, and a new name joins the practice's tag catalog. System tags (names starting with `~`) are rejected."
@@ -1158,7 +1158,7 @@
               "null",
               "string"
             ],
-            "description": "The content's SHA-256 (hex). When given, a mismatch rejects the upload with `422 hash-mismatch`."
+            "description": "The SHA-256 (hex) of the content as uploaded. When given, a mismatch rejects the upload with `422 hash-mismatch`.\nA JPEG, TIFF or HEIC original is stored re-encoded, so its download has a different hash."
           }
         },
         "description": "A `multipart/form-data` upload of one file to a patient's chart."
