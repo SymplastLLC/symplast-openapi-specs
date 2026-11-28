@@ -3,7 +3,7 @@
   "info": {
     "title": "Symplast Patients Public API",
     "description": "Authenticated, minimal read-only public surface for patient records and their contact, emergency-contact, employment, referral and insurance information.",
-    "version": "1.74.20"
+    "version": "1.74.24"
   },
   "servers": [
     {
